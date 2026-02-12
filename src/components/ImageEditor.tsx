@@ -28,6 +28,7 @@ import { compressImage, formatFileSize } from '../lib/imageCompression';
 import { useAuth } from '../contexts/AuthContext';
 import { getDefaultAvatarAndLocationDetails, getUserAvatars, getUserLocations, type AvatarData, type LocationData } from '../services/settings';
 import { buildAvatarPromptFromProfile, buildLocationPromptFromProfile } from '../lib/promptBuilders';
+import { FashionLoader } from './ui/FashionLoader';
 
 interface ImageEditorProps {
   imageUrl: string;
@@ -160,6 +161,7 @@ export function ImageEditor({
   const { user } = useAuth();
   const [instruction, setInstruction] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [loadingContext, setLoadingContext] = useState<'model' | 'accessory' | 'background' | 'pose' | 'general'>('general');
   const [error, setError] = useState<string | null>(null);
   const [editHistory, setEditHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
@@ -371,6 +373,16 @@ export function ImageEditor({
     const promptToUse = buildFinalPrompt(enrichedPrompt);
 
     try {
+      if (isTryOnAction) {
+        setLoadingContext('model');
+      } else if (isBackgroundAction) {
+        setLoadingContext('background');
+      } else if (isPlaceAction) {
+        setLoadingContext('accessory');
+      } else {
+        setLoadingContext('general');
+      }
+
       setProcessing(true);
       setError(null);
 
@@ -481,6 +493,7 @@ export function ImageEditor({
 
   const handlePoseVariation = async (poseInstruction: string) => {
     try {
+      setLoadingContext('pose');
       setProcessing(true);
       setError(null);
 
@@ -773,11 +786,8 @@ export function ImageEditor({
              
 
               {processing && (
-                <div className="absolute inset-0 flex items-center justify-center z-[10]">
-                  <div className="bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-xl flex items-center gap-3">
-                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                    <span className="font-semibold text-slate-900">Edition en cours...</span>
-                  </div>
+                <div className="absolute inset-0 flex items-center justify-center z-[10] bg-white/95 backdrop-blur-md">
+                  <FashionLoader context={loadingContext} />
                 </div>
               )}
 
