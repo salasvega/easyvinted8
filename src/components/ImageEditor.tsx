@@ -23,7 +23,7 @@ import {
   Maximize2,
   Minimize2
 } from 'lucide-react';
-import { editProductImage } from '../lib/geminiService';
+import { editProductImage, generatePoseVariation, POSE_VARIATIONS } from '../lib/geminiService';
 import { compressImage, formatFileSize } from '../lib/imageCompression';
 import { useAuth } from '../contexts/AuthContext';
 import { getDefaultAvatarAndLocationDetails, getUserAvatars, getUserLocations, type AvatarData, type LocationData } from '../services/settings';
@@ -468,6 +468,77 @@ export function ImageEditor({
         if (err.message.includes('quota') || err.message.includes('RESOURCE_EXHAUSTED')) {
           errorMessage =
             "Quota Gemini dépassé. Le modèle de génération d'images Gemini nécessite un compte avec facturation activée. Veuillez activer la facturation sur console.cloud.google.com ou utiliser une clé API avec crédit disponible.";
+        } else {
+          errorMessage = err.message;
+        }
+      }
+
+      setError(errorMessage);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handlePoseVariation = async (poseInstruction: string) => {
+    try {
+      setProcessing(true);
+      setError(null);
+
+      const response = await fetch(currentImage);
+      const blob = await response.blob();
+
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result as string;
+          resolve(result.split(',')[1]);
+        };
+        reader.readAsDataURL(blob);
+      });
+
+      const mimeType = blob.type;
+
+      const editedImageBase64 = await generatePoseVariation(
+        base64,
+        mimeType,
+        poseInstruction
+      );
+
+      const editedImageDataUrl = `data:${mimeType};base64,${editedImageBase64}`;
+
+      const responseEdited = await fetch(editedImageDataUrl);
+      const editedBlob = await responseEdited.blob();
+      const tempFile = new File([editedBlob], 'pose-variation.jpg', { type: 'image/jpeg' });
+
+      const compressionResult = await compressImage(tempFile);
+      console.log(
+        `Compressed pose variation: ${formatFileSize(compressionResult.originalSize)} → ${formatFileSize(
+          compressionResult.compressedSize
+        )} (${compressionResult.compressionRatio.toFixed(1)}% reduction)`
+      );
+
+      const compressedBlob = compressionResult.file;
+      const compressedDataUrl = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(compressedBlob);
+      });
+
+      setEditHistory(prev => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push(compressedDataUrl);
+        return newHistory;
+      });
+      setHistoryIndex(prev => prev + 1);
+    } catch (err) {
+      console.error('Error generating pose variation:', err);
+
+      let errorMessage = "Erreur lors de la génération de la variation de pose";
+
+      if (err instanceof Error) {
+        if (err.message.includes('quota') || err.message.includes('RESOURCE_EXHAUSTED')) {
+          errorMessage =
+            "Quota Gemini dépassé. La génération de variations de pose nécessite un compte avec facturation activée.";
         } else {
           errorMessage = err.message;
         }
@@ -1057,6 +1128,33 @@ export function ImageEditor({
                   </div>
                   <span className="text-[9px] sm:text-[10px] font-bold text-violet-900 text-center leading-tight">Plier</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Variations de Pose */}
+            <div className="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 shadow-sm">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-900 mb-2 sm:mb-3 flex items-center gap-2">
+                <Move className="w-4 h-4 text-purple-600" />
+                Variations de Pose
+              </h3>
+              <p className="text-[10px] text-slate-600 mb-2">
+                Générer différentes perspectives de la même photo (personne, vêtement et fond identiques)
+              </p>
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+                {POSE_VARIATIONS.map((pose) => (
+                  <button
+                    key={pose.id}
+                    type="button"
+                    onClick={() => handlePoseVariation(pose.instruction)}
+                    disabled={processing}
+                    className="flex flex-col items-center gap-1 sm:gap-1.5 p-2 sm:p-2.5 bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 rounded-lg hover:from-purple-100 hover:to-purple-200 hover:border-purple-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed group"
+                  >
+                    <div className="p-1 sm:p-1.5 bg-purple-600 text-white rounded-md group-hover:scale-110 transition-transform duration-200">
+                      <Move size={14} className="sm:w-4 sm:h-4" />
+                    </div>
+                    <span className="text-[9px] sm:text-[10px] font-bold text-purple-900 text-center leading-tight">{pose.label}</span>
+                  </button>
+                ))}
               </div>
             </div>
 

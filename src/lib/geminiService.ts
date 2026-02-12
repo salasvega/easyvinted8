@@ -1071,3 +1071,77 @@ export const generateSpeech = async (text: string): Promise<ArrayBuffer> => {
     throw error;
   }
 };
+
+export const POSE_VARIATIONS = [
+  { id: 'frontal', label: 'Vue Frontale', instruction: 'Full frontal view, hands on hips' },
+  { id: 'three_quarter', label: 'Vue 3/4', instruction: 'Slightly turned, 3/4 view' },
+  { id: 'side_profile', label: 'Profil', instruction: 'Side profile view' },
+  { id: 'jumping', label: 'En Action', instruction: 'Jumping in the air, mid-action shot' },
+  { id: 'walking', label: 'En Marche', instruction: 'Walking towards camera' },
+  { id: 'leaning', label: 'Appuyé', instruction: 'Leaning against a wall' }
+] as const;
+
+export const generatePoseVariation = async (
+  base64Image: string,
+  mimeType: string,
+  poseInstruction: string
+): Promise<string> => {
+  const model = "gemini-2.5-flash-image";
+
+  const prompt = `You are an expert fashion photographer AI. Take this image and regenerate it from a different perspective. The person, clothing, and background style must remain identical. The new perspective should be: "${poseInstruction}". Return ONLY the final image.
+
+${HUMAN_IPHONE_CONSTRAINTS}
+
+CRITICAL REQUIREMENTS:
+- Keep the EXACT SAME person (body type, features, skin tone)
+- Keep the EXACT SAME clothing (colors, patterns, logos, details)
+- Keep the EXACT SAME background style and lighting
+- ONLY change the pose/angle/perspective as specified
+- Maintain the casual iPhone photo aesthetic
+- No studio look, no professional modeling`;
+
+  try {
+    const response = await getAI().models.generateContent({
+      model: model,
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              mimeType: mimeType,
+              data: base64Image,
+            },
+          },
+          { text: prompt },
+        ],
+      },
+    });
+
+    const parts = response.candidates?.[0]?.content?.parts;
+    if (parts) {
+      for (const part of parts) {
+        if (part.inlineData && part.inlineData.data) {
+          return part.inlineData.data;
+        }
+      }
+    }
+
+    throw new Error("No image data found in response");
+  } catch (error: any) {
+    console.error("Pose variation generation failed:", error);
+
+    if (
+      error?.message?.includes("quota") ||
+      error?.message?.includes("RESOURCE_EXHAUSTED")
+    ) {
+      throw new Error(
+        "Quota Gemini dépassé. La génération de variations de pose nécessite un compte avec facturation activée."
+      );
+    }
+
+    if (error?.message?.includes("API key")) {
+      throw new Error("Clé API Gemini invalide. Vérifiez votre configuration.");
+    }
+
+    throw error;
+  }
+};
