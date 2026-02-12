@@ -1,0 +1,172 @@
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+/* Global Typography */
+.virtual-stylist {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.virtual-stylist h1,
+.virtual-stylist h2,
+.virtual-stylist h3 {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Glassmorphism Effects */
+.glass {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Animations */
+@keyframes reverse-spin {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-reverse-spin {
+  animation: reverse-spin 1.5s linear infinite;
+}
+
+/* Hover Effects */
+.studio-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.studio-button:hover {
+  transform: scale(1.02);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+}
+
+.studio-button:active {
+  transform: scale(0.98);
+}
+
+/* Card Effects */
+.studio-card {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.studio-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.2);
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #000000 0%, #434343 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Smooth Transitions */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Selection */
+.virtual-stylist ::selection {
+  background-color: #000;
+  color: #fff;
+}
+
+/* Scrollbar Custom */
+.virtual-stylist::-webkit-scrollbar {
+  width: 8px;
+}
+
+.virtual-stylist::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.virtual-stylist::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.virtual-stylist::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Focus States */
+.virtual-stylist button:focus,
+.virtual-stylist input:focus,
+.virtual-stylist textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Eye Glow Effect */
+.eye-button {
+  position: relative;
+  overflow: visible;
+}
+
+.eye-button::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.eye-button:hover::after {
+  opacity: 0.2;
+  box-shadow: 0 0 20px currentColor;
+}
+
+/* Loading Shimmer */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes shimmer-bg {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(to right, #f0f0f0 0%, #f8f8f8 50%, #f0f0f0 100%);
+  background-size: 2000px 100%;
+  animation: shimmer-bg 2s infinite linear;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+}
+
+/* Hover Lift Effect */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}

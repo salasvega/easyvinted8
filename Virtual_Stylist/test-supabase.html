@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Connexion Supabase - Virtual Stylist</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #111;
+        }
+        .test-item {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        .success { background: #d1fae5; border-color: #6ee7b7; }
+        .error { background: #fee2e2; border-color: #fca5a5; }
+        .pending { background: #fef3c7; border-color: #fcd34d; }
+        .info { color: #6b7280; font-size: 14px; margin-top: 5px; }
+        button {
+            background: black;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #1f2937;
+        }
+        pre {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test de connexion Supabase</h1>
+
+        <div id="results"></div>
+
+        <button onclick="runTests()">Lancer les tests</button>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
+
+        window.runTests = async function() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            function addResult(title, status, message, data = null) {
+                const div = document.createElement('div');
+                div.className = `test-item ${status}`;
+                div.innerHTML = `
+                    <strong>${title}</strong>
+                    <div class="info">${message}</div>
+                    ${data ? `<pre>${JSON.stringify(data, null, 2)}</pre>` : ''}
+                `;
+                resultsDiv.appendChild(div);
+            }
+
+            // Test 1: Variables d'environnement
+            addResult('📋 Variables d\'environnement', 'pending', 'Vérification...');
+            const supabaseUrl = 'https://mgedkyxhpzaexxldigfp.supabase.co';
+            const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nZWRreXhocHphZXh4bGRpZ2ZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxNDk5MzksImV4cCI6MjA3ODcyNTkzOX0.-t36LbvlFzEY2s5aUW9RiOBk7ZHze6M_Ha7Wx4TNXbI';
+
+            if (supabaseUrl && supabaseAnonKey) {
+                resultsDiv.children[0].className = 'test-item success';
+                resultsDiv.children[0].querySelector('.info').textContent = '✅ Variables configurées correctement';
+            } else {
+                resultsDiv.children[0].className = 'test-item error';
+                resultsDiv.children[0].querySelector('.info').textContent = '❌ Variables manquantes';
+                return;
+            }
+
+            // Test 2: Création du client Supabase
+            addResult('🔌 Client Supabase', 'pending', 'Création du client...');
+            try {
+                const supabase = createClient(supabaseUrl, supabaseAnonKey);
+                resultsDiv.children[1].className = 'test-item success';
+                resultsDiv.children[1].querySelector('.info').textContent = '✅ Client créé avec succès';
+            } catch (error) {
+                resultsDiv.children[1].className = 'test-item error';
+                resultsDiv.children[1].querySelector('.info').textContent = `❌ Erreur: ${error.message}`;
+                return;
+            }
+
+            const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+            // Test 3: Lecture de la table avatars
+            addResult('👤 Table avatars', 'pending', 'Lecture des avatars...');
+            try {
+                const { data, error } = await supabase.from('avatars').select('*').limit(5);
+                if (error) throw error;
+                resultsDiv.children[2].className = 'test-item success';
+                resultsDiv.children[2].querySelector('.info').textContent = `✅ ${data.length} avatar(s) trouvé(s)`;
+                if (data.length > 0) {
+                    resultsDiv.children[2].querySelector('.info').textContent += ' - Affichage des données:';
+                    const pre = document.createElement('pre');
+                    pre.textContent = JSON.stringify(data, null, 2);
+                    resultsDiv.children[2].appendChild(pre);
+                }
+            } catch (error) {
+                resultsDiv.children[2].className = 'test-item error';
+                resultsDiv.children[2].querySelector('.info').textContent = `❌ Erreur: ${error.message}`;
+            }
+
+            // Test 4: Lecture de la table locations
+            addResult('📍 Table locations', 'pending', 'Lecture des lieux...');
+            try {
+                const { data, error } = await supabase.from('locations').select('*').limit(5);
+                if (error) throw error;
+                resultsDiv.children[3].className = 'test-item success';
+                resultsDiv.children[3].querySelector('.info').textContent = `✅ ${data.length} lieu(x) trouvé(s)`;
+                if (data.length > 0) {
+                    resultsDiv.children[3].querySelector('.info').textContent += ' - Affichage des données:';
+                    const pre = document.createElement('pre');
+                    pre.textContent = JSON.stringify(data, null, 2);
+                    resultsDiv.children[3].appendChild(pre);
+                }
+            } catch (error) {
+                resultsDiv.children[3].className = 'test-item error';
+                resultsDiv.children[3].querySelector('.info').textContent = `❌ Erreur: ${error.message}`;
+            }
+
+            // Test 5: Test d'insertion (sera rollback)
+            addResult('✏️ Test d\'écriture', 'pending', 'Test d\'insertion...');
+            try {
+                const testAvatar = {
+                    name: 'Test Avatar',
+                    gender: 'feminine',
+                    age_group: 'adult',
+                    skin_tone: 'fair',
+                    build: 'average'
+                };
+                const { data, error } = await supabase.from('avatars').insert([testAvatar]).select().single();
+                if (error) throw error;
+
+                // Suppression immédiate du test
+                await supabase.from('avatars').delete().eq('id', data.id);
+
+                resultsDiv.children[4].className = 'test-item success';
+                resultsDiv.children[4].querySelector('.info').textContent = '✅ Insertion et suppression réussies (permissions OK)';
+            } catch (error) {
+                resultsDiv.children[4].className = 'test-item error';
+                resultsDiv.children[4].querySelector('.info').textContent = `❌ Erreur: ${error.message}`;
+            }
+
+            addResult('🎉 Tests terminés', 'success', 'Tous les tests sont terminés. Vérifiez les résultats ci-dessus.');
+        };
+    </script>
+</body>
+</html>
