@@ -649,7 +649,7 @@ export function ImageEditor({
                         Studio Magik-AI
                       </h3>
                       <p className="text-slate-700 text-sm leading-relaxed">
-                        Choisissez une option, une pose ou décrivez les modifications que vous souhaitez apporter à la aphoto séléctionnée pour mettre en valeur votre article. Cliquez sur Editer et laissez le Studio Magik-AI les réaliser!
+                        Choisissez un Modèle (avatar), une option, une pose ou décrivez les modifications souhaitées pour sublimer votre article, puis cliquez sur Éditer : le Studio Magik-AI s’occupe du reste.
                         <br />
                         <br />
                         ⚠️ Les rendus générés ont volontairement un style naturel, "vrai iPhone / pas pro", car Vinted n'aime pas les photos trop parfaites. On pense à tout :)
