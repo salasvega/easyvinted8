@@ -673,7 +673,7 @@ Sélectionnez-le, choisissez l’option “Porté” et laissez la magie opérer
                         >
                           Cabine d'essayage
                         </a>
-                        {' '}pour gérer vos Modèles personnalisés.
+                        {' '}pour gérer vos avatars personnalisés.
                       </p>
                     </div>
                     <button
