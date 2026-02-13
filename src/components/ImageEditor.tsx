@@ -658,7 +658,7 @@ export function ImageEditor({
                         Tips : Si vous êtes trop moche pour porter vous même l'article, séléctionnez le Modèle (Avatar) qui posera pour vous puis cliquez sur l'option "Porté" et laissez la magie agir! (Le studio fera en sorte que son visage soit masqué/coupé... Les avatars aussi sont timides :)
                         <br />
                         <br />
-                        <span className="text-blue-700 font-medium">💡 Besoin d'ajouter ou modifier un Modèle (avatar) ou des Fonds (décors) ?</span>
+                        <span className="text-blue-700 font-medium">💡 Besoin d'ajouter ou modifier un Modèle (avatar) ou des Fonds (décors)?</span>
                         <br />
                         Rendez-vous dans la{' '}
                         <a
