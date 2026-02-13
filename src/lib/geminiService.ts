@@ -1,4 +1,3 @@
-```ts
 // src/lib/geminiService.ts
 import { GoogleGenAI, Type } from "@google/genai";
 
@@ -57,7 +56,7 @@ function finishReasonToCode(fr?: GeminiFinishReason) {
   if (!fr || fr === "STOP") return null;
   if (fr === "SAFETY" || fr === "IMAGE_SAFETY") return "GEMINI_BLOCKED_SAFETY";
   if (fr === "IMAGE_OTHER") return "GEMINI_IMAGE_OTHER";
-  return `GEMINI_${fr}`;
+  return "GEMINI_" + fr;
 }
 
 function normalizeBase64Data(data: string): string {
@@ -106,7 +105,7 @@ async function generateImageWithMeta(args: {
   });
 
   const meta = extractMeta(response);
-  console.error(`[Gemini ${args.label}] meta:`, meta);
+  console.error("[Gemini " + args.label + "] meta:", meta);
 
   const code = finishReasonToCode(meta.finishReason);
   if (code) throw new Error(code);
@@ -153,7 +152,7 @@ export const analyzeProductImage = async (
   const model = "gemini-2.5-flash";
 
   const writingStyleInstruction = writingStyle
-    ? `\n    WRITING STYLE: When generating the title and description, use this specific writing style:\n    ${writingStyle}\n    `
+    ? "\n    WRITING STYLE: When generating the title and description, use this specific writing style:\n    " + writingStyle + "\n    "
     : "";
 
   const prompt = `
@@ -311,9 +310,7 @@ export const editProductImage = async (
 ): Promise<string> => {
   const model = "gemini-2.5-flash-image";
 
-  const enhancedInstruction = `${instruction}
-${HUMAN_IPHONE_CONSTRAINTS}
-Preserve product details perfectly (logos/text/labels), keep product as focal point, no distortions.`;
+  const enhancedInstruction = instruction + "\n" + HUMAN_IPHONE_CONSTRAINTS + "\nPreserve product details perfectly (logos/text/labels), keep product as focal point, no distortions.";
 
   try {
     const parts: any[] = [
@@ -1124,4 +1121,3 @@ Return ONLY the final image.
     throw new Error("Impossible de generer la variation de pose pour le moment.");
   }
 };
-```

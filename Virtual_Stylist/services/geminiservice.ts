@@ -314,8 +314,7 @@ Important: Create a realistic, natural-looking person suitable for virtual fashi
     // Vérifier si la génération a été bloquée pour des raisons de sécurité
     const firstCandidate = response.candidates?.[0];
     if (firstCandidate?.finishReason && firstCandidate.finishReason !== 'STOP') {
-      console.error('Generation stopped with reason:', firstCandidate.finishReason);
-      throw new Error(`La génération a été arrêtée: ${firstCandidate.finishReason}. Essayez de simplifier votre description ou modifiez les caractéristiques.`);
+      throw handleSafetyError(firstCandidate.finishReason, firstCandidate.safetyRatings);
     }
 
     const parts = response.candidates?.[0]?.content?.parts;
@@ -462,8 +461,7 @@ ${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n\n` : '
 
     const firstCandidate = response.candidates?.[0];
     if (firstCandidate?.finishReason && firstCandidate.finishReason !== 'STOP') {
-      console.error('Generation stopped with reason:', firstCandidate.finishReason);
-      throw new Error(`La génération a été arrêtée: ${firstCandidate.finishReason}. Essayez avec une autre photo de référence.`);
+      throw handleSafetyError(firstCandidate.finishReason, firstCandidate.safetyRatings);
     }
 
     const parts = response.candidates?.[0]?.content?.parts;
@@ -562,8 +560,7 @@ IMPORTANT: Do NOT default to a generic studio/loft if something else is describe
 
     const firstCandidate = response.candidates?.[0];
     if (firstCandidate?.finishReason && firstCandidate.finishReason !== 'STOP') {
-      console.error('Generation stopped with reason:', firstCandidate.finishReason);
-      throw new Error(`La génération a été arrêtée: ${firstCandidate.finishReason}. Essayez de modifier votre description de lieu.`);
+      throw handleSafetyError(firstCandidate.finishReason, firstCandidate.safetyRatings);
     }
 
     const parts = response.candidates?.[0]?.content?.parts;
@@ -591,6 +588,41 @@ IMPORTANT: Do NOT default to a generic studio/loft if something else is describe
 
     throw error;
   }
+};
+
+const handleSafetyError = (finishReason: string, safetyRatings?: any[]): Error => {
+  console.error('Generation blocked - Safety ratings:', JSON.stringify(safetyRatings, null, 2));
+
+  if (finishReason === 'SAFETY' || finishReason === 'IMAGE_SAFETY') {
+    const blockedCategories = safetyRatings
+      ?.filter(r => r.probability === 'HIGH' || r.probability === 'MEDIUM')
+      .map(r => r.category)
+      .join(', ');
+
+    return new Error(
+      `La génération a été bloquée par les filtres de sécurité Gemini (${finishReason}).\n\n` +
+      `Catégories déclenchées: ${blockedCategories || 'Non spécifié'}\n\n` +
+      `Solutions:\n` +
+      `• Utilisez une photo de modèle avec plus de vêtements (débardeur + short)\n` +
+      `• Essayez un cadrage différent (face caméra, bras le long du corps)\n` +
+      `• Utilisez des images plus nettes et professionnelles\n` +
+      `• Si vous essayez des maillots/lingerie, commencez par des vêtements couvrants\n\n` +
+      `Note: Ces filtres sont appliqués par Google et échappent à notre contrôle.`
+    );
+  }
+
+  if (finishReason === 'IMAGE_OTHER') {
+    return new Error(
+      `La génération a échoué pour des raisons techniques (${finishReason}).\n\n` +
+      `Solutions:\n` +
+      `• Vérifiez la qualité de vos images (résolution, netteté)\n` +
+      `• Essayez de recompresser vos images\n` +
+      `• Utilisez des images au format JPEG plutôt que PNG\n` +
+      `• Réessayez dans quelques instants`
+    );
+  }
+
+  return new Error(`La génération a été arrêtée: ${finishReason}. Essayez avec d'autres images ou paramètres.`);
 };
 
 export const performVirtualTryOn = async (
@@ -723,8 +755,7 @@ The goal is a perfectly believable, professional product photo where an expert c
 
       const firstCandidate = response.candidates?.[0];
       if (firstCandidate?.finishReason && firstCandidate.finishReason !== 'STOP') {
-        console.error('Generation stopped with reason:', firstCandidate.finishReason);
-        throw new Error(`La composition a été arrêtée: ${firstCandidate.finishReason}. Essayez avec d'autres images.`);
+        throw handleSafetyError(firstCandidate.finishReason, firstCandidate.safetyRatings);
       }
 
       const responseParts = response.candidates?.[0]?.content?.parts;
@@ -1036,18 +1067,7 @@ The result should look like a natural photograph taken in this location with thi
 
     const firstCandidate = response.candidates?.[0];
     if (firstCandidate?.finishReason && firstCandidate.finishReason !== 'STOP') {
-      console.error('Generation stopped with reason:', firstCandidate.finishReason);
-      console.error('Safety ratings:', firstCandidate.safetyRatings);
-
-      if (firstCandidate.finishReason === 'SAFETY' || firstCandidate.finishReason === 'IMAGE_OTHER') {
-        throw new Error(
-          "La génération a été bloquée par les filtres de sécurité de Gemini. " +
-          "Cela peut arriver avec certaines images de mode (maillots de bain, lingerie). " +
-          "Essayez avec une photo de modèle différente ou un vêtement plus couvrant, ou contactez le support technique si le problème persiste."
-        );
-      }
-
-      throw new Error(`L'essayage virtuel a été arrêté: ${firstCandidate.finishReason}. Essayez avec d'autres images.`);
+      throw handleSafetyError(firstCandidate.finishReason, firstCandidate.safetyRatings);
     }
 
     const responseParts = response.candidates?.[0]?.content?.parts;
@@ -1447,8 +1467,7 @@ Technical requirements:
 
     const firstCandidate = response.candidates?.[0];
     if (firstCandidate?.finishReason && firstCandidate.finishReason !== 'STOP') {
-      console.error('Generation stopped with reason:', firstCandidate.finishReason);
-      throw new Error(`La génération a été arrêtée: ${firstCandidate.finishReason}. Essayez de modifier votre description.`);
+      throw handleSafetyError(firstCandidate.finishReason, firstCandidate.safetyRatings);
     }
 
     const parts = response.candidates?.[0]?.content?.parts;
@@ -1638,8 +1657,7 @@ IMPORTANT: The final portrait must be clean, high-quality, and suitable for virt
 
     const firstCandidate = response.candidates?.[0];
     if (firstCandidate?.finishReason && firstCandidate.finishReason !== 'STOP') {
-      console.error('Generation stopped with reason:', firstCandidate.finishReason);
-      throw new Error(`L'amélioration a été arrêtée: ${firstCandidate.finishReason}. Essayez avec une autre photo.`);
+      throw handleSafetyError(firstCandidate.finishReason, firstCandidate.safetyRatings);
     }
 
     const parts = response.candidates?.[0]?.content?.parts;
