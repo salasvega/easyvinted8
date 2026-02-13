@@ -21,6 +21,8 @@ import {
   Users,
   Shirt,
   ChevronDown,
+  Package,
+  Settings,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import "../styles/navigation.css";
@@ -150,128 +152,106 @@ export function HomePage() {
                   {showUserMenu && (
                     <div className={`dropdown-menu dropdown-menu-large ${closingUserMenu ? "closing" : ""}`}>
                       {/* Section Pages */}
-                      <div className="border-b border-gray-200">
+                      <div className="border-b border-gray-100">
                         <button
                           onClick={() => setPagesExpanded(!pagesExpanded)}
-                          className="w-full px-4 py-3 flex items-center justify-between text-gray-900 hover:bg-gray-50 transition-colors"
+                          className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
                         >
-                          <div className="flex items-center gap-2">
-                            <LayoutDashboard className="w-4 h-4" />
-                            <span className="text-sm font-bold uppercase tracking-wider">Pages</span>
-                          </div>
-                          <ChevronDown
-                            className={`w-4 h-4 transition-transform duration-200 ${pagesExpanded ? "rotate-180" : ""}`}
-                          />
+                          <span className="flex items-center gap-2">
+                            <Package className="w-4 h-4" />
+                            Pages
+                          </span>
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${pagesExpanded ? "rotate-180" : ""}`} />
                         </button>
 
-                        <div
-                          className="overflow-hidden transition-all duration-200"
-                          style={{
-                            maxHeight: pagesExpanded ? "500px" : "0",
-                            opacity: pagesExpanded ? 1 : 0,
-                          }}
-                        >
-                          <div className="pb-2">
-                            <Link
-                              to="/mon_dressing"
-                              onClick={() => closeMenuWithAnimation()}
-                              className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                                isActive("/mon_dressing")
-                                  ? "bg-emerald-50 text-emerald-700 shadow-sm"
-                                  : "text-gray-700 hover:bg-gray-50"
-                              }`}
-                            >
-                              <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                              Mon dressing
-                            </Link>
+                        <div className={`overflow-hidden transition-all duration-300 ${pagesExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
+                          <Link
+                            to="/mon_dressing"
+                            onClick={() => closeMenuWithAnimation()}
+                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                              isActive("/mon_dressing") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                            style={{ animationDelay: showUserMenu && pagesExpanded ? "50ms" : "0ms" }}
+                          >
+                            <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            Mon dressing
+                          </Link>
 
-                            <Link
-                              to="/virtual-stylist"
-                              onClick={() => closeMenuWithAnimation()}
-                              className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                                isActive("/virtual-stylist")
-                                  ? "bg-emerald-50 text-emerald-700 shadow-sm"
-                                  : "text-gray-700 hover:bg-gray-50"
-                              }`}
-                            >
-                              <Shirt className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                              Cabine d'essayage
-                            </Link>
-                          </div>
+                          <Link
+                            to="/virtual-stylist"
+                            onClick={() => closeMenuWithAnimation()}
+                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                              isActive("/virtual-stylist") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                            style={{ animationDelay: showUserMenu && pagesExpanded ? "90ms" : "0ms" }}
+                          >
+                            <Shirt className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            Cabine d'essayage
+                          </Link>
                         </div>
                       </div>
 
                       {/* Section Actions */}
-                      <div className="border-b border-gray-200">
+                      <div className="border-b border-gray-100">
                         <button
                           onClick={() => setActionsExpanded(!actionsExpanded)}
-                          className="w-full px-4 py-3 flex items-center justify-between text-gray-900 hover:bg-gray-50 transition-colors"
+                          className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
                         >
-                          <div className="flex items-center gap-2">
+                          <span className="flex items-center gap-2">
                             <Shield className="w-4 h-4" />
-                            <span className="text-sm font-bold uppercase tracking-wider">Actions</span>
-                          </div>
-                          <ChevronDown
-                            className={`w-4 h-4 transition-transform duration-200 ${actionsExpanded ? "rotate-180" : ""}`}
-                          />
+                            Actions
+                          </span>
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${actionsExpanded ? "rotate-180" : ""}`} />
                         </button>
 
-                        <div
-                          className="overflow-hidden transition-all duration-200"
-                          style={{
-                            maxHeight: actionsExpanded ? "500px" : "0",
-                            opacity: actionsExpanded ? 1 : 0,
-                          }}
-                        >
-                          <div className="pb-2">
-                            <Link
-                              to="/planner"
-                              onClick={() => closeMenuWithAnimation()}
-                              className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                                isActive("/planner") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                              }`}
-                            >
-                              <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                              Planificateur
-                            </Link>
+                        <div className={`overflow-hidden transition-all duration-300 ${actionsExpanded ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"}`}>
+                          <Link
+                            to="/planner"
+                            onClick={() => closeMenuWithAnimation()}
+                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                              isActive("/planner") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                            style={{ animationDelay: showUserMenu && actionsExpanded ? "50ms" : "0ms" }}
+                          >
+                            <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            Planificateur
+                          </Link>
 
-                            <Link
-                              to="/admin/agent-publisher-ia"
-                              onClick={() => closeMenuWithAnimation()}
-                              className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                                isActive("/admin/agent-publisher-ia")
-                                  ? "bg-slate-50 text-slate-900 shadow-sm"
-                                  : "text-gray-700 hover:bg-gray-50"
-                              }`}
-                            >
-                              <Bot className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                              Agent Publisher IA
-                            </Link>
+                          <Link
+                            to="/admin/agent-publisher-ia"
+                            onClick={() => closeMenuWithAnimation()}
+                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                              isActive("/admin/agent-publisher-ia") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                            style={{ animationDelay: showUserMenu && actionsExpanded ? "90ms" : "0ms" }}
+                          >
+                            <Bot className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            Agent Publisher IA
+                          </Link>
 
-                            <Link
-                              to="/admin/publication-monitor"
-                              onClick={() => closeMenuWithAnimation()}
-                              className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                                isActive("/admin/publication-monitor")
-                                  ? "bg-slate-50 text-slate-900 shadow-sm"
-                                  : "text-gray-700 hover:bg-gray-50"
-                              }`}
-                            >
-                              <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                              Monitoring publications
-                            </Link>
+                          <Link
+                            to="/admin/publication-monitor"
+                            onClick={() => closeMenuWithAnimation()}
+                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                              isActive("/admin/publication-monitor") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                            style={{ animationDelay: showUserMenu && actionsExpanded ? "130ms" : "0ms" }}
+                          >
+                            <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            Monitoring publications
+                          </Link>
 
-                            <Link
-                              to="/analytics"
-                              onClick={() => closeMenuWithAnimation()}
-                              className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                                isActive("/analytics") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                              }`}
-                            >
-                              <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                              Statistiques
-                            </Link>
-                          </div>
+                          <Link
+                            to="/analytics"
+                            onClick={() => closeMenuWithAnimation()}
+                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                              isActive("/analytics") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                            style={{ animationDelay: showUserMenu && actionsExpanded ? "170ms" : "0ms" }}
+                          >
+                            <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            Statistiques
+                          </Link>
                         </div>
                       </div>
 
@@ -279,59 +259,50 @@ export function HomePage() {
                       <div>
                         <button
                           onClick={() => setConfigExpanded(!configExpanded)}
-                          className="w-full px-4 py-3 flex items-center justify-between text-gray-900 hover:bg-gray-50 transition-colors"
+                          className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
                         >
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4" />
-                            <span className="text-sm font-bold uppercase tracking-wider">Configuration</span>
-                          </div>
-                          <ChevronDown
-                            className={`w-4 h-4 transition-transform duration-200 ${configExpanded ? "rotate-180" : ""}`}
-                          />
+                          <span className="flex items-center gap-2">
+                            <Settings className="w-4 h-4" />
+                            Configuration
+                          </span>
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${configExpanded ? "rotate-180" : ""}`} />
                         </button>
 
-                        <div
-                          className="overflow-hidden transition-all duration-200"
-                          style={{
-                            maxHeight: configExpanded ? "500px" : "0",
-                            opacity: configExpanded ? 1 : 0,
-                          }}
-                        >
-                          <div className="pb-2">
-                            <Link
-                              to="/profile"
-                              onClick={() => closeMenuWithAnimation()}
-                              className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                                isActive("/profile") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                              }`}
-                            >
-                              <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <span className="text-xs font-semibold text-white">
-                                  {user?.email ? getInitials(user.email) : "U"}
-                                </span>
-                              </div>
-                              Mon Profil
-                            </Link>
+                        <div className={`overflow-hidden transition-all duration-300 ${configExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
+                          <Link
+                            to="/profile"
+                            onClick={() => closeMenuWithAnimation()}
+                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                              isActive("/profile") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                            style={{ animationDelay: showUserMenu && configExpanded ? "50ms" : "0ms" }}
+                          >
+                            <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                              <span className="text-xs font-semibold text-white">{user?.email ? getInitials(user.email) : "U"}</span>
+                            </div>
+                            Mon Profil
+                          </Link>
 
-                            <Link
-                              to="/family"
-                              onClick={() => closeMenuWithAnimation()}
-                              className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                                isActive("/family") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                              }`}
-                            >
-                              <Users className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                              Vendeurs
-                            </Link>
+                          <Link
+                            to="/family"
+                            onClick={() => closeMenuWithAnimation()}
+                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                              isActive("/family") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                            }`}
+                            style={{ animationDelay: showUserMenu && configExpanded ? "90ms" : "0ms" }}
+                          >
+                            <Users className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            Vendeurs
+                          </Link>
 
-                            <button
-                              onClick={handleSignOut}
-                              className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
-                            >
-                              <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
-                              Se déconnecter
-                            </button>
-                          </div>
+                          <button
+                            onClick={handleSignOut}
+                            className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
+                            style={{ animationDelay: showUserMenu && configExpanded ? "130ms" : "0ms" }}
+                          >
+                            <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
+                            Se déconnecter
+                          </button>
                         </div>
                       </div>
                     </div>
