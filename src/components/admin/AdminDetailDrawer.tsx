@@ -1,4 +1,4 @@
-import { X, Package, ClipboardEdit, Upload, Calendar, DollarSign, Trash2, FileText, CheckCircle2, Clock, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, ExternalLink, ChevronLeft, ChevronRight, Tag, Layers, TrendingDown, ArrowLeft, Hash, Search, TrendingUp, Zap, ChevronDown, Loader, AlertCircle } from 'lucide-react';
+import { X, Package, ClipboardEdit, Upload, Calendar, DollarSign, Trash2, FileText, CheckCircle2, Clock, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, ExternalLink, ChevronLeft, ChevronRight, Tag, Layers, TrendingDown, ArrowLeft, Hash, Search, TrendingUp, Zap, ChevronDown, Loader, AlertCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { ArticleStatus, Season } from '../../types/article';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
@@ -183,6 +183,7 @@ export function AdminDetailDrawer({
   const [scheduleSaving, setScheduleSaving] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [seoExpanded, setSeoExpanded] = useState(false);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -515,6 +516,13 @@ export function AdminDetailDrawer({
                     alt={item.title}
                     className="w-full h-full object-cover"
                   />
+                  <button
+                    onClick={() => setEnlargedImage(item.photos[currentPhotoIndex])}
+                    className="absolute top-3 right-3 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
+                    title="Agrandir l'image"
+                  >
+                    <Maximize2 className="w-5 h-5" />
+                  </button>
                   {item.photos.length > 1 && (
                     <>
                       <button
@@ -1079,6 +1087,13 @@ export function AdminDetailDrawer({
                         alt={selectedArticle.title}
                         className="w-full h-full object-cover"
                       />
+                      <button
+                        onClick={() => setEnlargedImage(selectedArticle.photos[articlePhotoIndex])}
+                        className="absolute top-3 right-3 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
+                        title="Agrandir l'image"
+                      >
+                        <Maximize2 className="w-5 h-5" />
+                      </button>
                       {selectedArticle.photos.length > 1 && (
                         <>
                           <button
@@ -1309,6 +1324,32 @@ export function AdminDetailDrawer({
               >
                 {scheduleSaving ? 'Programmation…' : 'Programmer'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {enlargedImage && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-lg flex items-center justify-center p-4 sm:p-6 lg:p-8 animate-in fade-in duration-200"
+          onClick={() => setEnlargedImage(null)}
+        >
+          <div className="relative w-full h-full max-w-7xl max-h-[90vh] flex items-center justify-center">
+            <button
+              onClick={() => setEnlargedImage(null)}
+              className="absolute top-0 right-0 sm:top-4 sm:right-4 p-3 sm:p-4 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all backdrop-blur-sm z-10"
+              title="Reduire"
+            >
+              <Minimize2 className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            <img
+              src={enlargedImage}
+              alt="Image agrandie"
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs sm:text-sm font-medium">
+              Cliquez en dehors pour fermer
             </div>
           </div>
         </div>

@@ -19,6 +19,8 @@ import {
   Tag,
   Info,
   Package,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { Condition, Season, ArticleStatus } from '../../types/article';
 import { Toast } from '../ui/Toast';
@@ -140,6 +142,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
   const [scheduleValue, setScheduleValue] = useState<string>('');
   const [statusModalOpen, setStatusModalOpen] = useState(false);
   const [soldModalOpen, setSoldModalOpen] = useState(false);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [labelModalOpen, setLabelModalOpen] = useState(false);
   const [scheduleSaving, setScheduleSaving] = useState(false);
   const [scheduledFor, setScheduledFor] = useState<string | null>(null);
@@ -1071,6 +1074,15 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                           >
                             <Wand2 className="w-5 h-5" />
                             <span className="font-semibold text-sm">Editer avec IA</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setEnlargedImage(formData.photos[selectedPhotoIndex].url)}
+                            className="absolute top-4 left-4 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400"
+                            title="Agrandir l'image"
+                          >
+                            <Maximize2 className="w-5 h-5" />
                           </button>
 
                           {formData.photos.length > 1 && (
@@ -2010,6 +2022,32 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
           }}
           sellerName={undefined}
         />
+      )}
+
+      {enlargedImage && (
+        <div
+          className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-lg flex items-center justify-center p-4 sm:p-6 lg:p-8 animate-in fade-in duration-200"
+          onClick={() => setEnlargedImage(null)}
+        >
+          <div className="relative w-full h-full max-w-7xl max-h-[90vh] flex items-center justify-center">
+            <button
+              onClick={() => setEnlargedImage(null)}
+              className="absolute top-0 right-0 sm:top-4 sm:right-4 p-3 sm:p-4 bg-white/10 hover:bg-white/20 text-white rounded-xl transition-all backdrop-blur-sm z-10"
+              title="Reduire"
+            >
+              <Minimize2 className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            <img
+              src={enlargedImage}
+              alt="Image agrandie"
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-sm text-white px-4 py-2 rounded-full text-xs sm:text-sm font-medium">
+              Cliquez en dehors pour fermer
+            </div>
+          </div>
+        </div>
       )}
 
       {toast && <Toast message={toast.text} type={toast.type} onClose={() => setToast(null)} />}
