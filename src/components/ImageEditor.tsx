@@ -659,7 +659,7 @@ export function ImageEditor({
 Sélectionnez-le, choisissez l’option “Porté” et laissez la magie opérer. Le visage sera automatiquement masqué pour rester discret.
                         <br />
                         <br />
-                        <span className="text-blue-700 font-medium">💡 Besoin d’ajouter ou modifier un modèle (avatar) ?
+                        <span className="text-blue-700 font-medium">💡 Besoin d’ajouter ou modifier un avatar ?
 </span>
                         <br />
                         Rendez-vous dans la{' '}
