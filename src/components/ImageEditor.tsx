@@ -669,7 +669,7 @@ export function ImageEditor({
                             window.location.href = '/virtual-stylist';
                           }}
                         >
-                          Styliste Virtuel
+                          Cabine d'essayage
                         </a>
                         {' '}pour gérer vos décors personnalisés.
                       </p>

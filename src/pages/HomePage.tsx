@@ -170,7 +170,7 @@ export function HomePage() {
                         style={{ animationDelay: showUserMenu ? "90ms" : "0ms" }}
                       >
                         <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        Styliste Virtuel
+                        Cabine d'essayage
                       </Link>
 
                       <div className="border-t border-gray-200 my-2 pt-2">
