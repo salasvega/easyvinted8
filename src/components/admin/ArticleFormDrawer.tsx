@@ -1082,7 +1082,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                             title="Editer avec IA"
                           >
                             <Wand2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-                            <span className="font-bold text-sm tracking-wide">Éditer avec IA</span>
+                            <span className="font-bold text-sm tracking-wide">Éditer</span>
                             <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
                           </button>
 
