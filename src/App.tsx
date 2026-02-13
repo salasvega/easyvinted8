@@ -16,7 +16,6 @@ const LoginPage = lazy(() => import('./pages/LoginPage').then(m => ({ default: m
 const SignupPage = lazy(() => import('./pages/SignupPage').then(m => ({ default: m.SignupPage })));
 const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
 const FamilyMembersPage = lazy(() => import('./pages/FamilyMembersPage').then(m => ({ default: m.FamilyMembersPage })));
-const PhotoStudioPage = lazy(() => import('./pages/PhotoStudioPage').then(m => ({ default: m.PhotoStudioPage })));
 const MonDressingPage = lazy(() => import('./pages/MonDressingPage').then(m => ({ default: m.MonDressingPage })));
 const AgentOptimizedView = lazy(() => import('./pages/AgentOptimizedView'));
 const AgentPublisherIA = lazy(() => import('./pages/AgentPublisherIA'));
@@ -110,7 +109,6 @@ function App() {
                         <Route path="/lots/:id/structure" element={<LotStructureFormPage />} />
                         <Route path="/analytics" element={<AnalyticsPage />} />
                         <Route path="/planner" element={<PlannerPage />} />
-                        <Route path="/photo-studio" element={<PhotoStudioPage />} />
                         <Route path="/virtual-stylist" element={<VirtualStylistPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/family" element={<FamilyMembersPage />} />

@@ -634,11 +634,6 @@ export function HomePage() {
               <h4 className="font-semibold text-slate-900 mb-4">Produit</h4>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/photo-studio" className="text-slate-600 hover:text-emerald-700 transition-colors">
-                    Photo Studio
-                  </Link>
-                </li>
-                <li>
                   <Link to="/mon_dressing" className="text-slate-600 hover:text-emerald-700 transition-colors">
                     Dashboard
                   </Link>
