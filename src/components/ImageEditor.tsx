@@ -655,7 +655,7 @@ export function ImageEditor({
                         ⚠️ Les rendus sont volontairement naturels (style “photo iPhone”) car Vinted privilégie les visuels authentiques.
                         <br />
                         <br />
-                       Vous souhaitez utiliser un modèle (Avatar) pour porter l’article ?
+                       Vous souhaitez utiliser un Modèle (Avatar) pour porter l’article ?
 Sélectionnez-le, choisissez l’option “Porté” et laissez la magie opérer. Le visage sera automatiquement masqué pour rester discret.
                         <br />
                         <br />
