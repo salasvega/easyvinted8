@@ -14,7 +14,7 @@ import {
   Bot,
   Activity,
   Check,
-  Sparkles,
+  Shirt,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingBag } from "lucide-react";
@@ -314,7 +314,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                       }`}
                       style={{ animationDelay: mobileMenuOpen ? "90ms" : "0ms" }}
                     >
-                      <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                      <Shirt className="w-5 h-5 group-hover:scale-110 transition-transform" />
                       Cabine d'essayage
                     </Link>
 

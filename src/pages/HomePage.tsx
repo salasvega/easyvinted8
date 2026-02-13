@@ -19,6 +19,7 @@ import {
   Bot,
   Activity,
   Users,
+  Shirt,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import "../styles/navigation.css";
@@ -169,7 +170,7 @@ export function HomePage() {
                         }`}
                         style={{ animationDelay: showUserMenu ? "90ms" : "0ms" }}
                       >
-                        <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        <Shirt className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         Cabine d'essayage
                       </Link>
 
