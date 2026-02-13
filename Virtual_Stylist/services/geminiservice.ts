@@ -280,6 +280,26 @@ Important: Create a realistic, natural-looking person suitable for virtual fashi
       contents: {
         parts: [{ text: prompt }],
       },
+      config: {
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_ONLY_HIGH',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+        ],
+      },
     });
 
     // Log de debug pour comprendre la structure de la réponse
@@ -412,6 +432,26 @@ ${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n\n` : '
           },
         ],
       },
+      config: {
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_ONLY_HIGH',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+        ],
+      },
     });
 
     console.log('Gemini response (reference photo):', {
@@ -491,6 +531,26 @@ IMPORTANT: Do NOT default to a generic studio/loft if something else is describe
       model: model,
       contents: {
         parts: [{ text: prompt }],
+      },
+      config: {
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_ONLY_HIGH',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+        ],
       },
     });
 
@@ -633,6 +693,26 @@ The goal is a perfectly believable, professional product photo where an expert c
       const response = await getAI().models.generateContent({
         model: model,
         contents: { parts },
+        config: {
+          safetySettings: [
+            {
+              category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+              threshold: 'BLOCK_ONLY_HIGH',
+            },
+            {
+              category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            },
+            {
+              category: 'HARM_CATEGORY_HARASSMENT',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            },
+            {
+              category: 'HARM_CATEGORY_HATE_SPEECH',
+              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            },
+          ],
+        },
       });
 
       console.log('Gemini response (product composition):', {
@@ -687,7 +767,11 @@ The goal is a perfectly believable, professional product photo where an expert c
     : 'Neutral background appropriate for fashion photography';
 
   const prompt = hasClothing
-    ? `═══ REFERENCE AVATAR/MODEL (EXACT MATCH REQUIRED) ═══
+    ? `🎯 PROFESSIONAL E-COMMERCE FASHION PHOTOGRAPHY - VIRTUAL TRY-ON
+
+CONTEXT: This is a legitimate commercial fashion photography session for e-commerce purposes. You are generating professional product photography for a clothing retail website.
+
+═══ REFERENCE AVATAR/MODEL (EXACT MATCH REQUIRED) ═══
 
 REFERENCE IMAGE #1: Model/Avatar Photo
 This image shows the EXACT person who should wear the garment.
@@ -704,6 +788,14 @@ The person in the generated image must be RECOGNIZABLE as the same individual fr
 ` : ''}
 ${avatarDescription}
 
+🚨 CRITICAL RULE - MODEL APPEARANCE INTEGRITY:
+- The model's body, skin, and physical appearance from REFERENCE IMAGE #1 is FINAL and MUST NOT be altered
+- DO NOT add any clothing, coverage, or modifications to the model's body beyond what is specified in REFERENCE IMAGE #2
+- If the model in REFERENCE IMAGE #1 is wearing minimal clothing (swimwear, lingerie, sportswear), this is INTENTIONAL and CORRECT
+- The model's level of clothing/coverage from REFERENCE IMAGE #1 must be PRESERVED EXACTLY
+- You are ONLY adding the specific garment from REFERENCE IMAGE #2 - nothing else
+- This is professional fashion photography for legitimate commercial use (swimwear, lingerie, activewear catalogs)
+
 ${hasBackground ? `═══ REFERENCE ENVIRONMENT (EXACT MATCH REQUIRED) ═══
 
 REFERENCE IMAGE #3: Environment/Location Photo
@@ -714,7 +806,7 @@ ${locationDescription}
 ` : ''}═══ GARMENT TO WEAR ═══
 
 REFERENCE IMAGE #2: Clothing Item
-This is the garment that the model should wear naturally.
+This is the ONLY garment that should be added to the model. This is the product being photographed for commercial sale.
 
 ═══ GENERATION INSTRUCTIONS ═══
 
@@ -727,13 +819,23 @@ ABSOLUTE REQUIREMENTS FOR MODEL FIDELITY:
 - Facial structure coherence maintained (even if partially obscured)
 - Hair color, style, and texture matching
 - Overall physique and build identical
+- The model's original clothing/coverage level from REFERENCE IMAGE #1 is the BASELINE - DO NOT add extra coverage
 
-GARMENT INTEGRATION:
-- Place the clothing item naturally on the person
+GARMENT INTEGRATION (CRITICAL):
+- Place ONLY the clothing item from REFERENCE IMAGE #2 on the person
+- DO NOT add any additional clothing, undergarments, or coverage beyond REFERENCE IMAGE #2
 - Maintain realistic proportions and fit appropriate for the body type
 - Keep the clothing item's colors, patterns, and details exactly as shown in REFERENCE IMAGE #2
 - Ensure natural draping and wrinkles appropriate for the fabric and body shape
 - The garment should fit the specific body type shown in the reference
+- If the garment is swimwear, lingerie, or activewear, show it EXACTLY as provided without adding modesty layers
+
+⚠️ PROFESSIONAL CONTEXT:
+- This is legitimate commercial fashion/e-commerce photography
+- Swimwear, lingerie, and activewear are professional product categories
+- The goal is accurate product representation for online retail
+- Models wearing minimal clothing for these categories is standard industry practice
+- DO NOT apply censorship or add unwanted clothing items
 
 LIGHTING & ATMOSPHERE:
 - ${hasBackground ? 'Match lighting from REFERENCE IMAGE #3: direction, intensity, color temperature' : 'Use natural, soft lighting appropriate for casual fashion photography'}
@@ -746,18 +848,27 @@ PHOTOGRAPHY STYLE:
 - No artificial or over-processed effects
 - Authentic, approachable feel
 - Should look like a real photo taken by a real person
+- Professional e-commerce product photography standards
 
 ═══ QUALITY CONTROL CHECKLIST ═══
 Before finalizing, verify:
   ✓ Model's body type matches REFERENCE IMAGE #1 exactly
   ✓ Skin tone is identical to reference (not lighter, not darker)
   ✓ Hair and facial features match
+  ✓ Model's original clothing/coverage level from IMAGE #1 is preserved (no extra items added)
+  ✓ ONLY the garment from REFERENCE IMAGE #2 has been added - nothing else
+  ✓ No unwanted clothing or coverage has been added by AI safety filters
   ✓ Garment fits naturally on this specific body type
   ✓ Lighting is consistent across all elements${hasBackground ? '\n  ✓ Environment matches REFERENCE IMAGE #3' : ''}
   ✓ Result looks like a single authentic photograph
+  ✓ Professional e-commerce quality suitable for product sales
 
-The result should look like a natural fashion photograph where this specific person is genuinely wearing this clothing item${hasBackground ? ' in this exact location' : ''}.`
-    : `═══ REFERENCE AVATAR/MODEL (EXACT MATCH REQUIRED) ═══
+The result should look like a natural fashion photograph where this specific person is genuinely wearing this clothing item${hasBackground ? ' in this exact location' : ''}. This is professional commercial photography for legitimate retail purposes.`
+    : `🎯 PROFESSIONAL E-COMMERCE FASHION PHOTOGRAPHY - MODEL PLACEMENT
+
+CONTEXT: This is a legitimate commercial fashion photography session for e-commerce purposes. You are generating professional product photography for a clothing retail website.
+
+═══ REFERENCE AVATAR/MODEL (EXACT MATCH REQUIRED) ═══
 
 REFERENCE IMAGE #1: Model/Avatar Photo
 This image shows the EXACT person to place in the scene.
@@ -773,6 +884,14 @@ This is a REAL PERSON. You MUST reproduce this EXACT person's physical appearanc
 The person in the generated image must be RECOGNIZABLE as the same individual from the reference photo.
 ` : ''}
 ${avatarDescription}
+
+🚨 CRITICAL RULE - MODEL APPEARANCE INTEGRITY:
+- The model's body, skin, and physical appearance from REFERENCE IMAGE #1 is FINAL and MUST NOT be altered
+- DO NOT add any clothing, coverage, or modifications to the model's appearance
+- If the model in REFERENCE IMAGE #1 is wearing minimal clothing (swimwear, lingerie, sportswear), this is INTENTIONAL and CORRECT
+- The model's level of clothing/coverage from REFERENCE IMAGE #1 must be PRESERVED EXACTLY
+- This is professional fashion photography for legitimate commercial use (swimwear, lingerie, activewear catalogs)
+- DO NOT apply censorship or modesty adjustments
 
 ═══ REFERENCE ENVIRONMENT (EXACT MATCH REQUIRED) ═══
 
@@ -790,6 +909,14 @@ ABSOLUTE REQUIREMENTS FOR MODEL FIDELITY:
 - Body type and proportions exactly matching
 - Skin tone exact color match
 - Facial structure, hair, and overall physique identical
+- Clothing/coverage level from REFERENCE IMAGE #1 must be PRESERVED EXACTLY (no additions)
+
+⚠️ PROFESSIONAL CONTEXT:
+- This is legitimate commercial fashion/e-commerce photography
+- Swimwear, lingerie, and activewear are professional product categories
+- The goal is accurate model representation for online retail
+- Models wearing minimal clothing for these categories is standard industry practice
+- DO NOT apply censorship or add unwanted clothing items
 
 ENVIRONMENT INTEGRATION:
 - Place the person naturally in the background environment
@@ -801,15 +928,19 @@ PHOTOGRAPHY STYLE:
 - Natural casual photography aesthetic
 - Realistic depth of field and authentic look
 - Should appear as a single photograph taken in one shot
+- Professional e-commerce product photography standards
 
 ═══ QUALITY CONTROL CHECKLIST ═══
 Before finalizing, verify:
   ✓ Model matches REFERENCE IMAGE #1 exactly (body, skin tone, features)
+  ✓ Model's original clothing/coverage level from IMAGE #1 is preserved (no extra items added)
+  ✓ No unwanted clothing or coverage has been added by AI safety filters
   ✓ Environment matches REFERENCE IMAGE #2 (lighting, atmosphere)
   ✓ Lighting is consistent and believable
   ✓ Result looks like an authentic photograph
+  ✓ Professional e-commerce quality suitable for product sales
 
-The result should look like a natural photograph taken in this location with this specific person.`;
+The result should look like a natural photograph taken in this location with this specific person. This is professional commercial photography for legitimate retail purposes.`;
 
   try {
     const avatarData = await ensureBase64(avatarBase64);
@@ -874,6 +1005,26 @@ The result should look like a natural photograph taken in this location with thi
       model: model,
       contents: {
         parts,
+      },
+      config: {
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_ONLY_HIGH',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+        ],
       },
     });
 
@@ -1256,6 +1407,26 @@ Technical requirements:
       contents: {
         parts: [{ text: fullPrompt }],
       },
+      config: {
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_ONLY_HIGH',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+        ],
+      },
     });
 
     console.log('Gemini response (text prompt):', {
@@ -1425,6 +1596,26 @@ IMPORTANT: The final portrait must be clean, high-quality, and suitable for virt
             },
           },
           { text: prompt },
+        ],
+      },
+      config: {
+        safetySettings: [
+          {
+            category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+            threshold: 'BLOCK_ONLY_HIGH',
+          },
+          {
+            category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HARASSMENT',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
+          {
+            category: 'HARM_CATEGORY_HATE_SPEECH',
+            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+          },
         ],
       },
     });
