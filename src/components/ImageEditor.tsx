@@ -658,7 +658,7 @@ export function ImageEditor({
                         Tips : Si vous êtes trop moche pour porter vous même l'article, utilisez l'option "Porté", et séléctionnez le Modèle (Avatar) qui le posera pour vous. La génération d'image fera en sorte que son visage soit masqué/coupé (selfie miroir téléphone devant), c'est voulu c'est comme ça que les humains aiment poser :)
                         <br />
                         <br />
-                        <span className="text-blue-700 font-medium">💡 Besoin d'ajouter ou modifier un Avatar ou des Fonds (décors) ?</span>
+                        <span className="text-blue-700 font-medium">💡 Besoin d'ajouter ou modifier un Modèle (avatar) ou des Fonds (décors) ?</span>
                         <br />
                         Rendez-vous dans la{' '}
                         <a
@@ -671,7 +671,7 @@ export function ImageEditor({
                         >
                           L'Avatar studio
                         </a>
-                        {' '}pour gérer vos décors personnalisés.
+                        {' '}pour gérer vos Modèles et décors personnalisés.
                       </p>
                     </div>
                     <button
