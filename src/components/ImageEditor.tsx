@@ -655,7 +655,8 @@ export function ImageEditor({
                         ⚠️ Les rendus sont volontairement naturels (style “photo iPhone”) car Vinted privilégie les visuels authentiques.
                         <br />
                         <br />
-                        Tips : Si vous êtes trop moche pour porter vous même l'article, séléctionnez le Modèle (Avatar) qui posera pour vous puis cliquez sur l'option "Porté" et laissez la magie agir! (Le studio fera en sorte que son visage soit masqué/coupé... Les avatars aussi sont timides :)
+                       Vous souhaitez utiliser un modèle (Avatar) pour porter l’article ?
+Sélectionnez-le, choisissez l’option “Porté” et laissez la magie opérer. Le visage sera automatiquement masqué pour rester discret.
                         <br />
                         <br />
                         <span className="text-blue-700 font-medium">💡 Besoin d'ajouter ou modifier un Modèle (avatar)?</span>
