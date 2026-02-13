@@ -288,15 +288,15 @@ Important: Create a realistic, natural-looking person suitable for virtual fashi
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
         ],
       },
@@ -440,15 +440,15 @@ ${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n\n` : '
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
         ],
       },
@@ -540,15 +540,15 @@ IMPORTANT: Do NOT default to a generic studio/loft if something else is describe
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
         ],
       },
@@ -697,19 +697,19 @@ The goal is a perfectly believable, professional product photo where an expert c
           safetySettings: [
             {
               category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-              threshold: 'BLOCK_ONLY_HIGH',
+              threshold: 'BLOCK_NONE',
             },
             {
               category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+              threshold: 'BLOCK_NONE',
             },
             {
               category: 'HARM_CATEGORY_HARASSMENT',
-              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+              threshold: 'BLOCK_NONE',
             },
             {
               category: 'HARM_CATEGORY_HATE_SPEECH',
-              threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+              threshold: 'BLOCK_NONE',
             },
           ],
         },
@@ -1014,15 +1014,15 @@ The result should look like a natural photograph taken in this location with thi
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
         ],
       },
@@ -1425,15 +1425,15 @@ Technical requirements:
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
         ],
       },
@@ -1616,15 +1616,15 @@ IMPORTANT: The final portrait must be clean, high-quality, and suitable for virt
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
         ],
       },
