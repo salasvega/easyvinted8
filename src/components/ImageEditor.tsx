@@ -646,7 +646,7 @@ export function ImageEditor({
                     </div>
                     <div className="flex-1">
                       <h3 className="text-slate-900 font-bold text-base mb-2">
-                        Studio Magik
+                        Studio Magik-AI
                       </h3>
                       <p className="text-slate-700 text-sm leading-relaxed">
                         Décrivez les modifications que vous souhaitez apporter pour mettre en valeur votre article et laissez Studio Magik-AI les réaliser.
