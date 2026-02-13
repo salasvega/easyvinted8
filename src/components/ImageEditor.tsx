@@ -671,7 +671,7 @@ export function ImageEditor({
                         >
                           Cabine d'essayage
                         </a>
-                        {' '}pour gérer vos Modèles et décors personnalisés.
+                        {' '}pour gérer vos Modèles personnalisés.
                       </p>
                     </div>
                     <button
