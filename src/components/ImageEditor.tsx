@@ -652,15 +652,15 @@ export function ImageEditor({
                         Décrivez les modifications que vous souhaitez apporter pour mettre en valeur votre article et laissez Studio Magik-AI les réaliser.
                         <br />
                         <br />
-                        ⚠️ Tous les rendus sont volontairement "vrai iPhone / pas pro" (UGC), car Vinted n'aime pas les photos trop parfaites.
+                        ⚠️ Les rendus générés ont volontairement un style naturel, "vrai iPhone / pas pro", car Vinted n'aime pas les photos trop parfaites. On pense à tout :)
                         <br />
                         <br />
-                        Tips : pour "Porté", le visage est toujours masqué/coupé (selfie miroir téléphone devant).
+                        Tips : Si vous êtes trop moche pour porter vous même l'article, utilisez l'option "Porté", et séléctionnez le Modèle (Avatar) qui le posera pour vous. La génération d'image fera en sorte que son visage soit masqué/coupé (selfie miroir téléphone devant), c'est voulu c'est comme ça que les humains aiment poser :)
                         <br />
                         <br />
                         <span className="text-blue-700 font-medium">💡 Besoin d'ajouter ou modifier des fonds/décors ?</span>
                         <br />
-                        Rendez-vous dans le{' '}
+                        Rendez-vous dans la{' '}
                         <a
                           href="/virtual-stylist"
                           className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 transition-colors"
