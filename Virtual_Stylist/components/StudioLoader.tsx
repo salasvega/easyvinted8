@@ -81,7 +81,7 @@ export default function StudioLoader({ message = "Création en cours" }: Props) 
             <span className="inline-block w-8 text-left">{dots}</span>
           </p>
           <p className="text-sm text-gray-600">
-            Modelisation de votre Avatar en cours ...
+            Modelisation en cours ...
           </p>
         </div>
 
