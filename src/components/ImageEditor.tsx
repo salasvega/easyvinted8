@@ -669,7 +669,7 @@ export function ImageEditor({
                             window.location.href = '/virtual-stylist';
                           }}
                         >
-                          Cabine d'essayage
+                          L'Avatar studio
                         </a>
                         {' '}pour gérer vos décors personnalisés.
                       </p>
