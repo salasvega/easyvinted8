@@ -660,7 +660,7 @@ Sélectionnez-le, choisissez l’option “Porté” et laissez la magie opérer
                         <br />
                         <br />
                         <span className="text-blue-700 font-medium">💡 Besoin d’ajouter ou modifier un modèle ?
-Rendez-vous dans la</span>
+</span>
                         <br />
                         Rendez-vous dans la{' '}
                         <a
