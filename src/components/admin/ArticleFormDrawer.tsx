@@ -1068,21 +1068,21 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
 
                           <button
                             type="button"
-                            onClick={() => handleEditImage(selectedPhotoIndex)}
-                            className="absolute top-4 right-4 p-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 flex items-center gap-2"
-                            title="Editer avec IA"
+                            onClick={() => setEnlargedImage(formData.photos[selectedPhotoIndex].url)}
+                            className="absolute top-4 right-4 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
+                            title="Agrandir l'image"
                           >
-                            <Wand2 className="w-5 h-5" />
-                            <span className="font-semibold text-sm">Editer avec IA</span>
+                            <Maximize2 className="w-5 h-5" />
                           </button>
 
                           <button
                             type="button"
-                            onClick={() => setEnlargedImage(formData.photos[selectedPhotoIndex].url)}
-                            className="absolute top-4 left-4 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400"
-                            title="Agrandir l'image"
+                            onClick={() => handleEditImage(selectedPhotoIndex)}
+                            className="absolute bottom-4 left-4 p-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 flex items-center gap-2 z-10"
+                            title="Editer avec IA"
                           >
-                            <Maximize2 className="w-5 h-5" />
+                            <Wand2 className="w-5 h-5" />
+                            <span className="font-semibold text-sm">Editer avec IA</span>
                           </button>
 
                           {formData.photos.length > 1 && (
