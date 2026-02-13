@@ -656,7 +656,7 @@ export function ImageEditor({
                         <br />
                         <br />
                       😎 Vous êtes trop moche ou fatigué de poser? Utilisez un Modèle (Avatar) pour porter l’article séléctionné à votre place :)
-Sélectionnez-le, choisissez l’option “Porté” et laissez la magie opérer. Le visage sera automatiquement masqué pour rester discret. Vous pouvez ensuite le faire changer de pause pour mieux mettre en scène votre article.
+Sélectionnez-le, choisissez l’option “Porté” et laissez la magie opérer. 
                         <br />
                         <br />
                         <span className="text-blue-700 font-medium">💡 Besoin d’ajouter ou modifier un avatar ?
