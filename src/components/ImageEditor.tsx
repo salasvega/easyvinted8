@@ -655,7 +655,7 @@ export function ImageEditor({
                         ⚠️ Les rendus sont volontairement naturels (style “photo iPhone”) car Vinted privilégie les visuels authentiques.
                         <br />
                         <br />
-                       Vous êtes trop moche ou fatigué de poser? Utilisez un Modèle (Avatar) pour porter l’article à cotre place :)
+                       Vous êtes trop moche ou fatigué de poser? Utilisez un Modèle (Avatar) pour porter l’article séléctionné à cotre place :)
 Sélectionnez-le, choisissez l’option “Porté” et laissez la magie opérer. Le visage sera automatiquement masqué pour rester discret. Vous pouvez ensuite le faire changer de pause pour mieux mettre en scène votre article.
                         <br />
                         <br />
