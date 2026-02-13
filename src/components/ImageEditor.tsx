@@ -649,14 +649,14 @@ export function ImageEditor({
                         Studio Magik-AI
                       </h3>
                       <p className="text-slate-700 text-sm leading-relaxed">
-                        Choisissez un Modèle (avatar), une option, une pose ou décrivez les modifications souhaitées pour sublimer votre article, puis cliquez sur Éditer : le Studio Magik-AI s’occupe du reste.
+                        Choisissez un Modèle (avatar), une option, une pose ou décrivez les modifications souhaitées pour sublimer votre article, puis cliquez sur Éditer :  Le Studio Magik-AI s’occupe du reste.
                         <br />
                         <br />
                         ⚠️ Les rendus sont volontairement naturels (style “photo iPhone”) car Vinted privilégie les visuels authentiques.
                         <br />
                         <br />
-                      😎 Vous êtes trop moche ou fatigué de poser? Utilisez un Modèle (Avatar) pour porter l’article séléctionné à votre place :)
-Sélectionnez-le, choisissez l’option “Porté” et laissez la magie opérer. 
+                      😎 Vous êtes trop moche ou fatigué de poser? Choisissez un Avatar pour le faire pour vous :) 
+=> Sélectionnez l'article, cliquez sur l’option “Porté” et laissez la magie opérer. 
                         <br />
                         <br />
                         <span className="text-blue-700 font-medium">💡 Besoin d’ajouter ou modifier un avatar ?
