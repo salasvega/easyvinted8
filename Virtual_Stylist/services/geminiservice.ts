@@ -284,19 +284,19 @@ Important: Create a realistic, natural-looking person suitable for virtual fashi
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
         ],
       },
@@ -436,19 +436,19 @@ ${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n\n` : '
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
         ],
       },
@@ -536,19 +536,19 @@ IMPORTANT: Do NOT default to a generic studio/loft if something else is describe
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
         ],
       },
@@ -1010,19 +1010,19 @@ The result should look like a natural photograph taken in this location with thi
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
         ],
       },
@@ -1037,6 +1037,16 @@ The result should look like a natural photograph taken in this location with thi
     const firstCandidate = response.candidates?.[0];
     if (firstCandidate?.finishReason && firstCandidate.finishReason !== 'STOP') {
       console.error('Generation stopped with reason:', firstCandidate.finishReason);
+      console.error('Safety ratings:', firstCandidate.safetyRatings);
+
+      if (firstCandidate.finishReason === 'SAFETY' || firstCandidate.finishReason === 'IMAGE_OTHER') {
+        throw new Error(
+          "La génération a été bloquée par les filtres de sécurité de Gemini. " +
+          "Cela peut arriver avec certaines images de mode (maillots de bain, lingerie). " +
+          "Essayez avec une photo de modèle différente ou un vêtement plus couvrant, ou contactez le support technique si le problème persiste."
+        );
+      }
+
       throw new Error(`L'essayage virtuel a été arrêté: ${firstCandidate.finishReason}. Essayez avec d'autres images.`);
     }
 
@@ -1411,19 +1421,19 @@ Technical requirements:
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
         ],
       },
@@ -1602,19 +1612,19 @@ IMPORTANT: The final portrait must be clean, high-quality, and suitable for virt
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-            threshold: 'BLOCK_ONLY_HIGH',
+            threshold: 'BLOCK_NONE',
           },
           {
             category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HARASSMENT',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
           {
             category: 'HARM_CATEGORY_HATE_SPEECH',
-            threshold: 'BLOCK_MEDIUM_AND_ABOVE',
+            threshold: 'BLOCK_ONLY_HIGH',
           },
         ],
       },
