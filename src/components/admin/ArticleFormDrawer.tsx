@@ -1078,11 +1078,12 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                           <button
                             type="button"
                             onClick={() => handleEditImage(selectedPhotoIndex)}
-                            className="absolute bottom-4 left-4 p-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 flex items-center gap-2 z-10"
+                            className="absolute top-4 left-4 px-4 py-2.5 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 text-white rounded-2xl shadow-xl hover:shadow-2xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 flex items-center gap-2.5 z-10 border border-white/20 hover:border-white/40 group"
                             title="Editer avec IA"
                           >
-                            <Wand2 className="w-5 h-5" />
-                            <span className="font-semibold text-sm">Editer avec IA</span>
+                            <Wand2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                            <span className="font-bold text-sm tracking-wide">Éditer avec IA</span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
                           </button>
 
                           {formData.photos.length > 1 && (
