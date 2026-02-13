@@ -655,8 +655,7 @@ export function ImageEditor({
                         ⚠️ Les rendus sont volontairement naturels (style “photo iPhone”) car Vinted privilégie les visuels authentiques.
                         <br />
                         <br />
-                      😎 Vous êtes trop moche ou fatigué de poser? Choisissez un Avatar pour le faire pour vous :) 
-=> Sélectionnez l'article, cliquez sur l’option “Porté” et laissez la magie opérer. 
+                       Vous êtes trop moche ou fatigué de poser? 1. Choisissez un Avatar, 2. Sélectionnez l'article, 3. Cliquez sur l’option “Porté” et laissez l'Avatar poser pour vous! 😎 
                         <br />
                         <br />
                         <span className="text-blue-700 font-medium">💡 Besoin d’ajouter ou modifier un avatar ?
