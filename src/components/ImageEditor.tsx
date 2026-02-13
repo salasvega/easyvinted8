@@ -652,7 +652,7 @@ export function ImageEditor({
                         Choisissez un Modèle (avatar), une option, une pose ou décrivez les modifications souhaitées pour sublimer votre article, puis cliquez sur Éditer : le Studio Magik-AI s’occupe du reste.
                         <br />
                         <br />
-                        ⚠️ Les rendus générés ont volontairement un style naturel, "vrai iPhone / pas pro", car Vinted n'aime pas les photos trop parfaites. On pense à tout :)
+                        ⚠️ Les rendus sont volontairement naturels (style “photo iPhone”) car Vinted privilégie les visuels authentiques.
                         <br />
                         <br />
                         Tips : Si vous êtes trop moche pour porter vous même l'article, séléctionnez le Modèle (Avatar) qui posera pour vous puis cliquez sur l'option "Porté" et laissez la magie agir! (Le studio fera en sorte que son visage soit masqué/coupé... Les avatars aussi sont timides :)
