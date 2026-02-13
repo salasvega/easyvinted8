@@ -377,7 +377,7 @@ export function PhotoUpload({ photos, onPhotosChange, maxPhotos = 8, onAnalyzeCl
                       setEditingPhotoIndex(index);
                     }}
                     className="p-1 bg-blue-600 text-white rounded-full hover:bg-blue-700"
-                    title="Éditer avec IA"
+                    title="Éditer"
                   >
                     <Wand2 className="w-4 h-4" />
                   </button>
