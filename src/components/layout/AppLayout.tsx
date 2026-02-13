@@ -52,9 +52,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [closingMenu, setClosingMenu] = useState(false);
   const [closingSellerMenu, setClosingSellerMenu] = useState(false);
 
-  const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [actionsExpanded, setActionsExpanded] = useState(true);
-  const [configExpanded, setConfigExpanded] = useState(true);
+  const [pagesExpanded, setPagesExpanded] = useState(false);
+  const [actionsExpanded, setActionsExpanded] = useState(false);
+  const [configExpanded, setConfigExpanded] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const sellerMenuRef = useRef<HTMLDivElement>(null);
