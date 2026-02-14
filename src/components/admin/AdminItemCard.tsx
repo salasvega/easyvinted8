@@ -238,9 +238,6 @@ const AdminItemCardComponent = ({
             {item.brand || 'Sans marque'}
             {item.size && ` • ${item.size}`}
           </p>
-          {item.reference_number && (
-            <p className="text-[10px] text-slate-400 font-mono mt-0.5">#{item.reference_number}</p>
-          )}
         </div>
 
         <div className="flex items-end justify-between mb-3">
