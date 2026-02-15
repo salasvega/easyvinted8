@@ -49,7 +49,21 @@ function getAI() {
   return new GoogleGenAI({ apiKey });
 }
 
-function buildPricingAnalysisPrompt(articles: Article[], soldArticles: Article[]): string {
+interface MarketStats {
+  brand: string;
+  category: string;
+  condition: string;
+  avgSoldPrice: number;
+  minSoldPrice: number;
+  maxSoldPrice: number;
+  totalSales: number;
+}
+
+function buildPricingAnalysisPrompt(
+  articles: Article[],
+  userSoldArticles: Article[],
+  marketStats: MarketStats[]
+): string {
   const articlesData = articles.map(a => ({
     id: a.id,
     title: a.title,
@@ -65,37 +79,42 @@ function buildPricingAnalysisPrompt(articles: Article[], soldArticles: Article[]
     suggestedMax: a.suggested_price_max,
   }));
 
-  const soldData = soldArticles.map(a => ({
+  const userSoldData = userSoldArticles.map(a => ({
     brand: a.brand,
     condition: a.condition,
     soldPrice: a.sold_price,
     originalPrice: a.price,
   }));
 
-  return `Tu es Kelly, experte en pricing pour Vinted. Analyse les prix de ces articles et génère des insights actionables.
+  return `Tu es Kelly, experte en pricing pour Vinted. Analyse les prix de ces articles avec des données RÉELLES du marché.
 
 📊 ARTICLES ACTIFS (${articles.length}):
 ${JSON.stringify(articlesData, null, 2)}
 
-💰 HISTORIQUE VENTES (${soldArticles.length} dernières):
-${JSON.stringify(soldData, null, 2)}
+💰 TON HISTORIQUE DE VENTES (${userSoldArticles.length} dernières):
+${JSON.stringify(userSoldData, null, 2)}
+
+🌍 DONNÉES RÉELLES DU MARCHÉ (${marketStats.length} segments):
+${JSON.stringify(marketStats, null, 2)}
 
 🎯 MISSION:
-Identifie 3-5 insights de prix CONCRETS et ACTIONNABLES:
+Identifie 3-5 insights de prix CONCRETS basés sur les DONNÉES RÉELLES DU MARCHÉ:
 
-1. **Sous-évalués** (underpriced): Articles dont le prix est 20%+ sous le marché
-2. **Sur-évalués** (overpriced): Articles 20%+ au-dessus du marché (à baisser)
-3. **Prix optimal** (optimal_price): Prix parfait, félicite l'utilisateur
+1. **Sous-évalués** (underpriced): Articles dont le prix est 20%+ sous avgSoldPrice du marché
+2. **Sur-évalués** (overpriced): Articles 20%+ au-dessus de avgSoldPrice du marché
+3. **Prix optimal** (optimal_price): Prix dans la fourchette min-max du marché
 4. **Opportunités de lot** (bundle_opportunity): 3+ articles similaires à grouper
-5. **Prix psychologiques** (psychological_pricing): 20€→19€ ou 45€→49€
+5. **Prix psychologiques** (psychological_pricing): Ajuster vers prix psychologiques (X9€)
 
 ⚠️ RÈGLES STRICTES:
+- UTILISE OBLIGATOIREMENT les marketStats (avgSoldPrice, minSoldPrice, maxSoldPrice)
+- Compare chaque article à son segment de marché (brand + condition + category)
+- Si pas de données marché pour un article, utilise les suggested_price_min/max
 - Sois PRÉCIS sur les montants (ex: "18€ au lieu de 15€")
-- Base-toi sur brand, condition, marché Vinted réel
-- Priorité HIGH = opportunité >10€ de gain
-- Priorité MEDIUM = opportunité 5-10€
-- Priorité LOW = optimisations <5€
-- IMPORTANT: Ne suggère que des prix réalistes pour Vinted (généralement entre 5€ et 50€)
+- Priorité HIGH = opportunité >10€ de gain OU >30% d'écart au marché
+- Priorité MEDIUM = opportunité 5-10€ OU 15-30% d'écart
+- Priorité LOW = optimisations <5€ OU <15% d'écart
+- CITE les données de marché dans ton reasoning (ex: "Marché: 27€ moyenne sur 15 ventes")
 
 📝 FORMAT DE RÉPONSE (JSON strict):
 {
@@ -104,7 +123,7 @@ Identifie 3-5 insights de prix CONCRETS et ACTIONNABLES:
       "type": "underpriced",
       "priority": "high",
       "title": "Nike Air Max sous-évaluée",
-      "message": "Ta paire de Nike Air Max est à 15€ alors que le marché est à 25-30€ pour ce modèle en bon état. Tu perds 10-15€ !",
+      "message": "Ta paire de Nike Air Max est à 15€ alors que le marché réel est à 27€ en moyenne (23 ventes recensées). Tu perds 12€ !",
       "actionLabel": "Ajuster à 25€",
       "articleIds": ["article-id"],
       "suggestedAction": {
@@ -113,12 +132,13 @@ Identifie 3-5 insights de prix CONCRETS et ACTIONNABLES:
         "suggestedPrice": 25,
         "minPrice": 22,
         "maxPrice": 30,
-        "reasoning": "Marché Nike Air Max en bon état: 25-30€. Ton prix actuel est 40% sous le marché.",
-        "confidence": 0.85,
+        "reasoning": "Données marché réelles: 27€ moyenne sur 23 ventes (min: 22€, max: 32€). Ton prix actuel est 44% sous le marché.",
+        "confidence": 0.92,
         "marketData": {
           "avgPrice": 27,
           "minPrice": 22,
-          "maxPrice": 32
+          "maxPrice": 32,
+          "salesLast30d": 23
         }
       }
     }
@@ -128,10 +148,14 @@ Identifie 3-5 insights de prix CONCRETS et ACTIONNABLES:
 GÉNÈRE MAINTENANT 3-5 INSIGHTS CONCRETS:`;
 }
 
-async function generatePricingInsightsWithAI(articles: Article[], soldArticles: Article[]): Promise<PricingInsight[]> {
+async function generatePricingInsightsWithAI(
+  articles: Article[],
+  userSoldArticles: Article[],
+  marketStats: MarketStats[]
+): Promise<PricingInsight[]> {
   try {
     const ai = getAI();
-    const prompt = buildPricingAnalysisPrompt(articles, soldArticles);
+    const prompt = buildPricingAnalysisPrompt(articles, userSoldArticles, marketStats);
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -189,6 +213,72 @@ async function savePricingInsightsToDatabase(userId: string, insights: PricingIn
   }
 }
 
+async function getMarketStatistics(): Promise<MarketStats[]> {
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const { data: soldArticles, error } = await supabase
+    .from('articles')
+    .select('brand, condition, sold_price, title')
+    .eq('status', 'sold')
+    .not('sold_price', 'is', null)
+    .not('brand', 'is', null)
+    .gte('sold_at', thirtyDaysAgo.toISOString())
+    .order('sold_at', { ascending: false })
+    .limit(500);
+
+  if (error || !soldArticles || soldArticles.length === 0) {
+    return [];
+  }
+
+  const statsMap = new Map<string, {
+    prices: number[];
+    brand: string;
+    category: string;
+    condition: string;
+  }>();
+
+  soldArticles.forEach(article => {
+    if (!article.sold_price || article.sold_price <= 0) return;
+
+    const category = article.title?.split(' ')[0] || 'Autre';
+    const key = `${article.brand}|${category}|${article.condition}`;
+
+    if (!statsMap.has(key)) {
+      statsMap.set(key, {
+        prices: [],
+        brand: article.brand,
+        category,
+        condition: article.condition,
+      });
+    }
+
+    statsMap.get(key)!.prices.push(article.sold_price);
+  });
+
+  const marketStats: MarketStats[] = [];
+
+  statsMap.forEach(({ prices, brand, category, condition }) => {
+    if (prices.length < 3) return;
+
+    prices.sort((a, b) => a - b);
+    const sum = prices.reduce((acc, p) => acc + p, 0);
+    const avg = sum / prices.length;
+
+    marketStats.push({
+      brand,
+      category,
+      condition,
+      avgSoldPrice: Math.round(avg * 100) / 100,
+      minSoldPrice: prices[0],
+      maxSoldPrice: prices[prices.length - 1],
+      totalSales: prices.length,
+    });
+  });
+
+  return marketStats.sort((a, b) => b.totalSales - a.totalSales);
+}
+
 async function loadPricingInsightsFromDatabase(userId: string): Promise<PricingInsight[] | null> {
   const { data, error } = await supabase
     .from('kelly_insights')
@@ -234,32 +324,41 @@ export async function getPricingInsights(
     }
   }
 
-  const { data: articles, error: articlesError } = await supabase
-    .from('articles')
-    .select('*')
-    .eq('user_id', userId)
-    .in('status', ['draft', 'ready', 'scheduled', 'published'])
-    .order('created_at', { ascending: false })
-    .limit(50);
+  const [articlesResult, userSoldResult, marketStatsResult] = await Promise.all([
+    supabase
+      .from('articles')
+      .select('*')
+      .eq('user_id', userId)
+      .in('status', ['draft', 'ready', 'scheduled', 'published'])
+      .order('created_at', { ascending: false })
+      .limit(50),
+    supabase
+      .from('articles')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'sold')
+      .not('sold_price', 'is', null)
+      .order('sold_at', { ascending: false })
+      .limit(20),
+    getMarketStatistics(),
+  ]);
+
+  const { data: articles, error: articlesError } = articlesResult;
 
   if (articlesError || !articles) {
     throw new Error('Impossible de charger les articles');
   }
 
-  const { data: soldArticles } = await supabase
-    .from('articles')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('status', 'sold')
-    .not('sold_price', 'is', null)
-    .order('sold_at', { ascending: false })
-    .limit(20);
-
   if (articles.length === 0) {
     return [];
   }
 
-  const insights = await generatePricingInsightsWithAI(articles, soldArticles || []);
+  const userSoldArticles = userSoldResult.data || [];
+  const marketStats = marketStatsResult;
+
+  console.log(`📊 Kelly Pricing - Données de marché: ${marketStats.length} segments sur ${marketStats.reduce((sum, s) => sum + s.totalSales, 0)} ventes`);
+
+  const insights = await generatePricingInsightsWithAI(articles, userSoldArticles, marketStats);
 
   await savePricingInsightsToDatabase(userId, insights);
 
