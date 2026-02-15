@@ -943,7 +943,7 @@ export function MonDressingPage() {
         <div className="mb-4">
           <KellyPlannerPanel
             onScheduleArticle={(articleIds) => {
-              const firstArticle = allItems.find(item => item.id === articleIds[0]);
+              const firstArticle = items.find(item => item.id === articleIds[0]);
               if (firstArticle) {
                 setScheduleItem(firstArticle);
                 setScheduleModalOpen(true);
@@ -951,7 +951,7 @@ export function MonDressingPage() {
             }}
             onCreateBundle={(articleIds) => {
               setSelectedForLot(
-                allItems
+                items
                   .filter(item => articleIds.includes(item.id) && item.type === 'article')
                   .map(item => item.id)
               );
