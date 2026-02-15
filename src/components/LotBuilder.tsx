@@ -41,6 +41,7 @@ interface LotBuilderProps {
   onClose: () => void;
   onSuccess: () => void;
   existingLotId?: string;
+  preselectedArticleIds?: string[];
 }
 
 interface LotData {
@@ -64,7 +65,7 @@ interface LotData {
 
 type MobileTab = 'builder' | 'library';
 
-export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId }: LotBuilderProps) {
+export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, preselectedArticleIds }: LotBuilderProps) {
   const [loading, setLoading] = useState(false);
   const [generatingText, setGeneratingText] = useState(false);
   const [error, setError] = useState<string>('');
@@ -245,6 +246,13 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId }
       }
     }
   }, [familyMembers, existingLotId, lotData.seller_id]);
+
+  useEffect(() => {
+    if (preselectedArticleIds && preselectedArticleIds.length > 0 && !existingLotId) {
+      setLotData(prev => ({ ...prev, selectedArticles: preselectedArticleIds }));
+      setMobileTab('builder');
+    }
+  }, [preselectedArticleIds, existingLotId]);
 
   // Synchronise photos à partir des articles sélectionnés
   useEffect(() => {

@@ -185,9 +185,11 @@ export function MonDressingPage() {
   const [lotBuilderDrawer, setLotBuilderDrawer] = useState<{
     isOpen: boolean;
     lotId?: string;
+    preselectedArticleIds?: string[];
   }>({
     isOpen: false,
     lotId: undefined,
+    preselectedArticleIds: undefined,
   });
 
   const [kellyOpen, setKellyOpen] = useState(false);
@@ -647,7 +649,7 @@ export function MonDressingPage() {
       setArticleFormDrawer({ isOpen: true, articleId: item.id, suggestions });
       setDrawerOpen(false);
     } else {
-      setLotBuilderDrawer({ isOpen: true, lotId: item.id });
+      setLotBuilderDrawer({ isOpen: true, lotId: item.id, preselectedArticleIds: undefined });
       setDrawerOpen(false);
     }
   }, []);
@@ -865,7 +867,7 @@ export function MonDressingPage() {
                   <span>Nouvel article</span>
                 </button>
                 <button
-                  onClick={() => setLotBuilderDrawer({ isOpen: true, lotId: undefined })}
+                  onClick={() => setLotBuilderDrawer({ isOpen: true, lotId: undefined, preselectedArticleIds: undefined })}
                   className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all hover:shadow-md text-sm whitespace-nowrap"
                 >
                   <Package className="w-4 h-4 flex-shrink-0" />
@@ -945,17 +947,11 @@ export function MonDressingPage() {
             onScheduleArticle={(articleIds) => {
               const firstArticle = items.find(item => item.id === articleIds[0]);
               if (firstArticle) {
-                setScheduleItem(firstArticle);
-                setScheduleModalOpen(true);
+                setScheduleModal({ isOpen: true, item: firstArticle });
               }
             }}
             onCreateBundle={(articleIds) => {
-              setSelectedForLot(
-                items
-                  .filter(item => articleIds.includes(item.id) && item.type === 'article')
-                  .map(item => item.id)
-              );
-              setShowLotBuilder(true);
+              setLotBuilderDrawer({ isOpen: true, lotId: undefined, preselectedArticleIds: articleIds });
             }}
           />
         </div>
@@ -1427,12 +1423,13 @@ export function MonDressingPage() {
 
       <LotBuilder
         isOpen={lotBuilderDrawer.isOpen}
-        onClose={() => setLotBuilderDrawer({ isOpen: false, lotId: undefined })}
+        onClose={() => setLotBuilderDrawer({ isOpen: false, lotId: undefined, preselectedArticleIds: undefined })}
         onSuccess={() => {
           fetchAllData();
-          setLotBuilderDrawer({ isOpen: false, lotId: undefined });
+          setLotBuilderDrawer({ isOpen: false, lotId: undefined, preselectedArticleIds: undefined });
         }}
         existingLotId={lotBuilderDrawer.lotId}
+        preselectedArticleIds={lotBuilderDrawer.preselectedArticleIds}
       />
 
       {/* Bouton Kelly flottant - Masqué quand le drawer est ouvert */}
