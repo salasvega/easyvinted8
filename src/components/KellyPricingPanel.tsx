@@ -91,14 +91,10 @@ export default function KellyPricingPanel({
   };
 
   useEffect(() => {
-    if (collapsible) {
-      if (isExpanded && !hasLoadedOnce) {
-        loadInsights();
-      }
-    } else {
+    if (!hasLoadedOnce) {
       loadInsights();
     }
-  }, [user, isExpanded, collapsible]);
+  }, [user]);
 
   const handleDismiss = async (insightId: string) => {
     try {
@@ -157,7 +153,11 @@ export default function KellyPricingPanel({
             </div>
             <div className="text-left">
               <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
-              <p className="text-sm text-gray-500">Optimiseur de prix intelligent</p>
+              <p className="text-sm text-gray-500">
+                {insights.length > 0
+                  ? `${insights.length} recommandation${insights.length > 1 ? 's' : ''}`
+                  : 'Optimiseur de prix intelligent'}
+              </p>
             </div>
           </div>
           <ChevronDown className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
