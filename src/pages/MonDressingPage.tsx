@@ -937,7 +937,7 @@ export function MonDressingPage() {
         <div className="mb-6">
           <button
             onClick={() => setKellyOpen(true)}
-            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group"
+            className="w-full bg-white hover:bg-gray-50 rounded-xl p-4 transition-all duration-300 hover:shadow-lg shadow-sm border border-gray-200 group"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -957,17 +957,17 @@ export function MonDressingPage() {
                   </span>
                 </div>
                 <div className="text-left">
-                  <h3 className="font-bold text-white text-base">Kelly - Votre Assistante IA</h3>
-                  <p className="text-xs text-white/80">Conseils, Pricing & Planification</p>
+                  <h3 className="font-bold text-gray-900 text-base">Kelly - Votre Assistante IA</h3>
+                  <p className="text-xs text-gray-600">Conseils, Pricing & Planification</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 {insightsCount > 0 && (
-                  <span className="bg-white text-emerald-600 text-sm font-bold px-3 py-1 rounded-full">
+                  <span className="bg-emerald-100 text-emerald-700 text-sm font-bold px-3 py-1 rounded-full">
                     {insightsCount} {insightsCount === 1 ? 'nouveau' : 'nouveaux'}
                   </span>
                 )}
-                <Sparkles className="w-5 h-5 text-white group-hover:animate-pulse" />
+                <Sparkles className="w-5 h-5 text-emerald-600 group-hover:animate-pulse" />
               </div>
             </div>
           </button>
