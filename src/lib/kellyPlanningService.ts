@@ -297,12 +297,24 @@ async function generateInsightsWithAI(
     const result = response.text;
     const parsed = JSON.parse(result);
 
-    return parsed.insights.map((insight: any) => ({
-      id: crypto.randomUUID(),
-      ...insight,
-      status: 'active' as const,
-      createdAt: new Date().toISOString(),
-    }));
+    return parsed.insights.map((insight: any) => {
+      const normalizedInsight = {
+        id: crypto.randomUUID(),
+        ...insight,
+        status: 'active' as const,
+        createdAt: new Date().toISOString(),
+      };
+
+      if (normalizedInsight.suggestedAction?.priceAdjustment) {
+        normalizedInsight.suggestedAction.priceAdjustment = {
+          current: Number(normalizedInsight.suggestedAction.priceAdjustment.current),
+          suggested: Number(normalizedInsight.suggestedAction.priceAdjustment.suggested),
+          change: Number(normalizedInsight.suggestedAction.priceAdjustment.change),
+        };
+      }
+
+      return normalizedInsight;
+    });
   } catch (error) {
     console.error('Error generating planning insights:', error);
     throw new Error('Impossible de générer les recommandations. Réessaie dans quelques instants.');
@@ -356,7 +368,24 @@ async function getCachedInsights(userId: string): Promise<PlanningInsight[] | nu
       return null;
     }
 
-    return data.insights as PlanningInsight[];
+    const insights = data.insights as PlanningInsight[];
+
+    return insights.map(insight => {
+      if (insight.suggestedAction?.priceAdjustment) {
+        return {
+          ...insight,
+          suggestedAction: {
+            ...insight.suggestedAction,
+            priceAdjustment: {
+              current: Number(insight.suggestedAction.priceAdjustment.current),
+              suggested: Number(insight.suggestedAction.priceAdjustment.suggested),
+              change: Number(insight.suggestedAction.priceAdjustment.change),
+            },
+          },
+        };
+      }
+      return insight;
+    });
   } catch (error) {
     console.error('Error getting cached insights:', error);
     return null;
@@ -401,14 +430,30 @@ async function saveCacheToDatabase(
   }
 }
 
+export async function clearCache(userId: string): Promise<void> {
+  try {
+    await supabase
+      .from('kelly_planning_cache')
+      .delete()
+      .eq('user_id', userId);
+  } catch (error) {
+    console.error('Error clearing cache:', error);
+  }
+}
+
 export async function getPlanningInsights(
   userId: string,
   forceRefresh = false
 ): Promise<PlanningInsight[]> {
   if (!forceRefresh) {
-    const cached = await getCachedInsights(userId);
-    if (cached) {
-      return cached;
+    try {
+      const cached = await getCachedInsights(userId);
+      if (cached) {
+        return cached;
+      }
+    } catch (error) {
+      console.error('Error loading cached insights, clearing cache:', error);
+      await clearCache(userId);
     }
   }
 

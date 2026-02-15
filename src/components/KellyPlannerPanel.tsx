@@ -367,16 +367,16 @@ function InsightCard({ insight, onAction, onDismiss, getActionLabel, getActionIc
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-700">Prix actuel:</span>
             <span className="font-bold text-gray-900 line-through">
-              {insight.suggestedAction.priceAdjustment.current.toFixed(2)} €
+              {Number(insight.suggestedAction.priceAdjustment.current).toFixed(2)} €
             </span>
           </div>
           <div className="flex items-center justify-between text-sm mt-1">
             <span className="text-gray-700">Prix suggéré:</span>
             <span className="font-bold text-orange-600">
-              {insight.suggestedAction.priceAdjustment.suggested.toFixed(2)} €
+              {Number(insight.suggestedAction.priceAdjustment.suggested).toFixed(2)} €
               <span className="text-xs ml-1">
-                ({insight.suggestedAction.priceAdjustment.change > 0 ? '+' : ''}
-                {insight.suggestedAction.priceAdjustment.change}%)
+                ({Number(insight.suggestedAction.priceAdjustment.change) > 0 ? '+' : ''}
+                {Number(insight.suggestedAction.priceAdjustment.change)}%)
               </span>
             </span>
           </div>
