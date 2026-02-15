@@ -22,6 +22,7 @@ import LotBuilder from '../components/LotBuilder';
 import { LazyImage } from '../components/ui/LazyImage';
 import { DressingPageSkeleton } from '../components/ui/DressingPageSkeleton';
 import { KellyProactive } from '../components/KellyProactive';
+import KellyPricingPanel from '../components/KellyPricingPanel';
 
 const STATUS_LABELS: Record<ArticleStatus, string> = {
   draft: 'Brouillon',
@@ -924,6 +925,15 @@ export function MonDressingPage() {
               </select>
             </div>
           </div>
+        </div>
+
+        {/* Kelly Pricing Panel */}
+        <div className="mb-4">
+          <KellyPricingPanel
+            onApplyPrice={(articleId, newPrice) => {
+              fetchAllData();
+            }}
+          />
         </div>
 
         {/* Content */}

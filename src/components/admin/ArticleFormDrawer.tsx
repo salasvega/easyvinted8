@@ -38,6 +38,7 @@ import { compressImage, formatFileSize } from '../../lib/imageCompression';
 import { parseSuggestionValue } from '../../lib/geminiService';
 
 import { ShippingSimulator } from '../tools/ShippingSimulator';
+import { PriceSuggestion } from '../PriceSuggestion';
 
 const CONDITION_OPTIONS: { value: Condition; label: string }[] = [
   { value: 'new_with_tags', label: 'Neuf avec etiquette' },
@@ -1645,6 +1646,17 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                           <span className="text-lg font-bold text-emerald-600">€</span>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Kelly Pricing Suggestion */}
+                    <div className={`${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 6.5 } as React.CSSProperties}>
+                      <PriceSuggestion
+                        brand={formData.brand}
+                        title={formData.title}
+                        condition={formData.condition}
+                        currentPrice={formData.price ? parseFloat(formData.price) : undefined}
+                        onApplyPrice={(price) => setFormData({ ...formData, price: price.toString() })}
+                      />
                     </div>
 
                     {/* ✅ Shipping Simulator */}
