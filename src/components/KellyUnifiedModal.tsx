@@ -93,9 +93,10 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
   const [expandedSections, setExpandedSections] = useState<Set<SectionType>>(new Set(['insights']));
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
   const [position, setPosition] = useState(() => {
     const saved = localStorage.getItem('kellyUnifiedPosition');
-    return saved ? JSON.parse(saved) : { bottom: 96, right: 16 };
+    return saved ? JSON.parse(saved) : { bottom: 16, right: 16 };
   });
 
   const [insights, setInsights] = useState<ProactiveInsight[]>([]);
@@ -170,6 +171,15 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
       document.removeEventListener('mouseup', handleDragEnd);
     };
   }, [isDragging, dragStart, position]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const loadAllData = async () => {
     await Promise.all([
@@ -754,15 +764,20 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     <>
       <div
         ref={modalRef}
-        className="fixed z-[60] w-[480px] max-w-[calc(100vw-2rem)]"
-        style={{
+        className="fixed z-[60] w-full sm:w-[480px] h-[calc(100vh-1rem)] sm:h-[calc(100vh-2rem)] flex flex-col"
+        style={isMobile ? {
+          bottom: '0',
+          left: '0',
+          right: '0',
+          cursor: isDragging ? 'grabbing' : 'auto'
+        } : {
           bottom: `${position.bottom}px`,
           right: `${position.right}px`,
           cursor: isDragging ? 'grabbing' : 'auto'
         }}
       >
-        <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-4">
+        <div className={`bg-white ${isMobile ? 'rounded-t-2xl' : 'rounded-2xl'} shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col h-full`}>
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="relative">
@@ -796,13 +811,15 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                 >
                   <RefreshCw className={`w-4 h-4 ${(loadingInsights || loadingPricing || loadingPlanner) ? 'animate-spin' : ''}`} />
                 </button>
-                <button
-                  onMouseDown={handleDragStart}
-                  className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-grab active:cursor-grabbing"
-                  title="Déplacer"
-                >
-                  <GripVertical className="w-4 h-4" />
-                </button>
+                {!isMobile && (
+                  <button
+                    onMouseDown={handleDragStart}
+                    className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-grab active:cursor-grabbing"
+                    title="Déplacer"
+                  >
+                    <GripVertical className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   onClick={onClose}
                   className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
@@ -814,7 +831,7 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
             </div>
           </div>
 
-          <div className="max-h-[600px] overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             <div className="divide-y divide-gray-100">
               <SectionHeader
                 icon={Sparkles}
