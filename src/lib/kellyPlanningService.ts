@@ -23,7 +23,7 @@ export interface MarketContext {
 }
 
 export interface SuggestedAction {
-  type: 'publish_now' | 'schedule' | 'bundle_first' | 'wait' | 'adjust_price';
+  type: 'publish_now' | 'schedule' | 'bundle_first' | 'wait' | 'adjust_price' | 'publish_later' | 'edit_and_publish' | 'hold_for_season';
   scheduledDate?: string;
   reasoning: string;
   confidence: number;
@@ -271,6 +271,18 @@ IMPORTANT:
 - Priorise les opportunités à fort impact
 - Limite à 10 insights maximum
 - Chaque insight doit avoir une action claire
+
+⚠️ TYPES D'ACTION AUTORISÉS (utilise UNIQUEMENT ces types):
+- "publish_now": pour publication immédiate (48h)
+- "schedule": pour planifier à une date précise
+- "publish_later": pour publication dans quelques semaines
+- "bundle_first": créer un lot avant de publier
+- "adjust_price": ajuster le prix d'un article
+- "edit_and_publish": modifier l'article puis planifier
+- "hold_for_season": attendre la bonne saison
+- "wait": pas d'action recommandée pour le moment
+
+N'UTILISE AUCUN AUTRE TYPE D'ACTION!
 
 GÉNÈRE MAINTENANT 3-10 INSIGHTS CONCRETS au format JSON:`;
 }

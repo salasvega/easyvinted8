@@ -100,11 +100,23 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
         break;
 
       case 'adjust_price':
+      case 'edit_and_publish':
         if (insight.articleIds.length === 1) {
+          navigate(`/mon-dressing?edit=${insight.articleIds[0]}`);
+        } else if (insight.articleIds.length > 0) {
           navigate(`/mon-dressing?edit=${insight.articleIds[0]}`);
         }
         break;
 
+      case 'publish_later':
+        if (onScheduleArticle && insight.articleIds.length > 0) {
+          const scheduledDate = action.scheduledDate || calculateOptimalDate(insight);
+          onScheduleArticle(insight.articleIds, scheduledDate);
+        }
+        handleComplete(insight.id);
+        break;
+
+      case 'hold_for_season':
       case 'wait':
         handleDismiss(insight.id);
         break;
@@ -143,6 +155,7 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
       case 'publish_now':
         return 'Planifier maintenant';
       case 'schedule':
+      case 'publish_later':
         if (timeWindow <= 3) {
           return 'Planifier sous 3 jours';
         } else if (timeWindow <= 7) {
@@ -154,22 +167,29 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
         return 'Créer le lot';
       case 'adjust_price':
         return 'Ajuster le prix';
+      case 'edit_and_publish':
+        return 'Modifier et planifier';
+      case 'hold_for_season':
+        return 'Attendre la saison';
       case 'wait':
         return 'Compris';
       default:
         console.warn('Unknown action type:', actionType);
-        return 'Planifier';
+        return 'OK';
     }
   }
 
   function getActionIcon(type: string) {
     switch (type) {
       case 'publish_now': return <Sparkles className="w-4 h-4" />;
-      case 'schedule': return <Calendar className="w-4 h-4" />;
+      case 'schedule':
+      case 'publish_later': return <Calendar className="w-4 h-4" />;
       case 'bundle_first': return <Package className="w-4 h-4" />;
       case 'adjust_price': return <TrendingUp className="w-4 h-4" />;
+      case 'edit_and_publish': return <Check className="w-4 h-4" />;
+      case 'hold_for_season': return <Clock className="w-4 h-4" />;
       case 'wait': return <Clock className="w-4 h-4" />;
-      default: return <Sparkles className="w-4 h-4" />;
+      default: return <Check className="w-4 h-4" />;
     }
   }
 

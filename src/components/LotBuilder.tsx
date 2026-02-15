@@ -248,11 +248,12 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
   }, [familyMembers, existingLotId, lotData.seller_id]);
 
   useEffect(() => {
-    if (preselectedArticleIds && preselectedArticleIds.length > 0 && !existingLotId) {
+    if (preselectedArticleIds && preselectedArticleIds.length > 0 && !existingLotId && articles.length > 0) {
+      console.log('🎯 Setting preselected articles:', preselectedArticleIds);
       setLotData(prev => ({ ...prev, selectedArticles: preselectedArticleIds }));
       setMobileTab('builder');
     }
-  }, [preselectedArticleIds, existingLotId]);
+  }, [preselectedArticleIds, existingLotId, articles.length]);
 
   // Synchronise photos à partir des articles sélectionnés
   useEffect(() => {
