@@ -576,18 +576,18 @@ export function KellyPlannerPanel() {
         />
       )}
 
-      <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl shadow-lg overflow-hidden mb-6">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-4 py-3 flex items-center justify-between text-white hover:bg-white/10 transition-colors"
+          className="w-full p-4 flex items-center justify-between border-b border-gray-100 hover:bg-gray-50 transition-colors"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-              <Sparkles className="w-5 h-5" />
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-lg flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-white" />
             </div>
             <div className="text-left">
-              <h3 className="font-semibold text-base">Planificateur Kelly</h3>
-              <p className="text-sm text-purple-100">
+              <h3 className="font-semibold text-gray-900">Planificateur Kelly</h3>
+              <p className="text-sm text-gray-500">
                 {pendingSuggestions.length} {pendingSuggestions.length === 1 ? 'suggestion' : 'suggestions'} • {totalScheduled} programmé{totalScheduled > 1 ? 's' : ''}
               </p>
             </div>
@@ -599,13 +599,13 @@ export function KellyPlannerPanel() {
                   e.stopPropagation();
                   initializePlanner();
                 }}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
                 title="Rafraîchir les suggestions"
               >
                 <RefreshCw className="w-4 h-4" />
               </button>
             )}
-            {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+            {isOpen ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
           </div>
         </button>
 
@@ -621,7 +621,7 @@ export function KellyPlannerPanel() {
               <button
                 onClick={initializePlanner}
                 disabled={loading}
-                className="flex items-center gap-2 text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+                className="flex items-center gap-2 text-xs text-gray-600 hover:text-gray-700 font-medium disabled:opacity-50"
               >
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 Actualiser
