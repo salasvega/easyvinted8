@@ -8,7 +8,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
  * Analyzes the product image to generate Vinted-ready details.
  */
 export const analyzeProductImage = async (base64Image: string, mimeType: string): Promise<Partial<Article>> => {
-  const model = 'gemini-2.5-flash';
+  const model = 'gemini-1.5-pro';
   
   const prompt = `
     You are an expert Vinted seller assistant. Analyze this product image to create a high-converting listing.
@@ -72,14 +72,14 @@ export const analyzeProductImage = async (base64Image: string, mimeType: string)
 };
 
 /**
- * Edits the product image using gemini-2.5-flash-image based on text instructions.
+ * Edits the product image using gemini-1.5-pro based on text instructions.
  */
 export const editProductImage = async (
   base64Image: string, 
   mimeType: string, 
   instruction: string
 ): Promise<string> => {
-  const model = 'gemini-2.5-flash-image';
+  const model = 'gemini-1.5-pro';
 
   try {
     const response = await ai.models.generateContent({
@@ -111,7 +111,7 @@ export const editProductImage = async (
  * Provides coaching advice for a listing.
  */
 export const getListingCoachAdvice = async (article: Partial<Article>, base64Image?: string): Promise<string> => {
-  const model = 'gemini-2.5-flash';
+  const model = 'gemini-1.5-pro';
 
   const context = `
     Listing Data:

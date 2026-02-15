@@ -34,9 +34,10 @@ L'IA Gemini générait des insights avec :
 model: 'gemini-2.0-flash-exp'
 model: 'gemini-2.5-flash'
 model: 'gemini-2.5-flash-image'
+model: 'gemini-1.5-flash'  // N'existe pas dans v1beta
 
 // APRÈS
-model: 'gemini-1.5-flash'  // Modèle stable et disponible
+model: 'gemini-1.5-pro'  // ✅ Modèle stable et disponible avec v1beta
 ```
 
 ### ✅ 2. Validation des Insights (geminiService.ts)
@@ -154,10 +155,11 @@ Surveille la console pour :
 - Cache expire après : **30 minutes**
 
 ### Modèle Gemini
-- Modèle utilisé : **gemini-1.5-flash**
+- Modèle utilisé : **gemini-1.5-pro** ✅
 - API version : **v1beta**
 - Response format : **JSON**
 - Temperature : **0.7**
+- Note : `gemini-1.5-flash` n'existe pas dans l'API v1beta
 
 ## Troubleshooting
 
