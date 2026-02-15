@@ -96,7 +96,6 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
         if (onCreateBundle && insight.articleIds.length > 0) {
           onCreateBundle(insight.articleIds);
         }
-        navigate('/lots/create', { state: { articleIds: insight.articleIds } });
         handleComplete(insight.id);
         break;
 
@@ -109,6 +108,11 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
       case 'wait':
         handleDismiss(insight.id);
         break;
+
+      default:
+        console.warn('Unknown action type:', action.type);
+        handleDismiss(insight.id);
+        break;
     }
   }
 
@@ -119,6 +123,7 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
       case 'bundle_first': return 'Créer le lot';
       case 'adjust_price': return 'Ajuster le prix';
       case 'wait': return 'Compris';
+      default: return 'Action';
     }
   }
 
@@ -129,6 +134,7 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
       case 'bundle_first': return <Package className="w-4 h-4" />;
       case 'adjust_price': return <TrendingUp className="w-4 h-4" />;
       case 'wait': return <Clock className="w-4 h-4" />;
+      default: return <Sparkles className="w-4 h-4" />;
     }
   }
 
@@ -256,6 +262,16 @@ function InsightCard({ insight, onAction, onDismiss, getActionLabel, getActionIc
   const priorityIcon = getPriorityIcon(insight.priority);
   const typeIcon = getTypeIcon(insight.type);
 
+  const actionLabel = getActionLabel(insight);
+  const actionIcon = getActionIcon(insight.suggestedAction.type);
+
+  console.log('InsightCard render:', {
+    insightId: insight.id,
+    actionType: insight.suggestedAction.type,
+    actionLabel,
+    actionIcon,
+  });
+
   const demandColor = {
     low: 'text-gray-600 bg-gray-100',
     medium: 'text-blue-600 bg-blue-100',
@@ -343,8 +359,8 @@ function InsightCard({ insight, onAction, onDismiss, getActionLabel, getActionIc
           onClick={onAction}
           className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2.5 rounded-xl font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
         >
-          {getActionIcon(insight.suggestedAction.type)}
-          {getActionLabel(insight)}
+          {actionIcon}
+          {actionLabel}
         </button>
       </div>
 
