@@ -3,7 +3,6 @@ import {
   Package,
   Settings,
   BarChart3,
-  Calendar,
   Menu,
   X,
   LogOut,
@@ -348,24 +347,12 @@ export function AppLayout({ children }: AppLayoutProps) {
 
                       <div className={`overflow-hidden transition-all duration-300 ${actionsExpanded ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"}`}>
                         <Link
-                          to="/planner"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/planner") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "50ms" : "0ms" }}
-                        >
-                          <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          Planificateur
-                        </Link>
-
-                        <Link
                           to="/admin/agent-publisher-ia"
                           onClick={() => closeMenuWithAnimation("main")}
                           className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
                             isActive("/admin/agent-publisher-ia") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
                           }`}
-                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "90ms" : "0ms" }}
+                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "50ms" : "0ms" }}
                         >
                           <Bot className="w-5 h-5 group-hover:scale-110 transition-transform" />
                           Agent Publisher IA
@@ -377,7 +364,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                           className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
                             isActive("/admin/publication-monitor") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
                           }`}
-                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "130ms" : "0ms" }}
+                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "90ms" : "0ms" }}
                         >
                           <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
                           Monitoring publications
@@ -389,7 +376,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                           className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
                             isActive("/analytics") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
                           }`}
-                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "170ms" : "0ms" }}
+                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "130ms" : "0ms" }}
                         >
                           <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
                           Statistiques
