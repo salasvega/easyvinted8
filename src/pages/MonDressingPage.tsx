@@ -23,6 +23,7 @@ import { LazyImage } from '../components/ui/LazyImage';
 import { DressingPageSkeleton } from '../components/ui/DressingPageSkeleton';
 import { KellyProactive } from '../components/KellyProactive';
 import KellyPricingPanel from '../components/KellyPricingPanel';
+import { KellyPlannerPanel } from '../components/KellyPlannerPanel';
 
 const STATUS_LABELS: Record<ArticleStatus, string> = {
   draft: 'Brouillon',
@@ -934,6 +935,27 @@ export function MonDressingPage() {
             defaultExpanded={false}
             onApplyPrice={(articleId, newPrice) => {
               fetchAllData();
+            }}
+          />
+        </div>
+
+        {/* Kelly Planner Panel - Intelligent Planning */}
+        <div className="mb-4">
+          <KellyPlannerPanel
+            onScheduleArticle={(articleIds) => {
+              const firstArticle = allItems.find(item => item.id === articleIds[0]);
+              if (firstArticle) {
+                setScheduleItem(firstArticle);
+                setScheduleModalOpen(true);
+              }
+            }}
+            onCreateBundle={(articleIds) => {
+              setSelectedForLot(
+                allItems
+                  .filter(item => articleIds.includes(item.id) && item.type === 'article')
+                  .map(item => item.id)
+              );
+              setShowLotBuilder(true);
             }}
           />
         </div>
