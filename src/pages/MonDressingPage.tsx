@@ -140,9 +140,11 @@ export function MonDressingPage() {
   const [scheduleModal, setScheduleModal] = useState<{
     isOpen: boolean;
     item: AdminItem | null;
+    initialDate?: string;
   }>({
     isOpen: false,
     item: null,
+    initialDate: undefined,
   });
 
   const [statusModal, setStatusModal] = useState<{
@@ -944,10 +946,14 @@ export function MonDressingPage() {
         {/* Kelly Planner Panel - Intelligent Planning */}
         <div className="mb-4">
           <KellyPlannerPanel
-            onScheduleArticle={(articleIds) => {
+            onScheduleArticle={(articleIds, scheduledDate) => {
               const firstArticle = items.find(item => item.id === articleIds[0]);
               if (firstArticle) {
-                setScheduleModal({ isOpen: true, item: firstArticle });
+                setScheduleModal({
+                  isOpen: true,
+                  item: firstArticle,
+                  initialDate: scheduledDate
+                });
               }
             }}
             onCreateBundle={(articleIds) => {
@@ -1380,12 +1386,13 @@ export function MonDressingPage() {
       {scheduleModal.item && (
         <ScheduleModal
           isOpen={scheduleModal.isOpen}
-          onClose={() => setScheduleModal({ isOpen: false, item: null })}
+          onClose={() => setScheduleModal({ isOpen: false, item: null, initialDate: undefined })}
           article={scheduleModal.item.type === 'article' ? { id: scheduleModal.item.id, title: scheduleModal.item.title } as any : undefined}
           lot={scheduleModal.item.type === 'lot' ? { id: scheduleModal.item.id, name: scheduleModal.item.title } : undefined}
+          initialDate={scheduleModal.initialDate}
           onScheduled={() => {
             setToast({ type: 'success', text: `${scheduleModal.item?.type === 'lot' ? 'Lot' : 'Article'} programme avec succes` });
-            setScheduleModal({ isOpen: false, item: null });
+            setScheduleModal({ isOpen: false, item: null, initialDate: undefined });
             fetchAllData();
           }}
         />

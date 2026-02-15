@@ -27,7 +27,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 interface KellyPlannerPanelProps {
-  onScheduleArticle?: (articleIds: string[]) => void;
+  onScheduleArticle?: (articleIds: string[], scheduledDate?: string) => void;
   onCreateBundle?: (articleIds: string[]) => void;
 }
 
@@ -87,7 +87,8 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
       case 'publish_now':
       case 'schedule':
         if (onScheduleArticle && insight.articleIds.length > 0) {
-          onScheduleArticle(insight.articleIds);
+          const scheduledDate = action.scheduledDate || calculateOptimalDate(insight);
+          onScheduleArticle(insight.articleIds, scheduledDate);
         }
         handleComplete(insight.id);
         break;
@@ -116,14 +117,49 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
     }
   }
 
+  function calculateOptimalDate(insight: PlanningInsight): string {
+    const now = new Date();
+    const timeWindowDays = insight.suggestedAction.marketContext.timeWindowDays;
+
+    if (insight.priority === 'urgent') {
+      now.setDate(now.getDate() + 1);
+    } else if (timeWindowDays <= 3) {
+      now.setDate(now.getDate() + 2);
+    } else if (timeWindowDays <= 7) {
+      now.setDate(now.getDate() + 4);
+    } else {
+      now.setDate(now.getDate() + 7);
+    }
+
+    now.setHours(10, 0, 0, 0);
+
+    return now.toISOString();
+  }
+
   function getActionLabel(insight: PlanningInsight): string {
-    switch (insight.suggestedAction.type) {
-      case 'publish_now': return 'Publier maintenant';
-      case 'schedule': return 'Planifier';
-      case 'bundle_first': return 'Créer le lot';
-      case 'adjust_price': return 'Ajuster le prix';
-      case 'wait': return 'Compris';
-      default: return 'Action';
+    const actionType = insight.suggestedAction.type;
+    const timeWindow = insight.suggestedAction.marketContext.timeWindowDays;
+
+    switch (actionType) {
+      case 'publish_now':
+        return 'Planifier maintenant';
+      case 'schedule':
+        if (timeWindow <= 3) {
+          return 'Planifier sous 3 jours';
+        } else if (timeWindow <= 7) {
+          return 'Planifier cette semaine';
+        } else {
+          return 'Planifier';
+        }
+      case 'bundle_first':
+        return 'Créer le lot';
+      case 'adjust_price':
+        return 'Ajuster le prix';
+      case 'wait':
+        return 'Compris';
+      default:
+        console.warn('Unknown action type:', actionType);
+        return 'Planifier';
     }
   }
 
@@ -265,13 +301,6 @@ function InsightCard({ insight, onAction, onDismiss, getActionLabel, getActionIc
   const actionLabel = getActionLabel(insight);
   const actionIcon = getActionIcon(insight.suggestedAction.type);
 
-  console.log('InsightCard render:', {
-    insightId: insight.id,
-    actionType: insight.suggestedAction.type,
-    actionLabel,
-    actionIcon,
-  });
-
   const demandColor = {
     low: 'text-gray-600 bg-gray-100',
     medium: 'text-blue-600 bg-blue-100',
@@ -351,6 +380,21 @@ function InsightCard({ insight, onAction, onDismiss, getActionLabel, getActionIc
               </span>
             </span>
           </div>
+        </div>
+      )}
+
+      {(insight.suggestedAction.type === 'publish_now' || insight.suggestedAction.type === 'schedule') && (
+        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3 mb-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Calendar className="w-4 h-4 text-purple-600" />
+            <p className="text-xs font-semibold text-purple-900">Date recommandée par Kelly</p>
+          </div>
+          <p className="text-sm font-bold text-purple-700">
+            {formatTimeWindow(insight.suggestedAction.marketContext.timeWindowDays)}
+          </p>
+          <p className="text-xs text-purple-600 mt-1">
+            La date sera pré-remplie automatiquement dans le calendrier
+          </p>
         </div>
       )}
 

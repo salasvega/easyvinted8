@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Calendar } from 'lucide-react';
+import { X, Calendar, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Article } from '../types/article';
 
@@ -165,6 +165,15 @@ export function ScheduleModal({ isOpen, onClose, article, lot, onScheduled, onSc
                 className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+
+            {initialDate && (
+              <div className="flex items-start gap-2 p-3 bg-purple-50 border border-purple-200 rounded-lg mb-3">
+                <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-purple-700 font-medium">
+                  Kelly a pré-sélectionné la date et l'heure optimales pour maximiser vos ventes !
+                </p>
+              </div>
+            )}
 
             <div className="flex items-start gap-2 p-3 bg-blue-50 rounded-lg">
               <Calendar className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
