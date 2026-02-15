@@ -181,6 +181,24 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
+
   const loadAllData = async () => {
     await Promise.all([
       loadInsights(),
@@ -762,9 +780,20 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
 
   return (
     <>
+      {/* Backdrop avec animation stylisée */}
+      <div
+        className="fixed inset-0 z-[59] bg-gradient-to-br from-black/50 via-gray-900/40 to-black/50 backdrop-blur-md transition-all duration-300"
+        onClick={onClose}
+        style={{
+          animation: 'fadeIn 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          backdropFilter: 'blur(8px) saturate(180%)'
+        }}
+      />
+
       <div
         ref={modalRef}
         className="fixed z-[60] w-full sm:w-[480px] h-[calc(100vh-1rem)] sm:h-[calc(100vh-2rem)] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
         style={isMobile ? {
           bottom: '0',
           left: '0',

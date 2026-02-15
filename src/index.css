@@ -159,6 +159,32 @@ html {
   animation: shimmer 2s infinite;
 }
 
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0px) saturate(100%);
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(8px) saturate(180%);
+    transform: scale(1);
+  }
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+    backdrop-filter: blur(8px) saturate(180%);
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    backdrop-filter: blur(0px) saturate(100%);
+    transform: scale(1.02);
+  }
+}
+
 @media print {
   * {
     overflow: visible !important;
