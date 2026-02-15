@@ -239,7 +239,7 @@ export const generateBaseAvatar = async (
   renderStyle?: RenderStyle,
   customPrompt?: string
 ): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   let styleInstructions = "";
   if (renderStyle) {
@@ -355,7 +355,7 @@ export const generateAvatarFromReferencePhoto = async (
   renderStyle?: RenderStyle,
   customInstructions?: string
 ): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   let styleInstructions = "";
   if (renderStyle) {
@@ -498,7 +498,7 @@ ${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n\n` : '
 };
 
 export const generateBackground = async (location: LocationProfile): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   // Utiliser le prompt optimisé si disponible, sinon la description de base
   const detailedDescription = location.generationPrompt || location.description || location.name;
@@ -632,7 +632,7 @@ export const performVirtualTryOn = async (
   avatarProfile?: AvatarProfile,
   locationProfile?: LocationProfile
 ): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   const hasAvatar = avatarBase64 && avatarBase64.trim() !== '';
   const hasClothing = clothingBase64 && clothingBase64.trim() !== '';
@@ -1100,7 +1100,7 @@ The result should look like a natural photograph taken in this location with thi
 export const analyzePhotoForAvatar = async (
   base64Image: string
 ): Promise<Partial<AvatarProfile>> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   const prompt = `Analyze this photo of a person and extract their physical characteristics for creating a virtual avatar.
 
@@ -1167,7 +1167,7 @@ Provide accurate descriptions based on what you see in the photo.`;
 export const analyzePhotoForLocation = async (
   base64Image: string
 ): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   const prompt = `Analyze this photo of a location/background scene in extreme detail and create a comprehensive, structured prompt that could be used to regenerate this exact scene with AI image generation.
 
@@ -1247,7 +1247,7 @@ Return ONLY the optimized descriptive prompt text, nothing else. Write in French
 export const generateAvatarDescriptionFromPhoto = async (
   base64Image: string
 ): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   const prompt = `Analyze this photo of a person in extreme detail and create a comprehensive, structured prompt that could be used to regenerate this exact person/avatar with AI image generation.
 
@@ -1330,7 +1330,7 @@ Return ONLY the optimized descriptive prompt text, nothing else. Write in French
 export const optimizeAvatarPromptFromText = async (
   userInput: string
 ): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   const prompt = `You are an expert at creating detailed prompts for AI image generation.
 
@@ -1362,7 +1362,7 @@ Return ONLY the optimized prompt text, nothing else.`;
 export const optimizeLocationPromptFromText = async (
   userInput: string
 ): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   const prompt = `You are an expert at creating detailed prompts for AI background/environment image generation.
 
@@ -1398,7 +1398,7 @@ export const generateAvatarFromTextPrompt = async (
   textPrompt: string,
   renderStyle?: RenderStyle
 ): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   const optimizedPrompt = await optimizeAvatarPromptFromText(textPrompt);
 
@@ -1502,7 +1502,7 @@ export const enhanceImportedPhoto = async (
   renderStyle?: RenderStyle | null,
   modelSignature?: string
 ): Promise<string> => {
-  const model = "gemini-1.5-pro";
+  const model = "gemini-2.5-flash";
 
   let styleInstructions = "Enhance this photo while maintaining a natural, realistic look";
   let technicalRequirements = "";

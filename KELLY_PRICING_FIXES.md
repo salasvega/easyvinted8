@@ -31,14 +31,15 @@ L'IA Gemini générait des insights avec :
 **Changements :**
 ```typescript
 // AVANT
-model: 'gemini-2.0-flash-exp'
-model: 'gemini-2.5-flash'
-model: 'gemini-2.5-flash-image'
-model: 'gemini-1.5-flash'  // N'existe pas dans v1beta
+model: 'gemini-2.0-flash-exp'  // ❌ Experimental, non disponible
+model: 'gemini-1.5-flash'      // ❌ N'existe pas dans v1beta
+model: 'gemini-1.5-pro'        // ❌ Erreur 404 avec v1beta
 
 // APRÈS
-model: 'gemini-1.5-pro'  // ✅ Modèle stable et disponible avec v1beta
+model: 'gemini-2.5-flash'  // ✅ Même modèle que analyze-article-image (fonctionne!)
 ```
+
+**Note:** Le modèle `gemini-2.5-flash` est utilisé avec succès dans l'edge function `analyze-article-image/index.ts` pour l'analyse d'images et la génération de descriptions. C'est le modèle de référence qui fonctionne.
 
 ### ✅ 2. Validation des Insights (geminiService.ts)
 
@@ -155,11 +156,11 @@ Surveille la console pour :
 - Cache expire après : **30 minutes**
 
 ### Modèle Gemini
-- Modèle utilisé : **gemini-1.5-pro** ✅
+- Modèle utilisé : **gemini-2.5-flash** ✅
 - API version : **v1beta**
 - Response format : **JSON**
 - Temperature : **0.7**
-- Note : `gemini-1.5-flash` n'existe pas dans l'API v1beta
+- Note : Même modèle que l'edge function `analyze-article-image` qui fonctionne parfaitement
 
 ## Troubleshooting
 
