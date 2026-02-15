@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Eye, ClipboardEdit, MoreVertical, Copy, Trash2, DollarSign, Calendar, Clock,
   CheckCircle2, FileText, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, Upload,
-  Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen, Bot
+  Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen
 } from 'lucide-react';
 import { Article, ArticleStatus, Season } from '../types/article';
 import { supabase } from '../lib/supabase';
@@ -1453,49 +1453,16 @@ export function MonDressingPage() {
         preselectedArticleIds={lotBuilderDrawer.preselectedArticleIds}
       />
 
-      {/* Bouton Kelly flottant - Masqué quand le drawer est ouvert */}
-      {!drawerOpen && !articleFormDrawer.isOpen && !lotBuilderDrawer.isOpen && (
-        <>
-          <button
-            onClick={() => setKellyOpen(!kellyOpen)}
-            className="fixed bottom-6 right-6 z-50 w-14 h-14 shadow-lg hover:shadow-xl transition-all duration-200 group"
-            title="Kelly Conseils"
-          >
-            <div className="relative w-full h-full rounded-full overflow-hidden flex items-center justify-center">
-              <img
-                src="/kelly-avatar.png"
-                alt="Kelly"
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const fallback = target.nextElementSibling as HTMLElement;
-                  if (fallback) fallback.style.display = 'flex';
-                }}
-              />
-              <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-emerald-500 to-teal-500 hidden items-center justify-center">
-                <Bot className="w-6 h-6 text-white" />
-              </div>
-            </div>
-            {insightsCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse ring-2 ring-white">
-                {insightsCount}
-              </span>
-            )}
-          </button>
-
-          {/* Kelly Unified Modal */}
-          <KellyUnifiedModal
-            isOpen={kellyOpen}
-            onClose={() => setKellyOpen(false)}
-            onNavigateToArticle={(articleId) => {
-              setArticleFormDrawer({ isOpen: true, articleId });
-            }}
-            onRefreshData={fetchAllData}
-            onInsightsCountChange={setInsightsCount}
-          />
-        </>
-      )}
+      {/* Kelly Unified Modal */}
+      <KellyUnifiedModal
+        isOpen={kellyOpen}
+        onClose={() => setKellyOpen(false)}
+        onNavigateToArticle={(articleId) => {
+          setArticleFormDrawer({ isOpen: true, articleId });
+        }}
+        onRefreshData={fetchAllData}
+        onInsightsCountChange={setInsightsCount}
+      />
     </>
   );
 }
