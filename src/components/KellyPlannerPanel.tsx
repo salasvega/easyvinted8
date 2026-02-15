@@ -125,6 +125,7 @@ export function KellyPlannerPanel() {
   const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
   const [selectedSuggestionId, setSelectedSuggestionId] = useState<string | null>(null);
   const [scheduledArticlesDisplayLimit, setScheduledArticlesDisplayLimit] = useState(5);
+  const [suggestionsDisplayLimit, setSuggestionsDisplayLimit] = useState(5);
   const [suggestedDate, setSuggestedDate] = useState<string | null>(null);
 
   const [scheduledArticles, setScheduledArticles] = useState<Article[]>([]);
@@ -653,121 +654,135 @@ export function KellyPlannerPanel() {
                       </GhostButton>
                     </div>
                   ) : (
-                    <div className="space-y-2 max-h-80 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50">
-                      {pendingSuggestions.map((suggestion) => {
-                        const isLot = !!suggestion.lot_id;
-                        const item = suggestion.lot || suggestion.article;
-                        const itemPhoto = suggestion.lot?.cover_photo || suggestion.article?.photos?.[0];
-                        const itemTitle = suggestion.lot?.name || suggestion.article?.title || 'Élément inconnu';
-                        const itemId = suggestion.lot?.id || suggestion.article?.id;
+                    <>
+                      <div className="space-y-2 max-h-80 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50">
+                        {pendingSuggestions.slice(0, suggestionsDisplayLimit).map((suggestion) => {
+                          const isLot = !!suggestion.lot_id;
+                          const item = suggestion.lot || suggestion.article;
+                          const itemPhoto = suggestion.lot?.cover_photo || suggestion.article?.photos?.[0];
+                          const itemTitle = suggestion.lot?.name || suggestion.article?.title || 'Élément inconnu';
+                          const itemId = suggestion.lot?.id || suggestion.article?.id;
 
-                        return (
-                          <div
-                            key={suggestion.id}
-                            onClick={() => {
-                              if (item) {
-                                handleOpenPreviewModal(item, isLot);
-                              }
-                            }}
-                            className="group bg-white rounded-xl p-2 hover:shadow-sm transition-all border border-blue-100 cursor-pointer"
-                          >
-                            <div className="flex items-start gap-2 mb-2">
-                              {itemPhoto ? (
-                                <LazyImage
-                                  src={itemPhoto}
-                                  alt={itemTitle}
-                                  className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                                  fallback={
-                                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                                      {isLot ? (
-                                        <Package className="w-5 h-5 text-slate-400" />
-                                      ) : (
-                                        <Calendar className="w-5 h-5 text-slate-400" />
-                                      )}
-                                    </div>
-                                  }
-                                />
-                              ) : (
-                                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                                  {isLot ? (
-                                    <Package className="w-5 h-5 text-slate-400" />
-                                  ) : (
-                                    <Calendar className="w-5 h-5 text-slate-400" />
-                                  )}
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 mb-0.5">
-                                  {isLot && (
-                                    <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[10px] px-1.5 py-0.5 rounded font-semibold">
-                                      <Package className="w-2.5 h-2.5" />
-                                      Lot
-                                    </span>
-                                  )}
-                                  <p className="text-xs font-medium text-slate-900 truncate leading-tight">
-                                    {itemTitle}
+                          return (
+                            <div
+                              key={suggestion.id}
+                              onClick={() => {
+                                if (item) {
+                                  handleOpenPreviewModal(item, isLot);
+                                }
+                              }}
+                              className="group bg-white rounded-xl p-2 hover:shadow-sm transition-all border border-blue-100 cursor-pointer"
+                            >
+                              <div className="flex items-start gap-2 mb-2">
+                                {itemPhoto ? (
+                                  <LazyImage
+                                    src={itemPhoto}
+                                    alt={itemTitle}
+                                    className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                                    fallback={
+                                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                        {isLot ? (
+                                          <Package className="w-5 h-5 text-slate-400" />
+                                        ) : (
+                                          <Calendar className="w-5 h-5 text-slate-400" />
+                                        )}
+                                      </div>
+                                    }
+                                  />
+                                ) : (
+                                  <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                    {isLot ? (
+                                      <Package className="w-5 h-5 text-slate-400" />
+                                    ) : (
+                                      <Calendar className="w-5 h-5 text-slate-400" />
+                                    )}
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5 mb-0.5">
+                                    {isLot && (
+                                      <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[10px] px-1.5 py-0.5 rounded font-semibold">
+                                        <Package className="w-2.5 h-2.5" />
+                                        Lot
+                                      </span>
+                                    )}
+                                    <p className="text-xs font-medium text-slate-900 truncate leading-tight">
+                                      {itemTitle}
+                                    </p>
+                                  </div>
+                                  <p className="text-[11px] text-slate-600 line-clamp-1 leading-tight mb-1">
+                                    {suggestion.reason}
                                   </p>
-                                </div>
-                                <p className="text-[11px] text-slate-600 line-clamp-1 leading-tight mb-1">
-                                  {suggestion.reason}
-                                </p>
-                                <div className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3 text-blue-600" />
-                                  <span className="text-[11px] font-medium text-blue-700">
-                                    {new Date(suggestion.suggested_date).toLocaleDateString('fr-FR', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                    })}
-                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3 text-blue-600" />
+                                    <span className="text-[11px] font-medium text-blue-700">
+                                      {new Date(suggestion.suggested_date).toLocaleDateString('fr-FR', {
+                                        day: 'numeric',
+                                        month: 'short',
+                                      })}
+                                    </span>
+                                  </div>
                                 </div>
                               </div>
+                              <div className="flex gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    rejectSuggestion(suggestion.id);
+                                  }}
+                                  className="flex-1 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-[10px] font-medium transition-colors flex items-center justify-center gap-1"
+                                  title="Refuser cette suggestion"
+                                >
+                                  <X className="w-3 h-3" />
+                                  Refuser
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (item && itemId) {
+                                      acceptSuggestion(suggestion.id, itemId, suggestion.suggested_date, isLot);
+                                    }
+                                  }}
+                                  className="flex-1 py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 text-[10px] font-semibold transition-colors flex items-center justify-center gap-1"
+                                  title="Accepter la date suggérée"
+                                >
+                                  <Check className="w-3 h-3" />
+                                  Accepter
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (item && itemId) {
+                                      handleOpenScheduleModal(item, suggestion.id, isLot, suggestion.suggested_date);
+                                    }
+                                  }}
+                                  className="flex-1 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 text-[10px] font-semibold transition-colors flex items-center justify-center gap-1"
+                                  title="Modifier la date de publication"
+                                >
+                                  <Calendar className="w-3 h-3" />
+                                  Planifier
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex gap-1.5">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  rejectSuggestion(suggestion.id);
-                                }}
-                                className="flex-1 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-[10px] font-medium transition-colors flex items-center justify-center gap-1"
-                                title="Refuser cette suggestion"
-                              >
-                                <X className="w-3 h-3" />
-                                Refuser
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (item && itemId) {
-                                    acceptSuggestion(suggestion.id, itemId, suggestion.suggested_date, isLot);
-                                  }
-                                }}
-                                className="flex-1 py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 text-[10px] font-semibold transition-colors flex items-center justify-center gap-1"
-                                title="Accepter la date suggérée"
-                              >
-                                <Check className="w-3 h-3" />
-                                Accepter
-                              </button>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (item && itemId) {
-                                    handleOpenScheduleModal(item, suggestion.id, isLot, suggestion.suggested_date);
-                                  }
-                                }}
-                                className="flex-1 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 text-[10px] font-semibold transition-colors flex items-center justify-center gap-1"
-                                title="Modifier la date de publication"
-                              >
-                                <Calendar className="w-3 h-3" />
-                                Planifier
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+
+                      {pendingSuggestions.length > suggestionsDisplayLimit && (
+                        <GhostButton
+                          onClick={() =>
+                            setSuggestionsDisplayLimit((prev) => prev + 5)
+                          }
+                          className="w-full mt-3 justify-center text-xs"
+                        >
+                          Voir + (
+                          {pendingSuggestions.length - suggestionsDisplayLimit} restants)
+                        </GhostButton>
+                      )}
+                    </>
                   )}
                 </SoftCard>
 
