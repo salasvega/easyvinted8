@@ -21,9 +21,7 @@ import { ArticleFormDrawer } from '../components/admin/ArticleFormDrawer';
 import LotBuilder from '../components/LotBuilder';
 import { LazyImage } from '../components/ui/LazyImage';
 import { DressingPageSkeleton } from '../components/ui/DressingPageSkeleton';
-import { KellyProactive } from '../components/KellyProactive';
-import KellyPricingPanel from '../components/KellyPricingPanel';
-import { KellyPlannerPanel } from '../components/KellyPlannerPanel';
+import { KellyUnifiedModal } from '../components/KellyUnifiedModal';
 import { completeInsight } from '../lib/kellyPlanningService';
 
 const STATUS_LABELS: Record<ArticleStatus, string> = {
@@ -935,20 +933,44 @@ export function MonDressingPage() {
           </div>
         </div>
 
-        {/* Kelly Pricing Panel - Collapsible */}
-        <div className="mb-4">
-          <KellyPricingPanel
-            collapsible={true}
-            defaultExpanded={false}
-            onApplyPrice={(articleId, newPrice) => {
-              fetchAllData();
-            }}
-          />
-        </div>
-
-        {/* Kelly Planner Panel - Intelligent Planning */}
-        <div className="mb-4">
-          <KellyPlannerPanel />
+        {/* Kelly - Assistant IA unifié */}
+        <div className="mb-6">
+          <button
+            onClick={() => setKellyOpen(true)}
+            className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl p-4 transition-all duration-300 hover:shadow-lg hover:scale-[1.02] group"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <img
+                    src="/kelly-avatar.png"
+                    alt="Kelly"
+                    className="w-12 h-12 rounded-full object-cover ring-2 ring-white/30"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                  <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-60"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-400"></span>
+                  </span>
+                </div>
+                <div className="text-left">
+                  <h3 className="font-bold text-white text-base">Kelly - Votre Assistante IA</h3>
+                  <p className="text-xs text-white/80">Conseils, Pricing & Planification</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {insightsCount > 0 && (
+                  <span className="bg-white text-emerald-600 text-sm font-bold px-3 py-1 rounded-full">
+                    {insightsCount} {insightsCount === 1 ? 'nouveau' : 'nouveaux'}
+                  </span>
+                )}
+                <Sparkles className="w-5 h-5 text-white group-hover:animate-pulse" />
+              </div>
+            </div>
+          </button>
         </div>
 
         {/* Content */}
@@ -1462,14 +1484,14 @@ export function MonDressingPage() {
             )}
           </button>
 
-          {/* Kelly Proactive Panel */}
-          <KellyProactive
+          {/* Kelly Unified Modal */}
+          <KellyUnifiedModal
+            isOpen={kellyOpen}
+            onClose={() => setKellyOpen(false)}
             onNavigateToArticle={(articleId) => {
               setArticleFormDrawer({ isOpen: true, articleId });
             }}
             onRefreshData={fetchAllData}
-            isOpenFromHeader={kellyOpen}
-            onToggleFromHeader={() => setKellyOpen(!kellyOpen)}
             onInsightsCountChange={setInsightsCount}
           />
         </>

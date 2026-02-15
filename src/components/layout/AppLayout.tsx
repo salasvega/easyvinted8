@@ -20,7 +20,8 @@ import { ShoppingBag } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import { EmailVerificationBanner } from "../EmailVerificationBanner";
-import { KellyProactive } from "../KellyProactive";
+import { KellyUnifiedModal } from "../KellyUnifiedModal";
+import { Bell } from "lucide-react";
 import "../../styles/navigation.css";
 
 interface AppLayoutProps {
@@ -273,6 +274,20 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
 
             <div className="flex items-center gap-3">
+              {/* Kelly Button avec badge */}
+              <button
+                onClick={() => setShowKellyPanel(!showKellyPanel)}
+                className="relative p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-300 hover:scale-110 ripple-effect group"
+                title="Kelly - Votre assistante IA"
+              >
+                <Bell className="w-5 h-5 group-hover:animate-bounce" />
+                {kellyInsightsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
+                    {kellyInsightsCount > 9 ? '9+' : kellyInsightsCount}
+                  </span>
+                )}
+              </button>
+
               {/* Burger menu - visible sur mobile et desktop */}
               <div className="relative" ref={menuRef}>
                 <button
@@ -445,11 +460,13 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">{children}</main>
 
-      <KellyProactive
+      <KellyUnifiedModal
+        isOpen={showKellyPanel}
+        onClose={() => setShowKellyPanel(false)}
         onNavigateToArticle={(articleId) => navigate(`/articles/${articleId}/preview`)}
-        onCreateBundle={(articleIds) => navigate("/lots/new", { state: { preselectedArticles: articleIds } })}
-        isOpenFromHeader={showKellyPanel}
-        onToggleFromHeader={() => setShowKellyPanel(!showKellyPanel)}
+        onRefreshData={() => {
+          window.location.reload();
+        }}
         onInsightsCountChange={setKellyInsightsCount}
       />
     </div>
