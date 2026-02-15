@@ -134,7 +134,7 @@ async function generatePricingInsightsWithAI(articles: Article[], soldArticles: 
     const prompt = buildPricingAnalysisPrompt(articles, soldArticles);
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-1.5-flash',
       contents: prompt,
       config: {
         responseMimeType: 'application/json',

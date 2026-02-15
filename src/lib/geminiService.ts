@@ -149,7 +149,7 @@ export const analyzeProductImage = async (
   mimeType: string,
   writingStyle?: string
 ): Promise<ProductData[]> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-1.5-flash";
 
   const writingStyleInstruction = writingStyle
     ? "\n    WRITING STYLE: When generating the title and description, use this specific writing style:\n    " + writingStyle + "\n    "
@@ -308,7 +308,7 @@ export const editProductImage = async (
   instruction: string,
   referenceImages?: { data: string; description: string }[]
 ): Promise<string> => {
-  const model = "gemini-2.5-flash-image";
+  const model = "gemini-1.5-flash";
 
   const enhancedInstruction = instruction + "\n" + HUMAN_IPHONE_CONSTRAINTS + "\nPreserve product details perfectly (logos/text/labels), keep product as focal point, no distortions.";
 
@@ -422,7 +422,7 @@ export const getListingCoachAdvice = async (
   article: any,
   activePhoto?: string
 ): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-1.5-flash";
   const photoPrompt = activePhoto ? "\n\nPhoto attached for visual analysis." : "";
 
   const prompt = `You are an expert Vinted sales coach. Analyze this listing and provide actionable advice to improve it and sell faster.
@@ -496,7 +496,7 @@ export const getStructuredCoachAdvice = async (
   article: any,
   activePhoto?: string
 ): Promise<CoachAdvice> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-1.5-flash";
   const photoPrompt = activePhoto ? "\n\nPhoto attached for visual analysis." : "";
 
   const prompt = `Tu es KELLY, une coach de vente EXPERTE sur Vinted avec 8 ans d'experience et plus de 50 000 ventes reussies.
@@ -610,7 +610,7 @@ export const analyzeDefects = async (
   base64Image: string,
   mimeType: string
 ): Promise<DefectAnalysis> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-1.5-flash";
 
   const prompt = `Tu es un expert en inspection de vetements d'occasion pour la revente sur Vinted.
 Analyse cette photo de vetement et detecte TOUS les defauts visibles avec precision.
@@ -707,7 +707,7 @@ export const generateVirtualTryOn = async (
   mimeType: string,
   gender: "female" | "male" | "neutral" = "female"
 ): Promise<string> => {
-  const model = "gemini-2.5-flash-image";
+  const model = "gemini-1.5-flash";
 
   const genderSubjects = {
     female: "a real adult woman (everyday body, not a model)",
@@ -835,7 +835,7 @@ export const optimizeArticleSEO = async (
   hashtags: string[];
   search_terms: string[];
 }> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-1.5-flash";
 
   const prompt = `Tu es un expert SEO pour Vinted. Optimise le référencement de cet article pour maximiser sa visibilité.
 
@@ -895,7 +895,7 @@ export const generateProactiveInsights = async (
   soldArticles: any[],
   currentMonth: number
 ): Promise<ProactiveInsight[]> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-1.5-flash";
 
   const seasonMap: Record<number, string> = {
     1: "winter",
@@ -958,7 +958,10 @@ ARTICLES:
 ${JSON.stringify(articlesSummary, null, 2)}
 
 REGLES:
-- Maximum 5 insights, priorise fort impact.`;
+- Maximum 5 insights, priorise fort impact.
+- TYPES VALIDES: ready_to_publish, ready_to_list, price_drop, seasonal, stale, incomplete, seo_optimization, opportunity, bundle
+- PRIORITES VALIDES: high, medium, low (JAMAIS HIGH, MEDIUM, LOW en majuscules)
+- Utilise UNIQUEMENT ces valeurs exactes pour type et priority`;
 
   try {
     const response = await getAI().models.generateContent({
@@ -999,7 +1002,24 @@ REGLES:
 
     if (response.text) {
       const parsed = JSON.parse(response.text);
-      return parsed.insights || [];
+      const insights = parsed.insights || [];
+
+      const validTypes = ['ready_to_publish', 'ready_to_list', 'price_drop', 'seasonal', 'stale', 'incomplete', 'seo_optimization', 'opportunity', 'bundle'];
+      const validPriorities = ['high', 'medium', 'low'];
+
+      return insights.filter((insight: any) => {
+        const hasValidType = validTypes.includes(insight.type);
+        const hasValidPriority = validPriorities.includes(insight.priority);
+
+        if (!hasValidType) {
+          console.warn(`Invalid insight type: ${insight.type}`);
+        }
+        if (!hasValidPriority) {
+          console.warn(`Invalid insight priority: ${insight.priority}`);
+        }
+
+        return hasValidType && hasValidPriority;
+      });
     }
     return [];
   } catch (error: any) {
@@ -1009,7 +1029,7 @@ REGLES:
 };
 
 export const generateSpeech = async (text: string): Promise<ArrayBuffer> => {
-  const model = "gemini-2.5-flash-preview-tts";
+  const model = "gemini-1.5-flash-preview-tts";
 
   try {
     const response = await getAI().models.generateContent({
@@ -1072,7 +1092,7 @@ export const generatePoseVariation = async (
   mimeType: string,
   poseInstruction: string
 ): Promise<string> => {
-  const model = "gemini-2.5-flash-image";
+  const model = "gemini-1.5-flash";
 
   const prompt = `
 Regenerate this image from a different perspective. The person, clothing, and background style must remain consistent.
