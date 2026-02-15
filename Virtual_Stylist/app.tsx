@@ -263,6 +263,16 @@ const App: React.FC = () => {
   const [manualReferencePhoto, setManualReferencePhoto] = useState<string | null>(null);
   const manualReferencePhotoInputRef = useRef<HTMLInputElement>(null);
 
+  const [avatarFilters, setAvatarFilters] = useState<{
+    gender: Gender | 'all';
+    hairColor: HairColor | 'all';
+    ageGroup: AgeGroup | 'all';
+  }>({
+    gender: 'all',
+    hairColor: 'all',
+    ageGroup: 'all'
+  });
+
   useEffect(() => { loadGallery(); }, []);
 
   useEffect(() => {
@@ -291,6 +301,21 @@ const App: React.FC = () => {
       setDefaultSellerName(defaults.defaultSellerName || null);
     } catch (err: any) { setState(p => ({ ...p, error: "Erreur Lookbook : " + err.message })); }
     finally { setIsLoadingGallery(false); }
+  };
+
+  const getFilteredAvatars = () => {
+    return savedAvatars.filter(avatar => {
+      if (avatarFilters.gender !== 'all' && avatar.gender !== avatarFilters.gender) {
+        return false;
+      }
+      if (avatarFilters.hairColor !== 'all' && avatar.hairColor !== avatarFilters.hairColor) {
+        return false;
+      }
+      if (avatarFilters.ageGroup !== 'all' && avatar.ageGroup !== avatarFilters.ageGroup) {
+        return false;
+      }
+      return true;
+    });
   };
 
   const toggleDefaultAvatar = async (avatarId: string) => {
@@ -2654,8 +2679,199 @@ const App: React.FC = () => {
               <GalleryLoader />
             ) : (
               <>
+                {/* Filtres */}
+                <div className="mb-8 sm:mb-12">
+                  <div className="max-w-7xl mx-auto px-4">
+                    {/* Filtre Genre */}
+                    <div className="mb-6">
+                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Genre</h4>
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, gender: 'all' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.gender === 'all'
+                              ? 'bg-black text-white shadow-lg scale-105'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          Tous
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, gender: 'masculine' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.gender === 'masculine'
+                              ? 'bg-blue-600 text-white shadow-lg scale-105'
+                              : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                          }`}
+                        >
+                          Homme
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, gender: 'feminine' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.gender === 'feminine'
+                              ? 'bg-pink-600 text-white shadow-lg scale-105'
+                              : 'bg-pink-50 text-pink-700 hover:bg-pink-100'
+                          }`}
+                        >
+                          Femme
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Filtre Couleur de cheveux */}
+                    <div className="mb-6">
+                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Couleur de cheveux</h4>
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, hairColor: 'all' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.hairColor === 'all'
+                              ? 'bg-black text-white shadow-lg scale-105'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          Tous
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, hairColor: 'blonde' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.hairColor === 'blonde'
+                              ? 'bg-yellow-500 text-white shadow-lg scale-105'
+                              : 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                          }`}
+                        >
+                          Blond
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, hairColor: 'brown' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.hairColor === 'brown'
+                              ? 'bg-amber-700 text-white shadow-lg scale-105'
+                              : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                          }`}
+                        >
+                          Brun
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, hairColor: 'black' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.hairColor === 'black'
+                              ? 'bg-gray-900 text-white shadow-lg scale-105'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Noir
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, hairColor: 'red' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.hairColor === 'red'
+                              ? 'bg-red-600 text-white shadow-lg scale-105'
+                              : 'bg-red-50 text-red-700 hover:bg-red-100'
+                          }`}
+                        >
+                          Roux
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, hairColor: 'grey' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.hairColor === 'grey'
+                              ? 'bg-slate-500 text-white shadow-lg scale-105'
+                              : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          Gris
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Filtre Âge */}
+                    <div className="mb-6">
+                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Groupe d'âge</h4>
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, ageGroup: 'all' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.ageGroup === 'all'
+                              ? 'bg-black text-white shadow-lg scale-105'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          Tous
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, ageGroup: 'baby' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.ageGroup === 'baby'
+                              ? 'bg-emerald-600 text-white shadow-lg scale-105'
+                              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                          }`}
+                        >
+                          Bébé
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, ageGroup: 'child' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.ageGroup === 'child'
+                              ? 'bg-teal-600 text-white shadow-lg scale-105'
+                              : 'bg-teal-50 text-teal-700 hover:bg-teal-100'
+                          }`}
+                        >
+                          Enfant
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, ageGroup: 'teen' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.ageGroup === 'teen'
+                              ? 'bg-sky-600 text-white shadow-lg scale-105'
+                              : 'bg-sky-50 text-sky-700 hover:bg-sky-100'
+                          }`}
+                        >
+                          Ado
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, ageGroup: 'adult' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.ageGroup === 'adult'
+                              ? 'bg-cyan-600 text-white shadow-lg scale-105'
+                              : 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100'
+                          }`}
+                        >
+                          Adulte
+                        </button>
+                        <button
+                          onClick={() => setAvatarFilters(prev => ({ ...prev, ageGroup: 'senior' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            avatarFilters.ageGroup === 'senior'
+                              ? 'bg-orange-600 text-white shadow-lg scale-105'
+                              : 'bg-orange-50 text-orange-700 hover:bg-orange-100'
+                          }`}
+                        >
+                          Senior
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Compteur de résultats */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                        {getFilteredAvatars().length} modèle{getFilteredAvatars().length > 1 ? 's' : ''} trouvé{getFilteredAvatars().length > 1 ? 's' : ''}
+                      </p>
+                      {(avatarFilters.gender !== 'all' || avatarFilters.hairColor !== 'all' || avatarFilters.ageGroup !== 'all') && (
+                        <button
+                          onClick={() => setAvatarFilters({ gender: 'all', hairColor: 'all', ageGroup: 'all' })}
+                          className="px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-black hover:bg-gray-100 rounded-lg transition-all"
+                        >
+                          Réinitialiser
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 sm:gap-10 lg:gap-12">
-              {savedAvatars.map(ava => (
+              {getFilteredAvatars().map(ava => (
                 <div key={ava.id} className="group space-y-3 sm:space-y-4">
                    <div
                       onClick={() => { setAvatarImage(ava.photoBase64!); setState(p => ({ ...p, avatar: ava })); }}
@@ -2706,7 +2922,21 @@ const App: React.FC = () => {
               ))}
             </div>
 
-            {savedAvatars.length > 0 && (
+            {getFilteredAvatars().length === 0 && savedAvatars.length > 0 && (
+              <div className="py-16 sm:py-24 text-center space-y-4 sm:space-y-6">
+                <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-400">
+                  Aucun modèle ne correspond aux filtres sélectionnés
+                </p>
+                <button
+                  onClick={() => setAvatarFilters({ gender: 'all', hairColor: 'all', ageGroup: 'all' })}
+                  className="px-6 sm:px-8 py-3 sm:py-4 bg-black text-white rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider hover:bg-gray-800 transition-all"
+                >
+                  Réinitialiser les filtres
+                </button>
+              </div>
+            )}
+
+            {savedAvatars.length > 0 && getFilteredAvatars().length > 0 && (
               <div className="mt-12 sm:mt-16 lg:mt-20 space-y-4">
                 <button onClick={() => setState(p => ({ ...p, step: 'backgrounds' }))} disabled={!state.avatar}
                   className={`group ${actionBtnClass(!state.avatar)} relative overflow-hidden`}>
