@@ -211,64 +211,68 @@ ${JSON.stringify(lotsData, null, 2)}
    medium: publier dans 2-3 semaines
    low: attendre meilleure période
 
-RETOURNE UN JSON ARRAY d'insights (maximum 10, priorisés par impact):
+📝 FORMAT DE RÉPONSE (JSON strict):
 
-[
-  {
-    "type": "seasonal_peak",
-    "priority": "urgent",
-    "articleIds": ["id1", "id2"],
-    "lotIds": [],
-    "title": "Publie ces robes d'été MAINTENANT",
-    "message": "La demande de robes d'été explose en ce moment. Les 3 prochains jours sont critiques avant saturation du marché.",
-    "suggestedAction": {
-      "type": "publish_now",
-      "scheduledDate": "2024-06-15",
-      "confidence": 92,
-      "reasoning": "Pic saisonnier + faible concurrence + historique positif",
-      "marketContext": {
-        "currentDemand": "high",
-        "competitionLevel": "low",
-        "priceOpportunity": 15,
-        "timeWindowDays": 3,
-        "seasonalTrend": "peak"
-      }
-    },
-    "expiresAt": "2024-06-18T23:59:59Z"
-  },
-  {
-    "type": "stale_inventory",
-    "priority": "high",
-    "articleIds": ["id3"],
-    "title": "Cet article dort depuis 45 jours",
-    "message": "Jean Levi's: aucune vue récente. Baisse le prix de 20% ou crée un lot avec d'autres jeans.",
-    "suggestedAction": {
-      "type": "adjust_price",
-      "confidence": 85,
-      "reasoning": "Article stagnant, ajustement nécessaire",
-      "marketContext": {
-        "currentDemand": "medium",
-        "competitionLevel": "high",
-        "priceOpportunity": -20,
-        "timeWindowDays": 14,
-        "seasonalTrend": "rising"
+{
+  "insights": [
+    {
+      "type": "seasonal_peak",
+      "priority": "urgent",
+      "articleIds": ["id1", "id2"],
+      "lotIds": [],
+      "title": "Publie ces robes d'été MAINTENANT",
+      "message": "La demande de robes d'été explose en ce moment. Les 3 prochains jours sont critiques avant saturation du marché.",
+      "suggestedAction": {
+        "type": "publish_now",
+        "scheduledDate": "2024-06-15",
+        "confidence": 92,
+        "reasoning": "Pic saisonnier + faible concurrence + historique positif",
+        "marketContext": {
+          "currentDemand": "high",
+          "competitionLevel": "low",
+          "priceOpportunity": 15,
+          "timeWindowDays": 3,
+          "seasonalTrend": "peak"
+        }
       },
-      "priceAdjustment": {
-        "current": 25,
-        "suggested": 20,
-        "change": -20
-      }
+      "expiresAt": "2024-06-18T23:59:59Z"
     },
-    "expiresAt": "2024-06-30T23:59:59Z"
-  }
-]
+    {
+      "type": "stale_inventory",
+      "priority": "high",
+      "articleIds": ["id3"],
+      "title": "Cet article dort depuis 45 jours",
+      "message": "Jean Levi's: aucune vue récente. Baisse le prix de 20% ou crée un lot avec d'autres jeans.",
+      "suggestedAction": {
+        "type": "adjust_price",
+        "confidence": 85,
+        "reasoning": "Article stagnant, ajustement nécessaire",
+        "marketContext": {
+          "currentDemand": "medium",
+          "competitionLevel": "high",
+          "priceOpportunity": -20,
+          "timeWindowDays": 14,
+          "seasonalTrend": "rising"
+        },
+        "priceAdjustment": {
+          "current": 25,
+          "suggested": 20,
+          "change": -20
+        }
+      },
+      "expiresAt": "2024-06-30T23:59:59Z"
+    }
+  ]
+}
 
 IMPORTANT:
 - Sois spécifique et actionnable
 - Base-toi sur la date actuelle pour la saisonnalité
 - Priorise les opportunités à fort impact
 - Limite à 10 insights maximum
-- Chaque insight doit avoir une action claire`;
+- Chaque insight doit avoir une action claire
+
+GÉNÈRE MAINTENANT 3-10 INSIGHTS CONCRETS au format JSON:`;
 }
 
 async function generateInsightsWithAI(
@@ -276,34 +280,32 @@ async function generateInsightsWithAI(
   readyLots: Lot[],
   userHistory: UserHistory
 ): Promise<PlanningInsight[]> {
-  const ai = getAI();
-  const currentDate = new Date().toISOString();
-
-  const prompt = buildPlanningAnalysisPrompt(readyArticles, readyLots, userHistory, currentDate);
-
   try {
-    const result = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 8000,
+    const ai = getAI();
+    const currentDate = new Date().toISOString();
+    const prompt = buildPlanningAnalysisPrompt(readyArticles, readyLots, userHistory, currentDate);
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
         responseMimeType: 'application/json',
+        temperature: 0.7,
       },
     });
 
-    const text = result.response.text();
-    const insights = JSON.parse(text) as PlanningInsight[];
+    const result = response.text;
+    const parsed = JSON.parse(result);
 
-    return insights.map(insight => ({
-      ...insight,
+    return parsed.insights.map((insight: any) => ({
       id: crypto.randomUUID(),
+      ...insight,
       status: 'active' as const,
       createdAt: new Date().toISOString(),
     }));
   } catch (error) {
     console.error('Error generating planning insights:', error);
-    throw error;
+    throw new Error('Impossible de générer les recommandations. Réessaie dans quelques instants.');
   }
 }
 
@@ -312,7 +314,7 @@ async function getUserHistory(userId: string): Promise<UserHistory> {
     .from('articles')
     .select('*')
     .eq('user_id', userId)
-    .eq('sold', true)
+    .eq('status', 'sold')
     .order('sold_at', { ascending: false })
     .limit(50);
 
