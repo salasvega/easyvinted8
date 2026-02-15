@@ -24,6 +24,7 @@ import { DressingPageSkeleton } from '../components/ui/DressingPageSkeleton';
 import { KellyProactive } from '../components/KellyProactive';
 import KellyPricingPanel from '../components/KellyPricingPanel';
 import { KellyPlannerPanel } from '../components/KellyPlannerPanel';
+import { completeInsight } from '../lib/kellyPlanningService';
 
 const STATUS_LABELS: Record<ArticleStatus, string> = {
   draft: 'Brouillon',
@@ -188,10 +189,12 @@ export function MonDressingPage() {
     isOpen: boolean;
     lotId?: string;
     preselectedArticleIds?: string[];
+    kellyInsightId?: string;
   }>({
     isOpen: false,
     lotId: undefined,
     preselectedArticleIds: undefined,
+    kellyInsightId: undefined,
   });
 
   const [kellyOpen, setKellyOpen] = useState(false);
@@ -651,7 +654,7 @@ export function MonDressingPage() {
       setArticleFormDrawer({ isOpen: true, articleId: item.id, suggestions });
       setDrawerOpen(false);
     } else {
-      setLotBuilderDrawer({ isOpen: true, lotId: item.id, preselectedArticleIds: undefined });
+      setLotBuilderDrawer({ isOpen: true, lotId: item.id, preselectedArticleIds: undefined, kellyInsightId: undefined });
       setDrawerOpen(false);
     }
   }, []);
@@ -869,7 +872,7 @@ export function MonDressingPage() {
                   <span>Nouvel article</span>
                 </button>
                 <button
-                  onClick={() => setLotBuilderDrawer({ isOpen: true, lotId: undefined, preselectedArticleIds: undefined })}
+                  onClick={() => setLotBuilderDrawer({ isOpen: true, lotId: undefined, preselectedArticleIds: undefined, kellyInsightId: undefined })}
                   className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg transition-all hover:shadow-md text-sm whitespace-nowrap"
                 >
                   <Package className="w-4 h-4 flex-shrink-0" />
@@ -956,8 +959,8 @@ export function MonDressingPage() {
                 });
               }
             }}
-            onCreateBundle={(articleIds) => {
-              setLotBuilderDrawer({ isOpen: true, lotId: undefined, preselectedArticleIds: articleIds });
+            onCreateBundle={(articleIds, insightId) => {
+              setLotBuilderDrawer({ isOpen: true, lotId: undefined, preselectedArticleIds: articleIds, kellyInsightId: insightId });
             }}
           />
         </div>
@@ -1430,10 +1433,13 @@ export function MonDressingPage() {
 
       <LotBuilder
         isOpen={lotBuilderDrawer.isOpen}
-        onClose={() => setLotBuilderDrawer({ isOpen: false, lotId: undefined, preselectedArticleIds: undefined })}
-        onSuccess={() => {
+        onClose={() => setLotBuilderDrawer({ isOpen: false, lotId: undefined, preselectedArticleIds: undefined, kellyInsightId: undefined })}
+        onSuccess={async () => {
+          if (lotBuilderDrawer.kellyInsightId && user) {
+            await completeInsight(user.id, lotBuilderDrawer.kellyInsightId);
+          }
           fetchAllData();
-          setLotBuilderDrawer({ isOpen: false, lotId: undefined, preselectedArticleIds: undefined });
+          setLotBuilderDrawer({ isOpen: false, lotId: undefined, preselectedArticleIds: undefined, kellyInsightId: undefined });
         }}
         existingLotId={lotBuilderDrawer.lotId}
         preselectedArticleIds={lotBuilderDrawer.preselectedArticleIds}

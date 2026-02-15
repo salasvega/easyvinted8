@@ -28,7 +28,7 @@ import { useNavigate } from 'react-router-dom';
 
 interface KellyPlannerPanelProps {
   onScheduleArticle?: (articleIds: string[], scheduledDate?: string) => void;
-  onCreateBundle?: (articleIds: string[]) => void;
+  onCreateBundle?: (articleIds: string[], insightId: string) => void;
 }
 
 export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPlannerPanelProps) {
@@ -95,9 +95,8 @@ export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPl
 
       case 'bundle_first':
         if (onCreateBundle && insight.articleIds.length > 0) {
-          onCreateBundle(insight.articleIds);
+          onCreateBundle(insight.articleIds, insight.id);
         }
-        handleComplete(insight.id);
         break;
 
       case 'adjust_price':
