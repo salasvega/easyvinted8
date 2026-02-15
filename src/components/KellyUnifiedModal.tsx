@@ -790,10 +790,16 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                       target.style.display = 'none';
                     }}
                   />
-                  <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-60"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-400"></span>
-                  </span>
+                  {(visibleInsights.length + pricingInsights.length + pendingSuggestions.length) > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex items-center justify-center rounded-full h-5 w-5 bg-white shadow-sm">
+                        <span className="text-[10px] font-bold text-red-600">
+                          {visibleInsights.length + pricingInsights.length + pendingSuggestions.length}
+                        </span>
+                      </span>
+                    </span>
+                  )}
                 </div>
                 <div>
                   <h3 className="font-bold text-white text-base">Kelly - Votre Assistante IA</h3>

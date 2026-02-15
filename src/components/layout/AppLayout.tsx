@@ -21,7 +21,6 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import { EmailVerificationBanner } from "../EmailVerificationBanner";
 import { KellyUnifiedModal } from "../KellyUnifiedModal";
-import { Bell } from "lucide-react";
 import "../../styles/navigation.css";
 
 interface AppLayoutProps {
@@ -277,15 +276,30 @@ export function AppLayout({ children }: AppLayoutProps) {
               {/* Kelly Button avec badge */}
               <button
                 onClick={() => setShowKellyPanel(!showKellyPanel)}
-                className="relative p-2 text-gray-600 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all duration-300 hover:scale-110 ripple-effect group"
+                className="relative p-1 hover:bg-emerald-50 rounded-full transition-all duration-300 hover:scale-110 ripple-effect group"
                 title="Kelly - Votre assistante IA"
               >
-                <Bell className="w-5 h-5 group-hover:animate-bounce" />
-                {kellyInsightsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center animate-pulse">
-                    {kellyInsightsCount > 9 ? '9+' : kellyInsightsCount}
-                  </span>
-                )}
+                <div className="relative">
+                  <img
+                    src="/kelly-avatar.png"
+                    alt="Kelly"
+                    className="w-9 h-9 rounded-full object-cover ring-2 ring-emerald-200 group-hover:ring-emerald-400 transition-all"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                    }}
+                  />
+                  {kellyInsightsCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex items-center justify-center">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex items-center justify-center rounded-full h-5 w-5 bg-white shadow-sm">
+                        <span className="text-[10px] font-bold text-red-600">
+                          {kellyInsightsCount > 9 ? '9+' : kellyInsightsCount}
+                        </span>
+                      </span>
+                    </span>
+                  )}
+                </div>
               </button>
 
               {/* Burger menu - visible sur mobile et desktop */}
