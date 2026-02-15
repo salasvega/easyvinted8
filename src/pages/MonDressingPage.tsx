@@ -948,21 +948,7 @@ export function MonDressingPage() {
 
         {/* Kelly Planner Panel - Intelligent Planning */}
         <div className="mb-4">
-          <KellyPlannerPanel
-            onScheduleArticle={(articleIds, scheduledDate) => {
-              const firstArticle = items.find(item => item.id === articleIds[0]);
-              if (firstArticle) {
-                setScheduleModal({
-                  isOpen: true,
-                  item: firstArticle,
-                  initialDate: scheduledDate
-                });
-              }
-            }}
-            onCreateBundle={(articleIds, insightId) => {
-              setLotBuilderDrawer({ isOpen: true, lotId: undefined, preselectedArticleIds: articleIds, kellyInsightId: insightId });
-            }}
-          />
+          <KellyPlannerPanel />
         </div>
 
         {/* Content */}

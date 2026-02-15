@@ -1,440 +1,966 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import {
-  getPlanningInsights,
-  dismissInsight,
-  completeInsight,
-  formatTimeWindow,
-  getPriorityColor,
-  getPriorityBgColor,
-  getPriorityIcon,
-  getTypeIcon,
-  PlanningInsight,
-} from '../lib/kellyPlanningService';
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar,
+  TrendingUp,
+  Sparkles,
+  Clock,
+  CheckCircle,
+  X,
+  Package,
+  Check,
   ChevronDown,
   ChevronUp,
   RefreshCw,
-  TrendingUp,
-  Package,
-  X,
-  Check,
-  Clock,
-  Sparkles,
-  AlertCircle,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
+import { Toast } from '../components/ui/Toast';
+import { ScheduleModal } from '../components/ScheduleModal';
+import { Article } from '../types/article';
+import { Lot } from '../types/lot';
+import { AdminDetailDrawer } from '../components/admin/AdminDetailDrawer';
+import { LazyImage } from '../components/ui/LazyImage';
+import {
+  Card,
+  SoftCard,
+  Pill,
+  GhostButton,
+} from '../components/ui/UiKit';
 
-interface KellyPlannerPanelProps {
-  onScheduleArticle?: (articleIds: string[], scheduledDate?: string) => void;
-  onCreateBundle?: (articleIds: string[], insightId: string) => void;
+interface Suggestion {
+  id: string;
+  article_id?: string;
+  lot_id?: string;
+  suggested_date: string;
+  priority: 'high' | 'medium' | 'low';
+  reason: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'scheduled';
+  article?: Article;
+  lot?: Lot;
 }
 
-export function KellyPlannerPanel({ onScheduleArticle, onCreateBundle }: KellyPlannerPanelProps) {
+const PlannerSuggestionSkeleton = ({ delay = 0 }: { delay?: number }) => (
+  <div
+    className="group bg-white rounded-xl p-2 border border-blue-100 animate-pulse"
+    style={{ animationDelay: `${delay}ms` }}
+  >
+    <div className="flex items-start gap-2 mb-2">
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0"></div>
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-3/4"></div>
+        <div className="h-2.5 bg-gradient-to-r from-gray-100 to-gray-200 rounded w-full"></div>
+        <div className="flex items-center gap-1">
+          <div className="h-2 bg-gray-200 rounded w-16"></div>
+          <div className="h-4 w-12 bg-blue-100 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+    <div className="flex gap-1.5">
+      <div className="flex-1 h-7 bg-gray-200 rounded-lg"></div>
+      <div className="flex-1 h-7 bg-blue-200 rounded-lg"></div>
+    </div>
+  </div>
+);
+
+const PlannerScheduledItemSkeleton = ({ delay = 0 }: { delay?: number }) => (
+  <div
+    className="flex items-center gap-3 bg-white rounded-2xl p-2 border border-emerald-100 animate-pulse"
+    style={{ animationDelay: `${delay}ms` }}
+  >
+    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0"></div>
+    <div className="flex-1 min-w-0 space-y-2">
+      <div className="h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded w-3/4"></div>
+      <div className="flex items-center gap-2">
+        <div className="w-3 h-3 bg-emerald-200 rounded"></div>
+        <div className="h-2.5 bg-emerald-200 rounded w-20"></div>
+      </div>
+    </div>
+    <div className="h-5 w-16 bg-orange-100 rounded-full"></div>
+  </div>
+);
+
+const PlannerSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+    <SoftCard className="bg-gradient-to-br from-blue-50 to-sky-50 border-blue-100">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-5 bg-blue-300 rounded animate-pulse"></div>
+        <div className="h-4 bg-blue-300 rounded w-40 animate-pulse"></div>
+      </div>
+      <div className="h-9 bg-blue-300 rounded w-16 mb-1 animate-pulse"></div>
+      <div className="h-3 bg-blue-200 rounded w-3/4 mb-4 animate-pulse"></div>
+      <div className="space-y-2">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <PlannerSuggestionSkeleton key={index} delay={index * 100} />
+        ))}
+      </div>
+    </SoftCard>
+
+    <SoftCard className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-5 bg-emerald-300 rounded animate-pulse"></div>
+        <div className="h-4 bg-emerald-300 rounded w-40 animate-pulse"></div>
+      </div>
+      <div className="h-9 bg-emerald-300 rounded w-16 mb-1 animate-pulse"></div>
+      <div className="h-3 bg-emerald-200 rounded w-3/4 mb-4 animate-pulse"></div>
+      <div className="space-y-2">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <PlannerScheduledItemSkeleton key={index} delay={index * 100} />
+        ))}
+      </div>
+    </SoftCard>
+  </div>
+);
+
+export function KellyPlannerPanel() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
   const [isOpen, setIsOpen] = useState(false);
-  const [insights, setInsights] = useState<PlanningInsight[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [selectedLot, setSelectedLot] = useState<Lot | null>(null);
+  const [selectedSuggestionId, setSelectedSuggestionId] = useState<string | null>(null);
+  const [scheduledArticlesDisplayLimit, setScheduledArticlesDisplayLimit] = useState(5);
+  const [suggestedDate, setSuggestedDate] = useState<string | null>(null);
 
-  const activeInsights = insights.filter(i => i.status === 'active');
-  const urgentCount = activeInsights.filter(i => i.priority === 'urgent').length;
-  const highCount = activeInsights.filter(i => i.priority === 'high').length;
+  const [scheduledArticles, setScheduledArticles] = useState<Article[]>([]);
+  const [scheduledLots, setScheduledLots] = useState<Lot[]>([]);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerItem, setDrawerItem] = useState<any>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
 
   useEffect(() => {
     if (isOpen && !hasLoaded) {
-      loadInsights();
+      initializePlanner();
     }
   }, [isOpen]);
 
-  async function loadInsights(forceRefresh = false) {
+  useEffect(() => {
+    if (user && isOpen) {
+      loadArticles();
+    }
+  }, [user, isOpen]);
+
+  async function initializePlanner() {
+    await generateSuggestions();
+    await loadSuggestions();
+    setHasLoaded(true);
+  }
+
+  async function loadSuggestions() {
     if (!user) return;
 
     try {
       setLoading(true);
-      setError(null);
-      const data = await getPlanningInsights(user.id, forceRefresh);
-      setInsights(data);
-      setHasLoaded(true);
-    } catch (err) {
-      console.error('Error loading planning insights:', err);
-      setError('Impossible de charger les recommandations. Vérifiez votre clé API Gemini.');
+      const { data: suggestionsData, error } = await supabase
+        .from('selling_suggestions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('suggested_date', { ascending: true });
+
+      if (error) throw error;
+
+      const suggestionsWithData = await Promise.all(
+        (suggestionsData || []).map(async (suggestion) => {
+          if (suggestion.article_id) {
+            const { data: article } = await supabase
+              .from('articles')
+              .select('*')
+              .eq('id', suggestion.article_id)
+              .maybeSingle();
+            return { ...suggestion, article };
+          } else if (suggestion.lot_id) {
+            const { data: lot } = await supabase
+              .from('lots')
+              .select('*')
+              .eq('id', suggestion.lot_id)
+              .maybeSingle();
+            return { ...suggestion, lot };
+          }
+          return suggestion;
+        })
+      );
+
+      const filteredSuggestions = suggestionsWithData.filter(
+        (suggestion) =>
+          (suggestion.article && suggestion.article.status === 'ready') ||
+          (suggestion.lot && suggestion.lot.status === 'ready')
+      );
+
+      setSuggestions(filteredSuggestions as Suggestion[]);
+    } catch (error) {
+      console.error('Error loading suggestions:', error);
+      setToast({
+        type: 'error',
+        text: 'Erreur lors du chargement des suggestions',
+      });
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleDismiss(insightId: string) {
+  async function generateSuggestions() {
     if (!user) return;
-    await dismissInsight(user.id, insightId);
-    setInsights(prev => prev.map(i => i.id === insightId ? { ...i, status: 'dismissed' as const } : i));
-  }
 
-  async function handleComplete(insightId: string) {
-    if (!user) return;
-    await completeInsight(user.id, insightId);
-    setInsights(prev => prev.map(i => i.id === insightId ? { ...i, status: 'completed' as const } : i));
-  }
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
 
-  function handleAction(insight: PlanningInsight) {
-    const action = insight.suggestedAction;
+      if (!token) return;
 
-    switch (action.type) {
-      case 'publish_now':
-      case 'schedule':
-        if (onScheduleArticle && insight.articleIds.length > 0) {
-          const scheduledDate = action.scheduledDate || calculateOptimalDate(insight);
-          onScheduleArticle(insight.articleIds, scheduledDate);
-        }
-        handleComplete(insight.id);
-        break;
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-planner-suggestions`;
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-      case 'bundle_first':
-        if (onCreateBundle && insight.articleIds.length > 0) {
-          onCreateBundle(insight.articleIds, insight.id);
-        }
-        break;
-
-      case 'adjust_price':
-      case 'edit_and_publish':
-        if (insight.articleIds.length === 1) {
-          navigate(`/mon-dressing?edit=${insight.articleIds[0]}`);
-        } else if (insight.articleIds.length > 0) {
-          navigate(`/mon-dressing?edit=${insight.articleIds[0]}`);
-        }
-        break;
-
-      case 'publish_later':
-        if (onScheduleArticle && insight.articleIds.length > 0) {
-          const scheduledDate = action.scheduledDate || calculateOptimalDate(insight);
-          onScheduleArticle(insight.articleIds, scheduledDate);
-        }
-        handleComplete(insight.id);
-        break;
-
-      case 'hold_for_season':
-      case 'wait':
-        handleDismiss(insight.id);
-        break;
-
-      default:
-        console.warn('Unknown action type:', action.type);
-        handleDismiss(insight.id);
-        break;
+      if (!response.ok) {
+        throw new Error('Erreur lors de la génération des suggestions');
+      }
+    } catch (error) {
+      console.error('Error generating suggestions:', error);
     }
   }
 
-  function calculateOptimalDate(insight: PlanningInsight): string {
-    const now = new Date();
-    const timeWindowDays = insight.suggestedAction.marketContext.timeWindowDays;
+  async function acceptSuggestion(
+    suggestionId: string,
+    itemId: string,
+    suggestedDate: string,
+    isLot: boolean = false
+  ) {
+    try {
+      const scheduledFor = new Date(suggestedDate).toISOString();
+      const tableName = isLot ? 'lots' : 'articles';
 
-    if (insight.priority === 'urgent') {
-      now.setDate(now.getDate() + 1);
-    } else if (timeWindowDays <= 3) {
-      now.setDate(now.getDate() + 2);
-    } else if (timeWindowDays <= 7) {
-      now.setDate(now.getDate() + 4);
+      const { error: itemError } = await supabase
+        .from(tableName)
+        .update({ status: 'scheduled', scheduled_for: scheduledFor })
+        .eq('id', itemId);
+
+      if (itemError) throw itemError;
+
+      const { error: suggestionError } = await supabase
+        .from('selling_suggestions')
+        .update({ status: 'accepted', updated_at: new Date().toISOString() })
+        .eq('id', suggestionId);
+
+      if (suggestionError) throw suggestionError;
+
+      await loadSuggestions();
+      await loadArticles();
+      setToast({
+        type: 'success',
+        text: `Suggestion acceptée et ${isLot ? 'lot' : 'article'} planifié`,
+      });
+    } catch (error) {
+      console.error('Error accepting suggestion:', error);
+      setToast({
+        type: 'error',
+        text: "Erreur lors de l'acceptation de la suggestion",
+      });
+    }
+  }
+
+  async function rejectSuggestion(suggestionId: string) {
+    try {
+      const { error } = await supabase
+        .from('selling_suggestions')
+        .update({ status: 'rejected', updated_at: new Date().toISOString() })
+        .eq('id', suggestionId);
+
+      if (error) throw error;
+
+      await loadSuggestions();
+      setToast({ type: 'success', text: 'Suggestion rejetée' });
+    } catch (error) {
+      console.error('Error rejecting suggestion:', error);
+      setToast({
+        type: 'error',
+        text: 'Erreur lors du rejet de la suggestion',
+      });
+    }
+  }
+
+  function handleOpenScheduleModal(
+    item: Article | Lot,
+    suggestionId: string,
+    isLot: boolean = false,
+    suggestedDateTime?: string
+  ) {
+    if (isLot) {
+      setSelectedLot(item as Lot);
+      setSelectedArticle(null);
     } else {
-      now.setDate(now.getDate() + 7);
+      setSelectedArticle(item as Article);
+      setSelectedLot(null);
     }
-
-    now.setHours(10, 0, 0, 0);
-
-    return now.toISOString();
+    setSelectedSuggestionId(suggestionId);
+    setSuggestedDate(suggestedDateTime || null);
+    setScheduleModalOpen(true);
   }
 
-  function getActionLabel(insight: PlanningInsight): string {
-    const actionType = insight.suggestedAction.type;
-    const timeWindow = insight.suggestedAction.marketContext.timeWindowDays;
+  async function handleOpenPreviewModal(item: Article | Lot, isLot: boolean = false) {
+    const adminItem = await convertToAdminItem(item, isLot);
+    setDrawerItem(adminItem);
+    setDrawerOpen(true);
+  }
 
-    switch (actionType) {
-      case 'publish_now':
-        return 'Planifier maintenant';
-      case 'schedule':
-      case 'publish_later':
-        if (timeWindow <= 3) {
-          return 'Planifier sous 3 jours';
-        } else if (timeWindow <= 7) {
-          return 'Planifier cette semaine';
-        } else {
-          return 'Planifier';
+  async function convertToAdminItem(item: Article | Lot, isLot: boolean = false): Promise<any> {
+    if (isLot) {
+      const lot = item as Lot;
+
+      let articles = [];
+      const { data: lotItems } = await supabase
+        .from('lot_items')
+        .select('article_id')
+        .eq('lot_id', lot.id);
+
+      if (lotItems && lotItems.length > 0) {
+        const articleIds = lotItems.map(item => item.article_id);
+        const { data: articlesData } = await supabase
+          .from('articles')
+          .select('id, title, brand, price, photos, size')
+          .in('id', articleIds);
+
+        if (articlesData) {
+          articles = articlesData;
         }
-      case 'bundle_first':
-        return 'Créer le lot';
-      case 'adjust_price':
-        return 'Ajuster le prix';
-      case 'edit_and_publish':
-        return 'Modifier et planifier';
-      case 'hold_for_season':
-        return 'Attendre la saison';
-      case 'wait':
-        return 'Compris';
-      default:
-        console.warn('Unknown action type:', actionType);
-        return 'OK';
+      }
+
+      return {
+        id: lot.id,
+        type: 'lot' as const,
+        title: lot.name || '',
+        brand: undefined,
+        price: lot.price || 0,
+        status: lot.status,
+        photos: lot.cover_photo ? [lot.cover_photo] : [],
+        created_at: lot.created_at || '',
+        scheduled_for: lot.scheduled_for,
+        seller_id: lot.seller_id,
+        published_at: lot.published_at,
+        sold_at: lot.sold_at,
+        sold_price: lot.sold_price,
+        net_profit: lot.net_profit,
+        reference_number: lot.reference_number,
+        description: lot.description,
+        vinted_url: lot.vinted_url,
+        fees: lot.fees,
+        shipping_cost: lot.shipping_cost,
+        buyer_name: lot.buyer_name,
+        sale_notes: lot.sale_notes,
+        lot_article_count: lot.article_count,
+        original_total_price: lot.original_total_price,
+        discount_percentage: lot.discount_percentage,
+        articles: articles,
+      };
+    } else {
+      const article = item as Article;
+      return {
+        id: article.id,
+        type: 'article' as const,
+        title: article.title || '',
+        brand: article.brand,
+        price: article.price || 0,
+        status: article.status,
+        photos: article.photos || [],
+        created_at: article.created_at || '',
+        season: article.season,
+        scheduled_for: article.scheduled_for,
+        seller_id: article.seller_id,
+        published_at: article.published_at,
+        sold_at: article.sold_at,
+        sold_price: article.sold_price,
+        net_profit: article.net_profit,
+        reference_number: article.reference_number,
+        description: article.description,
+        suggested_period: article.suggested_period,
+        vinted_url: article.vinted_url,
+        fees: article.fees,
+        shipping_cost: article.shipping_cost,
+        buyer_name: article.buyer_name,
+        sale_notes: article.sale_notes,
+        size: article.size,
+        color: article.color,
+        material: article.material,
+        condition: article.condition,
+      };
     }
   }
 
-  function getActionIcon(type: string) {
-    switch (type) {
-      case 'publish_now': return <Sparkles className="w-4 h-4" />;
-      case 'schedule':
-      case 'publish_later': return <Calendar className="w-4 h-4" />;
-      case 'bundle_first': return <Package className="w-4 h-4" />;
-      case 'adjust_price': return <TrendingUp className="w-4 h-4" />;
-      case 'edit_and_publish': return <Check className="w-4 h-4" />;
-      case 'hold_for_season': return <Clock className="w-4 h-4" />;
-      case 'wait': return <Clock className="w-4 h-4" />;
-      default: return <Check className="w-4 h-4" />;
+  const handleDrawerClose = () => {
+    setDrawerOpen(false);
+    setDrawerItem(null);
+  };
+
+  const handleEdit = () => {
+    if (!drawerItem) return;
+    if (drawerItem.type === 'article') {
+      navigate(`/articles/${drawerItem.id}/edit`);
+    } else {
+      navigate(`/lots/${drawerItem.id}/edit`);
+    }
+  };
+
+  const handlePublish = () => {
+    setToast({ type: 'error', text: 'Fonctionnalité en cours de développement' });
+  };
+
+  const handleDuplicate = () => {
+    setToast({ type: 'error', text: 'Fonctionnalité en cours de développement' });
+  };
+
+  const handleSchedule = () => {
+    if (!drawerItem) return;
+    handleDrawerClose();
+    setTimeout(() => {
+      if (drawerItem.type === 'article') {
+        const article = scheduledArticles.find(a => a.id === drawerItem.id);
+        if (article) {
+          setSelectedArticle(article);
+          setSelectedLot(null);
+          setScheduleModalOpen(true);
+        }
+      } else {
+        const lot = scheduledLots.find(l => l.id === drawerItem.id);
+        if (lot) {
+          setSelectedLot(lot);
+          setSelectedArticle(null);
+          setScheduleModalOpen(true);
+        }
+      }
+    }, 300);
+  };
+
+  const handleMarkSold = () => {
+    setToast({ type: 'error', text: 'Fonctionnalité en cours de développement' });
+  };
+
+  const handleDelete = async () => {
+    if (!drawerItem || !user) return;
+
+    const confirmDelete = window.confirm(
+      `Êtes-vous sûr de vouloir supprimer ${drawerItem.type === 'lot' ? 'ce lot' : 'cet article'} ?`
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const table = drawerItem.type === 'article' ? 'articles' : 'lots';
+      const { error } = await supabase
+        .from(table)
+        .delete()
+        .eq('id', drawerItem.id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      setToast({
+        type: 'success',
+        text: `${drawerItem.type === 'lot' ? 'Lot' : 'Article'} supprimé avec succès`
+      });
+      handleDrawerClose();
+      await loadArticles();
+      await loadSuggestions();
+    } catch (error) {
+      console.error('Error deleting:', error);
+      setToast({ type: 'error', text: 'Erreur lors de la suppression' });
+    }
+  };
+
+  const handleStatusChange = () => {
+    setToast({ type: 'error', text: 'Fonctionnalité en cours de développement' });
+  };
+
+  const handleLabelOpen = () => {
+    setToast({ type: 'error', text: 'Fonctionnalité en cours de développement' });
+  };
+
+  const formatDate = (date?: string) => {
+    if (!date) return 'Non défini';
+    return new Date(date).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  };
+
+  async function handleScheduled() {
+    if (selectedSuggestionId) {
+      try {
+        const { error } = await supabase
+          .from('selling_suggestions')
+          .update({ status: 'accepted', updated_at: new Date().toISOString() })
+          .eq('id', selectedSuggestionId);
+
+        if (error) throw error;
+      } catch (error) {
+        console.error('Error updating suggestion:', error);
+      }
+    }
+
+    await loadSuggestions();
+    await loadArticles();
+    setToast({ type: 'success', text: 'Article programmé avec succès' });
+    setScheduleModalOpen(false);
+    setSelectedArticle(null);
+    setSelectedLot(null);
+    setSelectedSuggestionId(null);
+  }
+
+  async function loadArticles() {
+    if (!user) return;
+
+    try {
+      const { data: scheduled, error: scheduledError } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'scheduled')
+        .order('scheduled_for', { ascending: true });
+
+      const { data: scheduledLotsData, error: scheduledLotsError } = await supabase
+        .from('lots')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'scheduled')
+        .order('scheduled_for', { ascending: true });
+
+      if (scheduledError) throw scheduledError;
+      if (scheduledLotsError) throw scheduledLotsError;
+
+      setScheduledArticles(scheduled || []);
+      setScheduledLots(scheduledLotsData || []);
+    } catch (error) {
+      console.error('Error loading articles:', error);
     }
   }
+
+  const pendingSuggestions = suggestions.filter((s) => s.status === 'pending');
+  const totalScheduled = scheduledArticles.length + scheduledLots.length;
+  const currentArticleForSchedule = selectedArticle || (selectedLot as any);
 
   if (!user) return null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border-2 border-gray-100 overflow-hidden transition-all duration-300">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-white" />
+    <>
+      {toast && (
+        <Toast
+          message={toast.text}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {currentArticleForSchedule && (
+        <ScheduleModal
+          isOpen={scheduleModalOpen}
+          onClose={() => {
+            setScheduleModalOpen(false);
+            setSelectedArticle(null);
+            setSelectedLot(null);
+            setSelectedSuggestionId(null);
+            setSuggestedDate(null);
+          }}
+          article={currentArticleForSchedule}
+          onScheduled={handleScheduled}
+          initialDate={suggestedDate || undefined}
+        />
+      )}
+
+      <div className="bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl shadow-lg overflow-hidden mb-6">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full px-4 py-3 flex items-center justify-between text-white hover:bg-white/10 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-base">Planificateur Kelly</h3>
+              <p className="text-sm text-purple-100">
+                {pendingSuggestions.length} {pendingSuggestions.length === 1 ? 'suggestion' : 'suggestions'} • {totalScheduled} programmé{totalScheduled > 1 ? 's' : ''}
+              </p>
+            </div>
           </div>
-          <div className="text-left">
-            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-              Kelly Planner
-              {urgentCount > 0 && (
-                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full">
-                  {urgentCount} urgent{urgentCount > 1 ? 's' : ''}
+          <div className="flex items-center gap-2">
+            {!isOpen && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  initializePlanner();
+                }}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                title="Rafraîchir les suggestions"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            )}
+            {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+          </div>
+        </button>
+
+        {isOpen && (
+          <div className="px-4 pb-4 bg-white">
+            <div className="flex items-center justify-between mb-4 pt-4">
+              <div className="flex items-center gap-2 text-emerald-600">
+                <CheckCircle className="w-5 h-5" />
+                <span className="text-sm font-semibold">
+                  {totalScheduled} annonce{totalScheduled > 1 ? 's programmées' : ' programmée'}
                 </span>
-              )}
-            </h3>
-            <p className="text-sm text-gray-500">
-              {loading ? 'Analyse en cours...' : hasLoaded ? `${activeInsights.length} recommandation${activeInsights.length > 1 ? 's' : ''}` : 'Planificateur intelligent'}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {hasLoaded && !loading && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                loadInsights(true);
-              }}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="Rafraîchir"
-            >
-              <RefreshCw className="w-4 h-4 text-gray-600" />
-            </button>
-          )}
-          {isOpen ? (
-            <ChevronUp className="w-5 h-5 text-gray-400" />
-          ) : (
-            <ChevronDown className="w-5 h-5 text-gray-400" />
-          )}
-        </div>
-      </button>
-
-      {isOpen && (
-        <div className="border-t border-gray-100">
-          {loading && (
-            <div className="p-6">
-              <div className="flex items-center justify-center gap-3 py-8">
-                <RefreshCw className="w-5 h-5 text-purple-600 animate-spin" />
-                <span className="text-gray-600">Kelly analyse vos articles...</span>
               </div>
+              <button
+                onClick={initializePlanner}
+                disabled={loading}
+                className="flex items-center gap-2 text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                Actualiser
+              </button>
             </div>
-          )}
 
-          {error && (
-            <div className="p-6">
-              <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-red-900">Erreur</p>
-                  <p className="text-sm text-red-700 mt-1">{error}</p>
-                </div>
+            {loading ? (
+              <PlannerSkeleton />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <SoftCard className="bg-gradient-to-br from-blue-50 to-sky-50 border-blue-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-sm font-bold text-gray-900">
+                      Suggestions de planification
+                    </h3>
+                  </div>
+                  <div className="text-3xl font-semibold text-blue-700 mb-1">
+                    {pendingSuggestions.length}
+                  </div>
+                  <p className="text-xs text-blue-700 mb-4">
+                    {pendingSuggestions.length > 0
+                      ? 'Suggestions IA basées sur la saisonnalité et la demande.'
+                      : 'Aucune suggestion pour le moment.'}
+                  </p>
+
+                  {pendingSuggestions.length === 0 ? (
+                    <div className="text-center py-6">
+                      <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white flex items-center justify-center">
+                        <Clock className="w-7 h-7 text-blue-400" />
+                      </div>
+                      <p className="text-xs text-blue-700 mb-3">
+                        Cliquez pour analyser votre stock
+                      </p>
+                      <GhostButton
+                        onClick={generateSuggestions}
+                        className="text-xs px-3 py-2 border-blue-200 text-blue-700 hover:bg-blue-100"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Générer
+                      </GhostButton>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-80 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50">
+                      {pendingSuggestions.map((suggestion) => {
+                        const isLot = !!suggestion.lot_id;
+                        const item = suggestion.lot || suggestion.article;
+                        const itemPhoto = suggestion.lot?.cover_photo || suggestion.article?.photos?.[0];
+                        const itemTitle = suggestion.lot?.name || suggestion.article?.title || 'Élément inconnu';
+                        const itemId = suggestion.lot?.id || suggestion.article?.id;
+
+                        return (
+                          <div
+                            key={suggestion.id}
+                            onClick={() => {
+                              if (item) {
+                                handleOpenPreviewModal(item, isLot);
+                              }
+                            }}
+                            className="group bg-white rounded-xl p-2 hover:shadow-sm transition-all border border-blue-100 cursor-pointer"
+                          >
+                            <div className="flex items-start gap-2 mb-2">
+                              {itemPhoto ? (
+                                <LazyImage
+                                  src={itemPhoto}
+                                  alt={itemTitle}
+                                  className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                                  fallback={
+                                    <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                      {isLot ? (
+                                        <Package className="w-5 h-5 text-slate-400" />
+                                      ) : (
+                                        <Calendar className="w-5 h-5 text-slate-400" />
+                                      )}
+                                    </div>
+                                  }
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                  {isLot ? (
+                                    <Package className="w-5 h-5 text-slate-400" />
+                                  ) : (
+                                    <Calendar className="w-5 h-5 text-slate-400" />
+                                  )}
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  {isLot && (
+                                    <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[10px] px-1.5 py-0.5 rounded font-semibold">
+                                      <Package className="w-2.5 h-2.5" />
+                                      Lot
+                                    </span>
+                                  )}
+                                  <p className="text-xs font-medium text-slate-900 truncate leading-tight">
+                                    {itemTitle}
+                                  </p>
+                                </div>
+                                <p className="text-[11px] text-slate-600 line-clamp-1 leading-tight mb-1">
+                                  {suggestion.reason}
+                                </p>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3 text-blue-600" />
+                                  <span className="text-[11px] font-medium text-blue-700">
+                                    {new Date(suggestion.suggested_date).toLocaleDateString('fr-FR', {
+                                      day: 'numeric',
+                                      month: 'short',
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-1.5">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  rejectSuggestion(suggestion.id);
+                                }}
+                                className="flex-1 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-[10px] font-medium transition-colors flex items-center justify-center gap-1"
+                                title="Refuser cette suggestion"
+                              >
+                                <X className="w-3 h-3" />
+                                Refuser
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (item && itemId) {
+                                    acceptSuggestion(suggestion.id, itemId, suggestion.suggested_date, isLot);
+                                  }
+                                }}
+                                className="flex-1 py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 text-[10px] font-semibold transition-colors flex items-center justify-center gap-1"
+                                title="Accepter la date suggérée"
+                              >
+                                <Check className="w-3 h-3" />
+                                Accepter
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (item && itemId) {
+                                    handleOpenScheduleModal(item, suggestion.id, isLot, suggestion.suggested_date);
+                                  }
+                                }}
+                                className="flex-1 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 text-[10px] font-semibold transition-colors flex items-center justify-center gap-1"
+                                title="Modifier la date de publication"
+                              >
+                                <Calendar className="w-3 h-3" />
+                                Planifier
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </SoftCard>
+
+                <SoftCard className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Calendar className="w-5 h-5 text-emerald-600" />
+                    <h3 className="text-sm font-bold text-gray-900">
+                      Annonces programmées
+                    </h3>
+                  </div>
+                  <div className="text-3xl font-semibold text-emerald-700 mb-1">
+                    {totalScheduled}
+                  </div>
+                  <p className="text-xs text-emerald-700 mb-4">
+                    {totalScheduled > 0
+                      ? 'Vos prochaines publications sont déjà calées dans le temps.'
+                      : 'Aucune publication planifiée.'}
+                  </p>
+
+                  {(scheduledArticles.length > 0 || scheduledLots.length > 0) ? (
+                    <>
+                      <div className="space-y-2">
+                        {scheduledArticles
+                          .slice(0, scheduledArticlesDisplayLimit)
+                          .map((article) => (
+                            <button
+                              key={`article-${article.id}`}
+                              type="button"
+                              onClick={() =>
+                                handleOpenPreviewModal(article, false)
+                              }
+                              className="w-full flex items-center gap-3 bg-white rounded-2xl p-2 hover:shadow-sm transition-shadow border border-emerald-100 text-left"
+                            >
+                              {article.photos?.[0] ? (
+                                <LazyImage
+                                  src={article.photos[0]}
+                                  alt={article.title}
+                                  className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                                  fallback={
+                                    <div className="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center flex-shrink-0">
+                                      <Package className="w-4 h-4 text-slate-400" />
+                                    </div>
+                                  }
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-xl bg-slate-200 flex items-center justify-center flex-shrink-0">
+                                  <Package className="w-4 h-4 text-slate-400" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-slate-900 truncate">
+                                  {article.title}
+                                </p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <Clock className="w-3 h-3 text-emerald-600" />
+                                  <span className="text-xs text-emerald-700">
+                                    {article.scheduled_for
+                                      ? new Date(
+                                          article.scheduled_for
+                                        ).toLocaleDateString('fr-FR', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                        })
+                                      : 'Bientôt'}
+                                  </span>
+                                </div>
+                              </div>
+                              <Pill variant="warning" className="hidden sm:inline-flex">
+                                Planifié
+                              </Pill>
+                            </button>
+                          ))}
+
+                        {scheduledLots
+                          .slice(
+                            0,
+                            Math.max(
+                              0,
+                              scheduledArticlesDisplayLimit -
+                                scheduledArticles.length
+                            )
+                          )
+                          .map((lot) => (
+                            <button
+                              key={`lot-${lot.id}`}
+                              type="button"
+                              onClick={() =>
+                                handleOpenPreviewModal(lot, true)
+                              }
+                              className="w-full flex items-center gap-3 bg-white rounded-2xl p-2 hover:shadow-sm transition-shadow border border-emerald-100 text-left"
+                            >
+                              {lot.cover_photo ? (
+                                <LazyImage
+                                  src={lot.cover_photo}
+                                  alt={lot.name}
+                                  className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                                  fallback={
+                                    <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                      <Package className="w-5 h-5 text-purple-600" />
+                                    </div>
+                                  }
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                  <Package className="w-5 h-5 text-purple-600" />
+                                </div>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  <span className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 text-[11px] px-1.5 py-0.5 rounded font-semibold">
+                                    <Package className="w-3 h-3" />
+                                    Lot
+                                  </span>
+                                  <p className="text-xs font-medium text-slate-900 truncate">
+                                    {lot.name}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Clock className="w-3 h-3 text-emerald-600" />
+                                  <span className="text-xs text-emerald-700">
+                                    {lot.scheduled_for
+                                      ? new Date(
+                                          lot.scheduled_for
+                                        ).toLocaleDateString('fr-FR', {
+                                          day: 'numeric',
+                                          month: 'short',
+                                        })
+                                      : 'Bientôt'}
+                                  </span>
+                                </div>
+                              </div>
+                              <Pill variant="warning" className="hidden sm:inline-flex">
+                                Planifié
+                              </Pill>
+                            </button>
+                          ))}
+                      </div>
+
+                      {totalScheduled > scheduledArticlesDisplayLimit && (
+                        <GhostButton
+                          onClick={() =>
+                            setScheduledArticlesDisplayLimit((prev) => prev + 5)
+                          }
+                          className="w-full mt-3 justify-center text-xs"
+                        >
+                          Voir + (
+                          {totalScheduled - scheduledArticlesDisplayLimit} restants)
+                        </GhostButton>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-6">
+                      <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-white flex items-center justify-center">
+                        <Calendar className="w-7 h-7 text-emerald-400" />
+                      </div>
+                      <p className="text-xs text-emerald-700">
+                        Aucune publication planifiée
+                      </p>
+                    </div>
+                  )}
+                </SoftCard>
               </div>
-            </div>
-          )}
-
-          {!loading && !error && activeInsights.length === 0 && hasLoaded && (
-            <div className="p-6">
-              <div className="text-center py-8">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mx-auto mb-4">
-                  <Check className="w-8 h-8 text-purple-600" />
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-2">Tout est optimal !</h4>
-                <p className="text-sm text-gray-600">
-                  Aucune recommandation pour le moment. Kelly reviendra vers vous quand une opportunité se présentera.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {!loading && !error && activeInsights.length > 0 && (
-            <div className="p-6 space-y-4 max-h-[600px] overflow-y-auto">
-              {activeInsights
-                .sort((a, b) => {
-                  const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
-                  return priorityOrder[a.priority] - priorityOrder[b.priority];
-                })
-                .map((insight) => (
-                  <InsightCard
-                    key={insight.id}
-                    insight={insight}
-                    onAction={() => handleAction(insight)}
-                    onDismiss={() => handleDismiss(insight.id)}
-                    getActionLabel={getActionLabel}
-                    getActionIcon={getActionIcon}
-                  />
-                ))}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface InsightCardProps {
-  insight: PlanningInsight;
-  onAction: () => void;
-  onDismiss: () => void;
-  getActionLabel: (insight: PlanningInsight) => string;
-  getActionIcon: (type: string) => React.ReactNode;
-}
-
-function InsightCard({ insight, onAction, onDismiss, getActionLabel, getActionIcon }: InsightCardProps) {
-  const priorityBg = getPriorityBgColor(insight.priority);
-  const priorityColor = getPriorityColor(insight.priority);
-  const priorityIcon = getPriorityIcon(insight.priority);
-  const typeIcon = getTypeIcon(insight.type);
-
-  const actionLabel = getActionLabel(insight);
-  const actionIcon = getActionIcon(insight.suggestedAction.type);
-
-  const demandColor = {
-    low: 'text-gray-600 bg-gray-100',
-    medium: 'text-blue-600 bg-blue-100',
-    high: 'text-green-600 bg-green-100',
-  }[insight.suggestedAction.marketContext.currentDemand];
-
-  const competitionColor = {
-    low: 'text-green-600 bg-green-100',
-    medium: 'text-blue-600 bg-blue-100',
-    high: 'text-red-600 bg-red-100',
-  }[insight.suggestedAction.marketContext.competitionLevel];
-
-  return (
-    <div className={`rounded-xl border-2 p-4 ${priorityBg} transition-all hover:shadow-md`}>
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-start gap-2 flex-1">
-          <div className="text-2xl">{typeIcon}</div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-lg">{priorityIcon}</span>
-              <h4 className={`font-semibold ${priorityColor} text-sm uppercase tracking-wide`}>
-                {insight.priority === 'urgent' ? 'URGENT' :
-                 insight.priority === 'high' ? 'PRIORITÉ HAUTE' :
-                 insight.priority === 'medium' ? 'RECOMMANDATION' : 'À NOTER'}
-              </h4>
-            </div>
-            <h5 className="font-bold text-gray-900 mb-2">{insight.title}</h5>
-            <p className="text-sm text-gray-700 leading-relaxed">{insight.message}</p>
+            )}
           </div>
-        </div>
-        <button
-          onClick={onDismiss}
-          className="p-1 hover:bg-white/50 rounded-lg transition-colors flex-shrink-0"
-          title="Ignorer"
-        >
-          <X className="w-4 h-4 text-gray-400" />
-        </button>
+        )}
       </div>
 
-      <div className="flex items-center gap-2 mb-3 text-xs flex-wrap">
-        <div className={`px-2 py-1 rounded-full font-medium ${demandColor}`}>
-          Demande: {insight.suggestedAction.marketContext.currentDemand === 'high' ? 'Forte' :
-                    insight.suggestedAction.marketContext.currentDemand === 'medium' ? 'Moyenne' : 'Faible'}
-        </div>
-        <div className={`px-2 py-1 rounded-full font-medium ${competitionColor}`}>
-          Concurrence: {insight.suggestedAction.marketContext.competitionLevel === 'low' ? 'Faible' :
-                        insight.suggestedAction.marketContext.competitionLevel === 'medium' ? 'Moyenne' : 'Forte'}
-        </div>
-        <div className="px-2 py-1 rounded-full font-medium text-purple-600 bg-purple-100">
-          Fenêtre: {formatTimeWindow(insight.suggestedAction.marketContext.timeWindowDays)}
-        </div>
-        <div className="px-2 py-1 rounded-full font-medium text-gray-600 bg-gray-100">
-          Confiance: {insight.suggestedAction.confidence}%
-        </div>
-      </div>
-
-      <div className="bg-white/60 rounded-lg p-3 mb-3">
-        <p className="text-xs font-medium text-gray-700 mb-1">Raisonnement:</p>
-        <p className="text-xs text-gray-600 leading-relaxed">{insight.suggestedAction.reasoning}</p>
-      </div>
-
-      {insight.suggestedAction.priceAdjustment && (
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-700">Prix actuel:</span>
-            <span className="font-bold text-gray-900 line-through">
-              {Number(insight.suggestedAction.priceAdjustment.current).toFixed(2)} €
-            </span>
-          </div>
-          <div className="flex items-center justify-between text-sm mt-1">
-            <span className="text-gray-700">Prix suggéré:</span>
-            <span className="font-bold text-orange-600">
-              {Number(insight.suggestedAction.priceAdjustment.suggested).toFixed(2)} €
-              <span className="text-xs ml-1">
-                ({Number(insight.suggestedAction.priceAdjustment.change) > 0 ? '+' : ''}
-                {Number(insight.suggestedAction.priceAdjustment.change)}%)
-              </span>
-            </span>
-          </div>
-        </div>
-      )}
-
-      {(insight.suggestedAction.type === 'publish_now' || insight.suggestedAction.type === 'schedule') && (
-        <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-3 mb-3">
-          <div className="flex items-center gap-2 mb-1">
-            <Calendar className="w-4 h-4 text-purple-600" />
-            <p className="text-xs font-semibold text-purple-900">Date recommandée par Kelly</p>
-          </div>
-          <p className="text-sm font-bold text-purple-700">
-            {formatTimeWindow(insight.suggestedAction.marketContext.timeWindowDays)}
-          </p>
-          <p className="text-xs text-purple-600 mt-1">
-            La date sera pré-remplie automatiquement dans le calendrier
-          </p>
-        </div>
-      )}
-
-      <div className="flex gap-2">
-        <button
-          onClick={onAction}
-          className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2.5 rounded-xl font-medium hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow flex items-center justify-center gap-2"
-        >
-          {actionIcon}
-          {actionLabel}
-        </button>
-      </div>
-
-      {insight.articleIds.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-white/50">
-          <p className="text-xs text-gray-600">
-            {insight.articleIds.length} article{insight.articleIds.length > 1 ? 's' : ''} concerné{insight.articleIds.length > 1 ? 's' : ''}
-            {insight.lotIds && insight.lotIds.length > 0 && ` • ${insight.lotIds.length} lot${insight.lotIds.length > 1 ? 's' : ''}`}
-          </p>
-        </div>
-      )}
-    </div>
+      <AdminDetailDrawer
+        item={drawerItem}
+        isOpen={drawerOpen}
+        onClose={handleDrawerClose}
+        onEdit={handleEdit}
+        onPublish={handlePublish}
+        onDuplicate={handleDuplicate}
+        onSchedule={handleSchedule}
+        onMarkSold={handleMarkSold}
+        onDelete={handleDelete}
+        onStatusChange={handleStatusChange}
+        onLabelOpen={handleLabelOpen}
+        formatDate={formatDate}
+      />
+    </>
   );
 }
