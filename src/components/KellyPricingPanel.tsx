@@ -10,6 +10,8 @@ import {
   RefreshCw,
   Euro,
   AlertCircle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import {
   getPricingInsights,
@@ -23,6 +25,8 @@ import { useAuth } from '../contexts/AuthContext';
 interface KellyPricingPanelProps {
   onApplyPrice?: (articleId: string, newPrice: number) => void;
   compact?: boolean;
+  collapsible?: boolean;
+  defaultExpanded?: boolean;
 }
 
 const INSIGHT_ICONS: Record<PricingInsightType, typeof TrendingUp> = {
@@ -49,13 +53,20 @@ const PRIORITY_LABELS: Record<'high' | 'medium' | 'low', { label: string; color:
   low: { label: 'Priorité basse', color: 'bg-gray-400' },
 };
 
-export default function KellyPricingPanel({ onApplyPrice, compact = false }: KellyPricingPanelProps) {
+export default function KellyPricingPanel({
+  onApplyPrice,
+  compact = false,
+  collapsible = false,
+  defaultExpanded = false
+}: KellyPricingPanelProps) {
   const { user } = useAuth();
   const [insights, setInsights] = useState<PricingInsight[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [applyingPrice, setApplyingPrice] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const loadInsights = async (forceRefresh = false) => {
     if (!user) return;
@@ -70,6 +81,7 @@ export default function KellyPricingPanel({ onApplyPrice, compact = false }: Kel
 
       const data = await getPricingInsights(user.id, forceRefresh);
       setInsights(data);
+      setHasLoadedOnce(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement');
     } finally {
@@ -79,8 +91,14 @@ export default function KellyPricingPanel({ onApplyPrice, compact = false }: Kel
   };
 
   useEffect(() => {
-    loadInsights();
-  }, [user]);
+    if (collapsible) {
+      if (isExpanded && !hasLoadedOnce) {
+        loadInsights();
+      }
+    } else {
+      loadInsights();
+    }
+  }, [user, isExpanded, collapsible]);
 
   const handleDismiss = async (insightId: string) => {
     try {
@@ -122,37 +140,101 @@ export default function KellyPricingPanel({ onApplyPrice, compact = false }: Kel
     loadInsights(true);
   };
 
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  if (collapsible && !isExpanded) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 hover:border-gray-200 transition-colors">
+        <button
+          onClick={toggleExpanded}
+          className="w-full p-4 flex items-center justify-between group"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+              <Euro className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
+              <p className="text-sm text-gray-500">Optimiseur de prix intelligent</p>
+            </div>
+          </div>
+          <ChevronDown className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+        </button>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className={`bg-white rounded-xl shadow-sm border border-gray-100 ${compact ? 'p-4' : 'p-6'}`}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
-            <Euro className="w-5 h-5 text-white animate-pulse" />
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        {collapsible && (
+          <button
+            onClick={toggleExpanded}
+            className="w-full p-4 flex items-center justify-between border-b border-gray-100"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                <Euro className="w-5 h-5 text-white animate-pulse" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
+                <p className="text-sm text-gray-500">Analyse en cours...</p>
+              </div>
+            </div>
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          </button>
+        )}
+        {!collapsible && (
+          <div className={`flex items-center gap-3 ${compact ? 'p-4' : 'p-6'}`}>
+            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+              <Euro className="w-5 h-5 text-white animate-pulse" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
+              <p className="text-sm text-gray-500">Analyse en cours...</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
-            <p className="text-sm text-gray-500">Analyse en cours...</p>
-          </div>
-        </div>
+        )}
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={`bg-red-50 rounded-xl border border-red-100 ${compact ? 'p-4' : 'p-6'}`}>
-        <div className="flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
-          <div className="flex-1">
-            <h3 className="font-semibold text-red-900">Erreur</h3>
-            <p className="text-sm text-red-700 mt-1">{error}</p>
-            <button
-              onClick={handleRefresh}
-              className="mt-3 text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Réessayer
-            </button>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        {collapsible && (
+          <button
+            onClick={toggleExpanded}
+            className="w-full p-4 flex items-center justify-between border-b border-gray-100"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                <Euro className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
+                <p className="text-sm text-red-600">Erreur de chargement</p>
+              </div>
+            </div>
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          </button>
+        )}
+        <div className={`${compact ? 'p-4' : 'p-6'} ${collapsible ? '' : 'bg-red-50 border-red-100'}`}>
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-red-900">Erreur</h3>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <button
+                onClick={handleRefresh}
+                className="mt-3 text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Réessayer
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -161,53 +243,108 @@ export default function KellyPricingPanel({ onApplyPrice, compact = false }: Kel
 
   if (insights.length === 0) {
     return (
-      <div className={`bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100 ${compact ? 'p-4' : 'p-6'}`}>
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Tes prix sont optimaux!</h3>
-              <p className="text-sm text-gray-600 mt-1">
-                Aucune opportunité d'optimisation détectée pour le moment.
-              </p>
-            </div>
-          </div>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+        {collapsible && (
           <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            title="Actualiser"
+            onClick={toggleExpanded}
+            className="w-full p-4 flex items-center justify-between border-b border-gray-100"
           >
-            <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
+                <p className="text-sm text-green-600">Prix optimaux</p>
+              </div>
+            </div>
+            <ChevronUp className="w-5 h-5 text-gray-400" />
           </button>
+        )}
+        <div className={`bg-gradient-to-br from-green-50 to-emerald-50 ${compact ? 'p-4' : 'p-6'}`}>
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              {!collapsible && (
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-white" />
+                </div>
+              )}
+              <div>
+                <h3 className="font-semibold text-gray-900">Tes prix sont optimaux!</h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Aucune opportunité d'optimisation détectée pour le moment.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              title="Actualiser"
+            >
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
-            <Euro className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
-            <p className="text-sm text-gray-500">{insights.length} recommandation{insights.length > 1 ? 's' : ''}</p>
-          </div>
-        </div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+      {collapsible && (
         <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="text-gray-400 hover:text-gray-600 transition-colors"
-          title="Actualiser"
+          onClick={toggleExpanded}
+          className="w-full p-4 flex items-center justify-between border-b border-gray-100 hover:bg-gray-50 transition-colors"
         >
-          <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+              <Euro className="w-5 h-5 text-white" />
+            </div>
+            <div className="text-left">
+              <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
+              <p className="text-sm text-gray-500">{insights.length} recommandation{insights.length > 1 ? 's' : ''}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRefresh();
+              }}
+              disabled={refreshing}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              title="Actualiser"
+            >
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          </div>
         </button>
-      </div>
+      )}
+
+      <div className={`${compact ? 'p-4' : 'p-6'} space-y-4`}>
+        {!collapsible && (
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center">
+                <Euro className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">Kelly Pricing</h3>
+                <p className="text-sm text-gray-500">{insights.length} recommandation{insights.length > 1 ? 's' : ''}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              title="Actualiser"
+            >
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        )}
 
       <div className="space-y-3">
         {insights.map(insight => {
@@ -308,6 +445,7 @@ export default function KellyPricingPanel({ onApplyPrice, compact = false }: Kel
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );

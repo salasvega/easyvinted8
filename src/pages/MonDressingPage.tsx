@@ -927,9 +927,11 @@ export function MonDressingPage() {
           </div>
         </div>
 
-        {/* Kelly Pricing Panel */}
+        {/* Kelly Pricing Panel - Collapsible */}
         <div className="mb-4">
           <KellyPricingPanel
+            collapsible={true}
+            defaultExpanded={false}
             onApplyPrice={(articleId, newPrice) => {
               fetchAllData();
             }}
