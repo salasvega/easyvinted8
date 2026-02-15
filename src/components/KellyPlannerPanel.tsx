@@ -593,18 +593,6 @@ export function KellyPlannerPanel() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {!isOpen && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  initializePlanner();
-                }}
-                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-                title="Rafraîchir les suggestions"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            )}
             {isOpen ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
           </div>
         </button>
