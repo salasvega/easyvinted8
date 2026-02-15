@@ -282,7 +282,8 @@ async function generateInsightsWithAI(
   const prompt = buildPlanningAnalysisPrompt(readyArticles, readyLots, userHistory, currentDate);
 
   try {
-    const result = await ai.models.gemini_2_0_flash.generateContent({
+    const result = await ai.models.generateContent({
+      model: 'gemini-2.0-flash-exp',
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.7,
