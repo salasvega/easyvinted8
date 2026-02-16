@@ -80,8 +80,10 @@ function buildUserError(code: string) {
       );
     case "GEMINI_IMAGE_OTHER":
       return new Error(
-        "La génération d’image a échoué pour une raison technique (IMAGE_OTHER). " +
-          "Essayez une image plus nette, un cadrage moins serré (éviter gros plans), ou réessayez."
+        "La génération d'image a échoué pour une raison technique. " +
+          "Conseils : 1) Utilisez une image plus simple et nette, 2) Évitez les gros plans trop serrés, " +
+          "3) Simplifiez votre instruction ou utilisez les actions rapides, 4) Si vous utilisez un avatar/fond personnalisé, " +
+          "essayez en mode 'Intelligent' (sans sélection spécifique). Réessayez ensuite."
       );
     default:
       return new Error("Impossible de générer l’image pour le moment.");
@@ -302,6 +304,42 @@ ${writingStyleInstruction}
   }
 };
 
+async function resizeBase64Image(base64: string, mimeType: string, maxWidth: number = 1536, maxHeight: number = 1536): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+
+      if (width <= maxWidth && height <= maxHeight) {
+        resolve(base64);
+        return;
+      }
+
+      const ratio = Math.min(maxWidth / width, maxHeight / height);
+      width = Math.round(width * ratio);
+      height = Math.round(height * ratio);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error('Cannot create canvas context'));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      const resizedBase64 = canvas.toDataURL(mimeType || 'image/jpeg', 0.95);
+      resolve(resizedBase64.split(',')[1]);
+    };
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = `data:${mimeType};base64,${base64}`;
+  });
+}
+
 export const editProductImage = async (
   base64Image: string,
   mimeType: string,
@@ -313,23 +351,31 @@ export const editProductImage = async (
   const enhancedInstruction = instruction + "\n" + HUMAN_IPHONE_CONSTRAINTS + "\nPreserve product details perfectly (logos/text/labels), keep product as focal point, no distortions.";
 
   try {
+    const normalizedBase64 = normalizeBase64Data(base64Image);
+    const resizedBase64 = await resizeBase64Image(normalizedBase64, mimeType);
+
     const parts: any[] = [
       {
         inlineData: {
           mimeType: normalizeMimeType(mimeType),
-          data: normalizeBase64Data(base64Image),
+          data: resizedBase64,
         },
       },
     ];
 
     if (referenceImages && referenceImages.length > 0) {
-      for (const refImage of referenceImages) {
+      const maxReferenceImages = 2;
+      const limitedReferenceImages = referenceImages.slice(0, maxReferenceImages);
+
+      for (const refImage of limitedReferenceImages) {
+        const normalizedRefData = normalizeBase64Data(refImage.data);
+        const resizedRefData = await resizeBase64Image(normalizedRefData, "image/png", 1024, 1024);
+
         parts.push({ text: refImage.description });
         parts.push({
           inlineData: {
-            // NOTE: ideally pass true mimeType per ref; keeping png for compatibility
             mimeType: "image/png",
-            data: normalizeBase64Data(refImage.data),
+            data: resizedRefData,
           },
         });
       }
@@ -1111,11 +1157,14 @@ Return ONLY the final image.
 `.trim();
 
   try {
+    const normalizedBase64 = normalizeBase64Data(base64Image);
+    const resizedBase64 = await resizeBase64Image(normalizedBase64, mimeType);
+
     const parts = [
       {
         inlineData: {
           mimeType: normalizeMimeType(mimeType),
-          data: normalizeBase64Data(base64Image),
+          data: resizedBase64,
         },
       },
       { text: prompt },
