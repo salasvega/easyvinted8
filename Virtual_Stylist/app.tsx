@@ -273,6 +273,16 @@ const App: React.FC = () => {
     ageGroup: 'all'
   });
 
+  const [locationFilters, setLocationFilters] = useState<{
+    environment: 'all' | 'interior' | 'exterior' | 'studio';
+    style: 'all' | 'minimalist' | 'modern' | 'natural' | 'urban' | 'elegant';
+    tone: 'all' | 'light' | 'dark' | 'colorful' | 'neutral';
+  }>({
+    environment: 'all',
+    style: 'all',
+    tone: 'all'
+  });
+
   useEffect(() => { loadGallery(); }, []);
 
   useEffect(() => {
@@ -314,6 +324,75 @@ const App: React.FC = () => {
       if (avatarFilters.ageGroup !== 'all' && avatar.ageGroup !== avatarFilters.ageGroup) {
         return false;
       }
+      return true;
+    });
+  };
+
+  const detectLocationEnvironment = (loc: LocationProfile): 'interior' | 'exterior' | 'studio' | 'unknown' => {
+    const text = `${loc.name} ${loc.description}`.toLowerCase();
+
+    if (text.match(/studio|photo studio|fond blanc|white background|neutre/i)) return 'studio';
+    if (text.match(/intérieur|interior|maison|home|chambre|salon|cuisine|room|indoor|inside/i)) return 'interior';
+    if (text.match(/extérieur|exterior|jardin|garden|rue|street|parc|park|plage|beach|outdoor|outside|nature|forêt|forest|montagne|mountain/i)) return 'exterior';
+
+    return 'unknown';
+  };
+
+  const detectLocationStyle = (loc: LocationProfile): 'minimalist' | 'modern' | 'natural' | 'urban' | 'elegant' | 'unknown' => {
+    const text = `${loc.name} ${loc.description}`.toLowerCase();
+
+    if (text.match(/minimaliste|minimalist|simple|épuré|clean/i)) return 'minimalist';
+    if (text.match(/moderne|modern|contemporain|contemporary/i)) return 'modern';
+    if (text.match(/naturel|natural|nature|organic|végétal|plante|plant/i)) return 'natural';
+    if (text.match(/urbain|urban|ville|city|street|rue|industriel|industrial/i)) return 'urban';
+    if (text.match(/élégant|elegant|luxe|luxury|chic|sophistiqué|sophisticated/i)) return 'elegant';
+
+    return 'unknown';
+  };
+
+  const detectLocationTone = (loc: LocationProfile): 'light' | 'dark' | 'colorful' | 'neutral' | 'unknown' => {
+    const text = `${loc.name} ${loc.description}`.toLowerCase();
+
+    if (text.match(/clair|light|blanc|white|lumineux|bright/i)) return 'light';
+    if (text.match(/sombre|dark|noir|black|nocturne|night/i)) return 'dark';
+    if (text.match(/coloré|colorful|vibrant|couleur|color/i)) return 'colorful';
+    if (text.match(/neutre|neutral|gris|grey|gray|beige/i)) return 'neutral';
+
+    return 'unknown';
+  };
+
+  const getFilteredLocations = () => {
+    return savedLocations.filter(loc => {
+      if (locationFilters.environment !== 'all') {
+        const env = detectLocationEnvironment(loc);
+        if (env !== locationFilters.environment && env !== 'unknown') {
+          return false;
+        }
+        if (env === 'unknown' && locationFilters.environment !== 'all') {
+          return false;
+        }
+      }
+
+      if (locationFilters.style !== 'all') {
+        const style = detectLocationStyle(loc);
+        if (style !== locationFilters.style && style !== 'unknown') {
+          return false;
+        }
+        if (style === 'unknown' && locationFilters.style !== 'all') {
+          return false;
+        }
+      }
+
+      if (locationFilters.tone !== 'all') {
+        const tone = detectLocationTone(loc);
+        if (tone !== locationFilters.tone && tone !== 'unknown') {
+          return false;
+        }
+        if (tone === 'unknown' && locationFilters.tone !== 'all') {
+          return false;
+        }
+      }
+
       return true;
     });
   };
@@ -2187,8 +2266,199 @@ const App: React.FC = () => {
                 </div>
               ) : (
                 <>
+                {/* Filtres */}
+                <div className="mb-8 sm:mb-12">
+                  <div className="max-w-7xl mx-auto px-4">
+                    {/* Filtre Environnement */}
+                    <div className="mb-6">
+                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Type d'environnement</h4>
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, environment: 'all' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.environment === 'all'
+                              ? 'bg-black text-white shadow-lg scale-105'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          Tous
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, environment: 'interior' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.environment === 'interior'
+                              ? 'bg-amber-600 text-white shadow-lg scale-105'
+                              : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                          }`}
+                        >
+                          Intérieur
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, environment: 'exterior' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.environment === 'exterior'
+                              ? 'bg-green-600 text-white shadow-lg scale-105'
+                              : 'bg-green-50 text-green-700 hover:bg-green-100'
+                          }`}
+                        >
+                          Extérieur
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, environment: 'studio' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.environment === 'studio'
+                              ? 'bg-slate-700 text-white shadow-lg scale-105'
+                              : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                          }`}
+                        >
+                          Studio
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Filtre Style */}
+                    <div className="mb-6">
+                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Style</h4>
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, style: 'all' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.style === 'all'
+                              ? 'bg-black text-white shadow-lg scale-105'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          Tous
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, style: 'minimalist' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.style === 'minimalist'
+                              ? 'bg-stone-600 text-white shadow-lg scale-105'
+                              : 'bg-stone-50 text-stone-700 hover:bg-stone-100'
+                          }`}
+                        >
+                          Minimaliste
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, style: 'modern' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.style === 'modern'
+                              ? 'bg-blue-600 text-white shadow-lg scale-105'
+                              : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                          }`}
+                        >
+                          Moderne
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, style: 'natural' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.style === 'natural'
+                              ? 'bg-emerald-600 text-white shadow-lg scale-105'
+                              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                          }`}
+                        >
+                          Naturel
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, style: 'urban' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.style === 'urban'
+                              ? 'bg-zinc-700 text-white shadow-lg scale-105'
+                              : 'bg-zinc-50 text-zinc-700 hover:bg-zinc-100'
+                          }`}
+                        >
+                          Urbain
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, style: 'elegant' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.style === 'elegant'
+                              ? 'bg-rose-600 text-white shadow-lg scale-105'
+                              : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                          }`}
+                        >
+                          Élégant
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Filtre Tonalité */}
+                    <div className="mb-6">
+                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Tonalité</h4>
+                      <div className="flex flex-wrap gap-2 sm:gap-3">
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, tone: 'all' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.tone === 'all'
+                              ? 'bg-black text-white shadow-lg scale-105'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          Tous
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, tone: 'light' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.tone === 'light'
+                              ? 'bg-sky-400 text-white shadow-lg scale-105'
+                              : 'bg-sky-50 text-sky-700 hover:bg-sky-100'
+                          }`}
+                        >
+                          Clair
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, tone: 'dark' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.tone === 'dark'
+                              ? 'bg-gray-800 text-white shadow-lg scale-105'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          Sombre
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, tone: 'colorful' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.tone === 'colorful'
+                              ? 'bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white shadow-lg scale-105'
+                              : 'bg-gradient-to-r from-pink-50 via-red-50 to-yellow-50 text-red-700 hover:from-pink-100 hover:via-red-100 hover:to-yellow-100'
+                          }`}
+                        >
+                          Coloré
+                        </button>
+                        <button
+                          onClick={() => setLocationFilters(prev => ({ ...prev, tone: 'neutral' }))}
+                          className={`px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all ${
+                            locationFilters.tone === 'neutral'
+                              ? 'bg-neutral-500 text-white shadow-lg scale-105'
+                              : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100'
+                          }`}
+                        >
+                          Neutre
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Compteur de résultats */}
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+                        {getFilteredLocations().length} fond{getFilteredLocations().length > 1 ? 's' : ''} trouvé{getFilteredLocations().length > 1 ? 's' : ''}
+                      </p>
+                      {(locationFilters.environment !== 'all' || locationFilters.style !== 'all' || locationFilters.tone !== 'all') && (
+                        <button
+                          onClick={() => setLocationFilters({ environment: 'all', style: 'all', tone: 'all' })}
+                          className="px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-black hover:bg-gray-100 rounded-lg transition-all"
+                        >
+                          Réinitialiser
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 sm:gap-10 lg:gap-12">
-                  {savedLocations.map(loc => (
+                  {getFilteredLocations().map(loc => (
                     <div key={loc.id} className="group space-y-3 sm:space-y-4">
                       <div
                         onClick={() => setState(p => ({ ...p, location: loc }))}
@@ -2278,6 +2548,20 @@ const App: React.FC = () => {
                     </div>
                   ))}
                 </div>
+
+                {getFilteredLocations().length === 0 && savedLocations.length > 0 && (
+                  <div className="py-16 sm:py-24 text-center space-y-4 sm:space-y-6">
+                    <p className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-400">
+                      Aucun fond ne correspond aux filtres sélectionnés
+                    </p>
+                    <button
+                      onClick={() => setLocationFilters({ environment: 'all', style: 'all', tone: 'all' })}
+                      className="px-6 sm:px-8 py-3 sm:py-4 bg-black text-white rounded-xl text-[10px] sm:text-[11px] font-bold uppercase tracking-wider hover:bg-gray-800 transition-all"
+                    >
+                      Réinitialiser les filtres
+                    </button>
+                  </div>
+                )}
                 </>
               )}
             </div>
@@ -2340,24 +2624,26 @@ const App: React.FC = () => {
             </div>
 
             {/* Bouton de navigation principal */}
-            <div className="max-w-4xl mx-auto space-y-4">
-              <button onClick={() => setState(p => ({ ...p, step: 'garment' }))} disabled={!state.location}
-                className={`group ${actionBtnClass(!state.location)} relative overflow-hidden`}>
-                <span className="relative z-10 flex items-center justify-center gap-3">
-                  Passer à l'étape suivante
-                  <span className="text-lg">→</span>
-                </span>
-                {state.location && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                )}
-              </button>
+            {(savedLocations.length > 0 || state.location) && (
+              <div className="max-w-4xl mx-auto space-y-4">
+                <button onClick={() => setState(p => ({ ...p, step: 'garment' }))} disabled={!state.location}
+                  className={`group ${actionBtnClass(!state.location)} relative overflow-hidden`}>
+                  <span className="relative z-10 flex items-center justify-center gap-3">
+                    Passer à l'étape suivante
+                    <span className="text-lg">→</span>
+                  </span>
+                  {state.location && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                  )}
+                </button>
 
-              {!state.location && (
-                <p className="text-center text-[9px] sm:text-[10px] text-gray-400 italic">
-                  Veuillez sélectionner ou créer un fond pour continuer
-                </p>
-              )}
-            </div>
+                {!state.location && (
+                  <p className="text-center text-[9px] sm:text-[10px] text-gray-400 italic">
+                    Veuillez sélectionner ou créer un fond pour continuer
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 
