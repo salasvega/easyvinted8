@@ -80,10 +80,8 @@ function buildUserError(code: string) {
       );
     case "GEMINI_IMAGE_OTHER":
       return new Error(
-        "La génération d'image a échoué pour une raison technique. " +
-          "Conseils : 1) Utilisez une image plus simple et nette, 2) Évitez les gros plans trop serrés, " +
-          "3) Simplifiez votre instruction ou utilisez les actions rapides, 4) Si vous utilisez un avatar/fond personnalisé, " +
-          "essayez en mode 'Intelligent' (sans sélection spécifique). Réessayez ensuite."
+        "La génération d’image a échoué pour une raison technique (IMAGE_OTHER). " +
+          "Essayez une image plus nette, un cadrage moins serré (éviter gros plans), ou réessayez."
       );
     default:
       return new Error("Impossible de générer l’image pour le moment.");
@@ -304,78 +302,34 @@ ${writingStyleInstruction}
   }
 };
 
-async function resizeBase64Image(base64: string, mimeType: string, maxWidth: number = 1536, maxHeight: number = 1536): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      let width = img.width;
-      let height = img.height;
-
-      if (width <= maxWidth && height <= maxHeight) {
-        resolve(base64);
-        return;
-      }
-
-      const ratio = Math.min(maxWidth / width, maxHeight / height);
-      width = Math.round(width * ratio);
-      height = Math.round(height * ratio);
-
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error('Cannot create canvas context'));
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0, width, height);
-
-      const resizedBase64 = canvas.toDataURL(mimeType || 'image/jpeg', 0.95);
-      resolve(resizedBase64.split(',')[1]);
-    };
-    img.onerror = () => reject(new Error('Failed to load image'));
-    img.src = `data:${mimeType};base64,${base64}`;
-  });
-}
-
 export const editProductImage = async (
   base64Image: string,
   mimeType: string,
   instruction: string,
   referenceImages?: { data: string; description: string }[]
 ): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-2.5-flash-image";
 
   const enhancedInstruction = instruction + "\n" + HUMAN_IPHONE_CONSTRAINTS + "\nPreserve product details perfectly (logos/text/labels), keep product as focal point, no distortions.";
 
   try {
-    const normalizedBase64 = normalizeBase64Data(base64Image);
-    const resizedBase64 = await resizeBase64Image(normalizedBase64, mimeType);
-
     const parts: any[] = [
       {
         inlineData: {
           mimeType: normalizeMimeType(mimeType),
-          data: resizedBase64,
+          data: normalizeBase64Data(base64Image),
         },
       },
     ];
 
     if (referenceImages && referenceImages.length > 0) {
-      const maxReferenceImages = 2;
-      const limitedReferenceImages = referenceImages.slice(0, maxReferenceImages);
-
-      for (const refImage of limitedReferenceImages) {
-        const normalizedRefData = normalizeBase64Data(refImage.data);
-        const resizedRefData = await resizeBase64Image(normalizedRefData, "image/png", 1024, 1024);
-
+      for (const refImage of referenceImages) {
         parts.push({ text: refImage.description });
         parts.push({
           inlineData: {
+            // NOTE: ideally pass true mimeType per ref; keeping png for compatibility
             mimeType: "image/png",
-            data: resizedRefData,
+            data: normalizeBase64Data(refImage.data),
           },
         });
       }
@@ -753,7 +707,7 @@ export const generateVirtualTryOn = async (
   mimeType: string,
   gender: "female" | "male" | "neutral" = "female"
 ): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-2.5-flash-image";
 
   const genderSubjects = {
     female: "a real adult woman (everyday body, not a model)",
@@ -1004,10 +958,7 @@ ARTICLES:
 ${JSON.stringify(articlesSummary, null, 2)}
 
 REGLES:
-- Maximum 5 insights, priorise fort impact.
-- TYPES VALIDES: ready_to_publish, ready_to_list, price_drop, seasonal, stale, incomplete, seo_optimization, opportunity, bundle
-- PRIORITES VALIDES: high, medium, low (JAMAIS HIGH, MEDIUM, LOW en majuscules)
-- Utilise UNIQUEMENT ces valeurs exactes pour type et priority`;
+- Maximum 5 insights, priorise fort impact.`;
 
   try {
     const response = await getAI().models.generateContent({
@@ -1048,24 +999,7 @@ REGLES:
 
     if (response.text) {
       const parsed = JSON.parse(response.text);
-      const insights = parsed.insights || [];
-
-      const validTypes = ['ready_to_publish', 'ready_to_list', 'price_drop', 'seasonal', 'stale', 'incomplete', 'seo_optimization', 'opportunity', 'bundle'];
-      const validPriorities = ['high', 'medium', 'low'];
-
-      return insights.filter((insight: any) => {
-        const hasValidType = validTypes.includes(insight.type);
-        const hasValidPriority = validPriorities.includes(insight.priority);
-
-        if (!hasValidType) {
-          console.warn(`Invalid insight type: ${insight.type}`);
-        }
-        if (!hasValidPriority) {
-          console.warn(`Invalid insight priority: ${insight.priority}`);
-        }
-
-        return hasValidType && hasValidPriority;
-      });
+      return parsed.insights || [];
     }
     return [];
   } catch (error: any) {
@@ -1138,7 +1072,7 @@ export const generatePoseVariation = async (
   mimeType: string,
   poseInstruction: string
 ): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-2.5-flash-image";
 
   const prompt = `
 Regenerate this image from a different perspective. The person, clothing, and background style must remain consistent.
@@ -1157,14 +1091,11 @@ Return ONLY the final image.
 `.trim();
 
   try {
-    const normalizedBase64 = normalizeBase64Data(base64Image);
-    const resizedBase64 = await resizeBase64Image(normalizedBase64, mimeType);
-
     const parts = [
       {
         inlineData: {
           mimeType: normalizeMimeType(mimeType),
-          data: resizedBase64,
+          data: normalizeBase64Data(base64Image),
         },
       },
       { text: prompt },
