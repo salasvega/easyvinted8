@@ -72,14 +72,14 @@ export const analyzeProductImage = async (base64Image: string, mimeType: string)
 };
 
 /**
- * Edits the product image using gemini-2.5-flash based on text instructions.
+ * Edits the product image using gemini-2.5-flash-image based on text instructions.
  */
 export const editProductImage = async (
   base64Image: string, 
   mimeType: string, 
   instruction: string
 ): Promise<string> => {
-  const model = 'gemini-2.5-flash';
+  const model = 'gemini-2.5-flash-image';
 
   try {
     const response = await ai.models.generateContent({
