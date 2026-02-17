@@ -239,7 +239,7 @@ export const generateBaseAvatar = async (
   renderStyle?: RenderStyle,
   customPrompt?: string
 ): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-2.5-flash-image";
 
   let styleInstructions = "";
   if (renderStyle) {
@@ -355,7 +355,7 @@ export const generateAvatarFromReferencePhoto = async (
   renderStyle?: RenderStyle,
   customInstructions?: string
 ): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-2.5-flash-image";
 
   let styleInstructions = "";
   if (renderStyle) {
@@ -498,7 +498,7 @@ ${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n\n` : '
 };
 
 export const generateBackground = async (location: LocationProfile): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-2.5-flash-image";
 
   // Utiliser le prompt optimisé si disponible, sinon la description de base
   const detailedDescription = location.generationPrompt || location.description || location.name;
@@ -632,7 +632,7 @@ export const performVirtualTryOn = async (
   avatarProfile?: AvatarProfile,
   locationProfile?: LocationProfile
 ): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-2.5-flash-image";
 
   const hasAvatar = avatarBase64 && avatarBase64.trim() !== '';
   const hasClothing = clothingBase64 && clothingBase64.trim() !== '';
@@ -1398,7 +1398,7 @@ export const generateAvatarFromTextPrompt = async (
   textPrompt: string,
   renderStyle?: RenderStyle
 ): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-2.5-flash-image";
 
   const optimizedPrompt = await optimizeAvatarPromptFromText(textPrompt);
 
@@ -1502,7 +1502,7 @@ export const enhanceImportedPhoto = async (
   renderStyle?: RenderStyle | null,
   modelSignature?: string
 ): Promise<string> => {
-  const model = "gemini-2.5-flash";
+  const model = "gemini-2.5-flash-image";
 
   let styleInstructions = "Enhance this photo while maintaining a natural, realistic look";
   let technicalRequirements = "";
