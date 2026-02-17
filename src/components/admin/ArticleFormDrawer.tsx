@@ -1461,6 +1461,42 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                           style={{ minHeight: '100px' }}
                         />
                       </div>
+
+                      {/* Description enrichie avec mots-clés SEO pour Vinted */}
+                      {formData.seo_keywords && formData.seo_keywords.length > 0 && (
+                        <div className="mt-2 p-3 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="w-3.5 h-3.5 text-teal-600" />
+                              <h5 className="text-xs font-semibold text-teal-800">Description pour Vinted (avec SEO)</h5>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const descriptionWithKeywords = formData.description +
+                                  (formData.description && !formData.description.endsWith('\n') ? '\n\n' : '') +
+                                  formData.seo_keywords.join(' • ');
+                                navigator.clipboard.writeText(descriptionWithKeywords);
+                                setToast({ type: 'success', text: 'Description avec mots-clés copiée !' });
+                              }}
+                              className="px-2 py-1 text-[10px] font-medium text-teal-700 bg-white hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors flex items-center gap-1"
+                            >
+                              <FileText className="w-3 h-3" />
+                              Copier
+                            </button>
+                          </div>
+                          <div className="px-3 py-2 bg-white border border-teal-100 rounded-lg">
+                            <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+                              {formData.description}
+                              {formData.description && !formData.description.endsWith('\n') && '\n\n'}
+                              <span className="text-teal-700 font-medium">{formData.seo_keywords.join(' • ')}</span>
+                            </p>
+                          </div>
+                          <p className="mt-2 text-[10px] text-teal-600">
+                            Cette version inclut automatiquement vos mots-clés SEO. Copiez-la lors de la publication sur Vinted.
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Article Details Grid */}
