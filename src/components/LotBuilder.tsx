@@ -1151,21 +1151,6 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
                   style={{ minHeight: '80px' }}
                 />
               </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-700">Saison</label>
-                <select
-                  value={lotData.season || ''}
-                  onChange={(e) => setLotData((p) => ({ ...p, season: (e.target.value as any) || undefined }))}
-                  className="mt-1 w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-sm"
-                >
-                  <option value="">—</option>
-                  <option value="spring">Printemps</option>
-                  <option value="summer">Été</option>
-                  <option value="autumn">Automne</option>
-                  <option value="winter">Hiver</option>
-                </select>
-              </div>
             </div>
           </Card>
 
@@ -1345,6 +1330,24 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
                       }
                     }}
                   />
+                </div>
+
+                <div className="pt-3 border-t border-teal-200">
+                  <div className="flex items-center gap-1.5 text-xs text-teal-700 font-medium mb-1.5">
+                    <Calendar className="w-3 h-3" />
+                    Saison
+                  </div>
+                  <select
+                    value={lotData.season || ''}
+                    onChange={(e) => setLotData((p) => ({ ...p, season: (e.target.value as any) || undefined }))}
+                    className="w-full px-3 py-2 text-xs bg-white border border-teal-200 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                  >
+                    <option value="">—</option>
+                    <option value="spring">Printemps</option>
+                    <option value="summer">Été</option>
+                    <option value="autumn">Automne</option>
+                    <option value="winter">Hiver</option>
+                  </select>
                 </div>
               </Card>
             )}
