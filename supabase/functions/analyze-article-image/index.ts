@@ -89,14 +89,15 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { imageUrls, sellerId, isLot, lotArticles, usefulInfo } = await req.json();
+    const { imageUrls, sellerId, isLot, lotArticles, usefulInfo, articleId } = await req.json();
 
     console.log(`🚀 EDGE FUNCTION VERSION: ${FUNCTION_VERSION}`);
     console.log("📥 Request received:", {
       imageCount: imageUrls?.length,
       usefulInfo,
       isLot,
-      sellerId
+      sellerId,
+      articleId
     });
 
     if (!imageUrls || !Array.isArray(imageUrls) || imageUrls.length === 0) {
@@ -315,6 +316,30 @@ Ces informations du vendeur sont a prendre en compte pour l'analyse !
       };
 
       console.log("📤 FINAL RESULT - Full object:", JSON.stringify(result, null, 2));
+
+      // Save analysis to cache if articleId provided
+      if (articleId) {
+        try {
+          const { error: updateError } = await supabase
+            .from('articles')
+            .update({
+              image_analysis_raw: parsedResponse,
+              image_analysis_photo_urls: imageUrls,
+              image_analyzed_at: new Date().toISOString(),
+              image_analysis_confidence: result.confidenceScore
+            })
+            .eq('id', articleId)
+            .eq('user_id', user.id);
+
+          if (updateError) {
+            console.error('Failed to cache analysis:', updateError);
+          } else {
+            console.log('Analysis cached successfully for article:', articleId);
+          }
+        } catch (cacheError) {
+          console.error('Error caching analysis:', cacheError);
+        }
+      }
 
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

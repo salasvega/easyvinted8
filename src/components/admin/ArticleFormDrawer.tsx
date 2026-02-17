@@ -392,7 +392,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
     }
   };
 
-  const handleAnalyzeWithAI = async () => {
+  const handleAnalyzeWithAI = async (forceReanalyze: boolean = false) => {
     if (formData.photos.length === 0) {
       setToast({ type: 'error', text: "Veuillez ajouter au moins une photo pour utiliser l'analyse IA" });
       return;
@@ -429,6 +429,86 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
 
       setFormData((prev) => ({ ...prev, photos: updatedPhotos }));
 
+      // Check cache if not forcing reanalysis and article exists
+      if (!forceReanalyze && articleId) {
+        const { data: cachedArticle, error: cacheError } = await supabase
+          .from('articles')
+          .select('image_analysis_raw, image_analysis_photo_urls, image_analyzed_at, image_analysis_confidence')
+          .eq('id', articleId)
+          .maybeSingle();
+
+        if (!cacheError && cachedArticle?.image_analysis_raw) {
+          const cachedUrls = cachedArticle.image_analysis_photo_urls || [];
+          const currentUrls = uploadedPhotoUrls.sort();
+          const cachedUrlsSorted = cachedUrls.sort();
+
+          // Check if photo URLs match (cache is still valid)
+          const photosMatch = currentUrls.length === cachedUrlsSorted.length &&
+            currentUrls.every((url, idx) => url === cachedUrlsSorted[idx]);
+
+          if (photosMatch) {
+            console.log('Using cached image analysis from', cachedArticle.image_analyzed_at);
+            const rawResult = cachedArticle.image_analysis_raw;
+
+            const result = {
+              title: rawResult['INFORMATIONS PRODUIT']?.title || rawResult.title,
+              description: rawResult['INFORMATIONS PRODUIT']?.description || rawResult.description,
+              brand: rawResult['INFORMATIONS PRODUIT']?.brand || rawResult.brand,
+              color: rawResult['ATTRIBUTS VINTED']?.color || rawResult.color,
+              material: rawResult['ATTRIBUTS VINTED']?.material || rawResult.material,
+              size: rawResult['ATTRIBUTS VINTED']?.size || rawResult.size,
+              condition: rawResult['ATTRIBUTS VINTED']?.condition || rawResult.condition,
+              season: rawResult['OPTIMISATION VENTE']?.season || rawResult.season,
+              suggestedPeriod: rawResult['OPTIMISATION VENTE']?.suggestedPeriod || rawResult.suggestedPeriod,
+              estimatedPrice: rawResult['OPTIMISATION VENTE']?.estimatedPrice || rawResult.estimatedPrice,
+              seoKeywords: rawResult['SEO & MARKETING VINTED']?.seoKeywords || rawResult.seoKeywords,
+              hashtags: rawResult['SEO & MARKETING VINTED']?.hashtags || rawResult.hashtags,
+              searchTerms: rawResult['SEO & MARKETING VINTED']?.searchTerms || rawResult.searchTerms,
+              confidenceScore: cachedArticle.image_analysis_confidence || rawResult['QUALITE']?.confidenceScore || rawResult.confidenceScore,
+            };
+
+            setFormData((prev) => ({
+              ...prev,
+              title: result.title || prev.title,
+              description: result.description || prev.description,
+              brand: result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand,
+              color: result.color || prev.color,
+              material: result.material || prev.material,
+              size: result.size || prev.size,
+              price: result.estimatedPrice?.toString() || prev.price,
+              condition: result.condition || prev.condition,
+              season: result.season || prev.season,
+              suggested_period: result.suggestedPeriod || prev.suggested_period,
+              seo_keywords: result.seoKeywords || prev.seo_keywords,
+              hashtags: result.hashtags || prev.hashtags,
+              search_terms: result.searchTerms || prev.search_terms,
+              ai_confidence_score: result.confidenceScore || prev.ai_confidence_score,
+            }));
+
+            const fieldsAnalyzed = [
+              result.title && 'titre',
+              result.description && 'description',
+              result.brand && result.brand !== 'Sans marque' && 'marque',
+              result.size && 'taille',
+              result.color && 'couleur',
+              result.material && 'matière',
+              result.estimatedPrice && 'prix',
+            ].filter(Boolean).length;
+
+            const confidenceText = result.confidenceScore
+              ? ` (confiance: ${result.confidenceScore}%)`
+              : '';
+
+            setToast({
+              type: 'success',
+              text: `Analyse en cache utilisee ! ${fieldsAnalyzed} champs preremplis${confidenceText}`
+            });
+            setAnalyzingWithAI(false);
+            return;
+          }
+        }
+      }
+
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) {
         setToast({ type: 'error', text: 'Session expirée, veuillez vous reconnecter' });
@@ -449,6 +529,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
             imageUrls: uploadedPhotoUrls,
             sellerId: sellerIdToUse,
             usefulInfo: formData.useful_info || null,
+            articleId: articleId || null,
           };
 
           console.log('📤 Sending to analyze-article-image:', {
@@ -456,7 +537,8 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
             sellerId: sellerIdToUse,
             usefulInfo: formData.useful_info,
             usefulInfoType: typeof formData.useful_info,
-            usefulInfoLength: formData.useful_info?.length
+            usefulInfoLength: formData.useful_info?.length,
+            articleId: articleId || 'new article'
           });
 
           const response = await fetch(
