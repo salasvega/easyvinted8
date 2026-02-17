@@ -643,57 +643,156 @@ export const performVirtualTryOn = async (
       ? buildLocationPromptFromProfile(locationProfile)
       : 'Authentic casual environment with natural lighting';
 
-    const prompt = `═══ REFERENCE ENVIRONMENT (EXACT MATCH REQUIRED) ═══
+    const prompt = `🎯 ULTRA-REALISTIC PRODUCT PHOTO - NATURAL IPHONE STYLE
 
-${hasBackground ? `REFERENCE IMAGE #1: Environment/Location Photo
-This image shows the EXACT environment where the garment should be placed.
-${locationDescription}
+YOU ARE CREATING: An authentic product photo that looks like someone took a casual but nice photo of clothing with their iPhone. This must be indistinguishable from a genuine photograph.
 
-` : ''}═══ PRODUCT TO INTEGRATE ═══
+═══ STEP 1: ANALYZE THE ENVIRONMENT (REFERENCE IMAGE #1) ═══
 
-REFERENCE IMAGE #2: Clothing Item
-This is the garment to naturally place into the environment above.
+${hasBackground ? `Study the environment from REFERENCE IMAGE #1 carefully:
+- What is the setting? (bedroom, living room, outdoors, closet, etc.)
+- What surfaces are available? (bed, chair, floor, table, wall hook, etc.)
+- Lighting analysis: direction, quality, intensity, color temperature
+- Overall atmosphere: bright/dim, warm/cool, natural/artificial light
+- Depth and spatial characteristics of the space
+- Scale of objects in the scene (helps determine garment size)
 
-═══ GENERATION INSTRUCTIONS ═══
+${locationDescription}` : 'Use a simple, neutral environment with natural lighting'}
 
-Create a hyper-realistic product photography showing the clothing item naturally integrated into the environment scene.
+═══ STEP 2: ANALYZE THE GARMENT (REFERENCE IMAGE #2) ═══
 
-CRITICAL REALISM REQUIREMENTS:
-- Analyze the clothing type and place it on the most appropriate support (hanger with visible rack/hook, professional mannequin, draped on furniture, laid flat on surface, etc.)
-- The clothing MUST appear physically supported and gravity-compliant (no floating items!)
-- Match ALL lighting conditions from the reference environment: direction, intensity, color temperature, shadows, highlights
-- Perfectly harmonize textures, grain, and photographic style between clothing and environment
-- Use realistic proportions and scale - the clothing should fit naturally in the space
+Study the clothing item:
+- Type: shirt, dress, pants, jacket, etc.
+- Size and proportions (adult/child, small/large)
+- Fabric type: weight, drape, stiffness (cotton, silk, denim, etc.)
+- Current state: folded, flat, hanging, etc.
+- Colors, patterns, logos, details to preserve exactly
+- How would this naturally be displayed casually?
 
-PRESERVE CLOTHING AUTHENTICITY:
-- Keep exact colors, patterns, and all visual details of the original garment
-- Maintain fabric texture, wrinkles, folds, and material appearance
-- Preserve any logos, prints, embroidery, or distinctive features
-- Show realistic fabric draping based on material type
+═══ STEP 3: COMPOSE THE ULTRA-REALISTIC PHOTO ═══
 
-PHOTOGRAPHY STYLE:
-- Natural iPhone-style photography aesthetic
-- Realistic depth of field and focus
-- No artificial or fake-looking effects
-- Professional but authentic look
-- Seamless integration - should look like a single photograph taken in one shot
+CREATE A SINGLE, SEAMLESS PHOTOGRAPH showing the clothing item naturally placed in the environment.
 
-TECHNICAL EXECUTION:
-- Match color grading between clothing and environment
-- Ensure consistent lighting angles and shadow directions
-- Apply natural ambient occlusion where clothing contacts surfaces
-- Add subtle reflections or color bounce from environment if appropriate
-- The final result must be indistinguishable from a real photograph
+🎯 PLACEMENT & PHYSICS (CRITICAL):
 
-═══ QUALITY CONTROL CHECKLIST ═══
-Before finalizing, verify:
-  ✓ Environment matches reference photo lighting exactly
-  ✓ Garment appears physically supported (not floating)
-  ✓ Lighting direction and shadows are consistent
-  ✓ Color temperature matches throughout
-  ✓ Result looks like a single authentic photograph
+NATURAL PRODUCT STAGING:
+- Place garment on/in the most natural support for this environment
+- Options: laid casually on bed/chair, draped over furniture, hung on visible hook/hanger, folded on surface
+- GRAVITY IS MANDATORY: clothing must physically rest on something (no floating!)
+- Fabric behaves naturally: hangs downward, drapes over edges, folds under its own weight
+- Wrinkles and creases appear naturally where fabric bends or bunches
+- If hung, hanger/hook must be visible and realistic
+- If laid down, fabric settles naturally with realistic folds
+- Proportions: garment size matches environment scale (not too big or small for the space)
 
-The goal is a perfectly believable, professional product photo where an expert cannot detect it's a composition. Think high-end e-commerce photography with natural styling.`;
+🚨 LIGHTING INTEGRATION (CRITICAL - NO PASTE LOOK):
+
+ANALYZE THE LIGHT IN IMAGE #1:
+${hasBackground ? `- Light direction: where is it coming from? (window, lamp, overhead, etc.)
+- Light quality: harsh sunbeam, soft window light, diffused indoor, warm lamp, etc.
+- Light color: warm (yellow/orange), cool (blue/white), neutral
+- Shadows: hard edges (direct sun) or soft edges (diffused light)
+- Contrast level: high (bright highlights + deep shadows) or low (even, flat)` : `- Use soft, natural window light or outdoor shade
+- Gentle, diffused illumination
+- Moderate contrast, not dramatic
+- Neutral to slightly warm color temperature`}
+
+APPLY EXACT SAME LIGHTING TO GARMENT:
+- Light hits fabric with IDENTICAL angle, intensity, color as environment
+- Fabric highlights in same position as environment highlights
+- Fabric shadows match environment shadows (depth, softness, direction)
+- Shadow under/around garment proves it's physically in the space
+- Shiny fabrics (satin, leather) reflect light more than matte (cotton, wool)
+- Light wraps around fabric folds naturally, creating gradient shadows
+
+INTER-SURFACE SHADOWS:
+- Garment casts shadow ONTO the surface it's on (bed, chair, floor)
+- Shadow shape matches garment shape and light angle
+- Shadow softness/hardness matches scene lighting (sun = hard, overcast = soft)
+- Contact shadow darker where garment directly touches surface
+- No floating appearance - shadow anchors garment to surface
+
+DEPTH OF FIELD & FOCUS:
+- Entire garment in focus (primary subject)
+- Background may have natural iPhone bokeh blur (soft, gradual)
+- Fabric texture detail matches photo resolution
+- No hyper-sharp cutout edges against blurred background
+- Natural lens characteristics (very slight barrel distortion if wide)
+- Focus falloff is gradual, not abrupt
+
+CONTRAST & TONAL MATCHING:
+- Garment has SAME contrast level as environment
+- High contrast scene (sunny room) = bright fabric highlights, deep fold shadows
+- Low contrast scene (cloudy day, shade) = softer, gentler tones throughout
+- Garment's darkest areas match darkness of environment shadows
+- Garment's lightest areas match brightness of environment highlights
+- Integrated tonal range - garment not "popping out" unnaturally
+
+COLOR GRADING & HARMONIZATION:
+- Garment colors influenced by environment's ambient light
+${hasBackground ? '- Warm room light = garment shows warm tint, cool window light = cooler tint' : '- Natural daylight color balance'}
+- Color spill: environment colors may reflect subtly onto garment (blue sky onto white fabric)
+- Surface colors may reflect up onto garment underside (wood tone on white shirt)
+- Unified color palette - not separate color spaces
+- Match saturation: vibrant scene = vibrant colors, muted scene = desaturated
+- Color temperature consistent throughout entire image
+
+EDGE QUALITY & INTEGRATION:
+- No hard "cutout" edges - all boundaries natural and soft
+- Fabric edges catch light or fall into shadow based on angle
+- Fine fabric details visible: weave texture, stitching, fibers
+- Natural anti-aliasing, not artificially smoothed
+- Edges show natural interaction with background (slight motion blur if fabric drapes)
+
+SURFACE INTERACTION:
+- Fabric compresses slightly where it contacts hard surfaces
+- Natural wrinkles at contact points
+- Ambient occlusion: subtle darkening in tight folds, under garment
+- If on bed/soft surface, slight indentation visible
+- Realistic fabric physics - heavy fabrics lay flatter, light fabrics more billowy
+
+IPHONE PHOTO CHARACTERISTICS:
+- Natural iPhone camera aesthetic: slightly warm, pleasant color science
+- Moderate depth of field (subject sharp, background gently blurred)
+- Natural dynamic range (not HDR-processed, not blown out)
+- Slight grain/noise in shadows (natural smartphone sensor behavior)
+- Authentic color profile: natural, not oversaturated
+- Casual composition: not perfectly centered, feels spontaneous
+- Real smartphone lens behavior: natural perspective, subtle vignetting
+- Good resolution: sharp detail but not artificially enhanced
+
+COMPOSITION & FRAMING:
+- Natural, casual framing (someone took a quick product pic)
+- Garment fills frame nicely but not perfectly composed
+- Angle feels natural: slightly above looking down, or straight-on
+- Enough space to see full garment plus bit of environment for context
+- Feels spontaneous, not calculated studio setup
+- Could be posted on Instagram/Poshmark/Vinted as product photo
+
+═══ PRESERVE GARMENT AUTHENTICITY ═══
+- Keep EXACT colors, patterns, prints of original garment
+- Maintain fabric texture, material appearance precisely
+- Preserve logos, embroidery, labels, distinctive features perfectly
+- Show realistic fabric behavior for this specific material type
+- Wrinkles, folds, draping natural to this fabric weight and type
+
+═══ FINAL QUALITY VERIFICATION ═══
+
+Before completing, verify:
+  ✓ PLACEMENT: Garment naturally supported (gravity-compliant, not floating)
+  ✓ SCALE: Garment size appropriate for environment and surfaces
+  ✓ LIGHTING: Unified light source - garment lit identically to environment
+  ✓ SHADOWS: Garment casts realistic shadow onto surface beneath it
+  ✓ CONTRAST: Garment matches scene contrast (not too bright or flat)
+  ✓ DEPTH: Natural focus/blur, realistic depth of field
+  ✓ EDGES: Soft, natural boundaries (no cutout lines)
+  ✓ COLOR: Unified color grading, environment color influence visible
+  ✓ PHYSICS: Fabric drapes, folds, wrinkles naturally
+  ✓ REALISM: Looks like ONE photograph, NOT a composite
+  ✓ IPHONE STYLE: Natural smartphone photo quality, casual, authentic
+  ✓ NO ARTIFACTS: No paste lines, floating, lighting mismatches
+
+🎯 FINAL INSTRUCTION: This must be IMPOSSIBLE to distinguish from a real iPhone photo of real clothing in a real space. The garment must appear genuinely PRESENT in the environment, with all physical properties (lighting, shadows, focus, color, physics) proving it exists in this unified 3D space. Zero tolerance for "copy-paste" or "Photoshop overlay" appearance - every element must prove this is ONE authentic photograph taken in one moment. This is NOT a composite - this is a genuine product photo.`;
 
     try {
       const clothingData = await ensureBase64(clothingBase64);
@@ -874,51 +973,120 @@ BODY & APPEARANCE FIDELITY:
 - Facial features, expression, hair must be consistent
 - Height and build must remain the same
 
-GARMENT INTEGRATION:
-- The clothing from IMAGE #2 sits ON the person at correct scale
-- Fabric drapes naturally based on body shape and garment type
+GARMENT INTEGRATION (HYPER-CRITICAL - NO COPY-PASTE):
+- The clothing from IMAGE #2 must appear PHYSICALLY WORN by the person, not overlaid
+- Fabric drapes naturally with gravity, following body contours precisely
+- Clothing deforms around body shapes (stretches over chest/shoulders, gathers at waist)
+- Wrinkles and folds appear naturally where body bends (elbows, waist, armpits, knees)
+- Fabric edges and seams follow body curves smoothly (no floating edges)
 - Colors, patterns, textures match the original garment exactly
-- Wrinkles, folds, and fabric behavior look realistic
+- Garment sits at anatomically correct locations (collar at neck base, sleeves at shoulders)
 - No extra clothing added - only the specified garment
-- Garment sits at correct body locations (collar at neck, hem at proper length, etc.)
 
-LIGHTING & ATMOSPHERE:
-${hasBackground ? '- Match ALL lighting from IMAGE #3: direction, intensity, color, shadows' : '- Use soft, natural lighting like a casual photo'}
-- Consistent light source across person, clothing, and environment
-- Realistic shadows that match light direction
-- Natural color temperature throughout the image
-- Subtle ambient occlusion where clothing contacts body
+🚨 LIGHTING INTEGRATION (CRITICAL - PREVENTS PASTE LOOK):
 
-UGC PHOTOGRAPHY STYLE:
-- This looks like a REAL PHOTO taken with an iPhone or smartphone
+THE SAME UNIFIED LIGHT SOURCE illuminates EVERYTHING in one cohesive shot:
+
+${hasBackground ? `ANALYZE THE LIGHT IN IMAGE #3:
+- Light direction (front, side, back, top)
+- Light quality (harsh sun, soft overcast, window light, indoor artificial)
+- Light color (warm golden hour, cool daylight, neutral)
+- Shadow characteristics (hard edges or soft, dark or light)
+- Overall contrast (high = sunny day, low = cloudy/shade)` : `USE NATURAL IPHONE LIGHTING:
+- Soft, diffused natural light (like near window or outdoor shade)
+- Gentle shadows with soft edges
+- Moderate contrast, not too dramatic
+- Neutral to slightly warm color temperature`}
+
+APPLY THIS EXACT LIGHTING TO THE CLOTHING:
+- Light hits fabric with IDENTICAL angle, intensity, and color as it hits skin
+- Fabric highlights match skin highlights (same brightness, same position)
+- Fabric shadows match body shadows (same depth, same softness, same direction)
+- If person's face has soft shadows, clothing has soft shadows too
+- If person's face has harsh shadows, clothing has harsh shadows too
+- Shiny fabrics reflect light more (satin, leather), matte fabrics absorb (cotton, wool)
+- White/light clothing shows environment reflections subtly
+
+INTER-ELEMENT SHADOWS (CRITICAL):
+- Clothing casts soft shadows ONTO person's body (under collar, under sleeves, fabric folds)
+- Person's body parts cast shadows ONTO clothing (chin shadow on shirt, arms on torso sides)
+- Hair may cast shadows onto clothing at shoulders/collar area
+- These inter-shadows prove all elements are in same 3D space
+- Shadow density matches scene lighting (strong sun = dark shadows, overcast = faint)
+
+DEPTH OF FIELD & FOCUS MATCHING:
+- Clothing has the EXACT SAME focus/sharpness as the body part it's on
+- If background is blurred (bokeh), clothing edges may blur very slightly when draping away from body
+- Fabric texture detail level matches overall photo sharpness
+- No hyper-sharp clothing on soft-focus body (dead giveaway of paste)
+- Camera focus characteristics uniform across entire subject
+- Natural smartphone lens behavior (slight blur at edges if wide angle)
+
+CONTRAST & TONAL MATCHING (PREVENTS FLAT PASTE):
+- Clothing has IDENTICAL contrast ratio as person's skin/face
+- High contrast scene (bright sun) = clothing shows strong highlights and deep shadows in folds
+- Low contrast scene (shade/overcast) = clothing appears softer, less dramatic shadows
+- Clothing's darkest shadows match darkness of person's darkest shadows
+- Clothing's brightest highlights match brightness of person's brightest highlights
+- No "floating layer" appearance - clothing integrated into scene's tonal range
+- Fabric folds create natural micro-shadows based on scene lighting harshness
+
+CONTACT SHADOWS & AMBIENT OCCLUSION:
+- Dark contact shadows where clothing touches skin tightly (collar on neck, waistband)
+- Subtle darkening in crevices and tight folds (realistic fabric behavior)
+- Ambient occlusion in underarm areas, behind collar, inside pockets
+- These micro-details prove physical contact, not digital overlay
+
+COLOR GRADING & ENVIRONMENT HARMONIZATION:
+- Clothing colors influenced by environment's ambient light color
+${hasBackground ? '- If IMAGE #3 has warm/golden light, clothing shows warm tint matching skin tone shift' : '- Natural daylight color balance'}
+- Color spill: skin color may reflect onto nearby white/light fabric areas
+- Environment colors reflect onto shiny/reflective fabric (sky blue on white shirt outdoors)
+- Overall color palette unified - not separate color spaces
+- Match color saturation: vibrant scene = vibrant colors, muted scene = desaturated
+- Color temperature consistency: warm scene = all elements warm, cool scene = all elements cool
+
+EDGE QUALITY & BLENDING:
+- No hard "cutout" edges - all boundaries soft and natural
+- Fabric edges slightly catch light or shadow based on angle
+- Fine details like threads, texture visible at appropriate scale
+- Anti-aliasing natural, not artificially smooth
+- Clothing boundaries show natural interaction with body (skin texture visible at neckline edges)
+
+IPHONE/SMARTPHONE PHOTO CHARACTERISTICS:
 - Natural, casual, authentic feeling - NOT studio professional
-- Realistic focus with slight depth of field blur in background
-- No artificial effects, filters, or over-processing
-- Slight imperfections make it feel genuine (natural lighting variations, casual pose)
-- Could be a selfie, mirror pic, or friend taking a casual photo
-- Authentic, relatable, user-generated content aesthetic
+- Realistic iPhone camera behavior: slight wide-angle distortion, natural color science
+- Moderate depth of field (background slightly blurred, subject sharp)
+- Natural lens characteristics (very subtle vignetting if present)
+- Real smartphone dynamic range (not HDR processed)
+- Slight grain/noise natural to smartphone sensors (especially in shadows)
+- Authentic color profile (not oversaturated or heavily graded)
 
 COMPOSITION & FRAMING:
 - Natural, casual framing (not perfectly centered like studio)
 - Person positioned naturally within the scene
-- Realistic perspective and camera angle (eye level or slightly above/below)
+- Realistic perspective and camera angle (eye level or phone held at arm's length)
 - Natural pose - relaxed, authentic, not overly posed
 - Enough space to see the full garment on the person
+- Framing choices that feel spontaneous, not calculated
 
 ═══ FINAL QUALITY VERIFICATION ═══
 
 Before completing, verify:
-  ✓ PROPORTIONS: Person and clothing are at correct realistic scale to each other
+  ✓ PROPORTIONS: Person and clothing at correct realistic scale to each other
   ✓ PERSON: Matches IMAGE #1 exactly (face, body, skin tone, hair, build)
-  ✓ GARMENT: Fits correctly on body, proper size, accurate colors/details
-  ✓ ANATOMY: Body proportions are realistic (no distorted limbs, head, torso)
-  ✓ SCALE: Clothing size makes sense for this person's body size
-  ✓ LIGHTING: Consistent across person, clothes, and environment${hasBackground ? ' - matches IMAGE #3' : ''}
-  ✓ REALISM: Looks like ONE real photograph, not a composite
-  ✓ UGC STYLE: Authentic, casual, natural - could be posted on Instagram/TikTok
-  ✓ NO ARTIFACTS: No blending issues, proportion errors, or obvious AI tells
+  ✓ GARMENT: Fits correctly, proper size, accurate colors/details, natural draping
+  ✓ LIGHTING: UNIFIED light source - clothing lit identically to skin/face
+  ✓ SHADOWS: Inter-element shadows present (clothing on body, body on clothing)
+  ✓ CONTRAST: Clothing matches scene contrast (not too bright, not too flat)
+  ✓ DEPTH: Focus/sharpness consistent, natural depth of field
+  ✓ EDGES: No hard cutouts, natural boundaries, soft blending
+  ✓ COLOR: Unified color grading, environment color influence visible
+  ✓ REALISM: Looks like ONE photograph, NOT a composite/collage
+  ✓ IPHONE STYLE: Natural smartphone photo quality, casual, authentic
+  ✓ NO ARTIFACTS: No paste lines, proportion errors, lighting mismatches
 
-FINAL INSTRUCTION: This must be indistinguishable from a real photograph of a real person wearing real clothes in a real place. Every viewer should believe this is authentic UGC content. Perfect proportions and natural realism are MANDATORY.`
+🎯 FINAL INSTRUCTION: This must be IMPOSSIBLE to distinguish from a real photograph taken with an iPhone in one single moment. The clothing must appear genuinely WORN by the person, with all physical properties (lighting, shadows, focus, color) proving they exist in the same unified 3D space. Zero tolerance for "copy-paste" appearance - every photon of light must behave consistently across all elements. This is not a composite - this is ONE authentic photograph.`
     : `🎯 ULTRA-REALISTIC UGC LIFESTYLE PHOTO - MODEL IN ENVIRONMENT
 
 YOU ARE CREATING: An authentic, natural photo that looks like a real person in a real place. This must be indistinguishable from a genuine photograph taken with a smartphone.
