@@ -933,46 +933,6 @@ export function MonDressingPage() {
           </div>
         </div>
 
-        {/* Kelly - Assistant IA unifié */}
-        <div className="mb-6">
-          <button
-            onClick={() => setKellyOpen(true)}
-            className="w-full bg-white hover:bg-gray-50 rounded-xl p-4 transition-all duration-300 hover:shadow-lg shadow-sm border border-gray-200 group"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <img
-                    src="/kelly-avatar.png"
-                    alt="Kelly"
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-white/30"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                  <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-60"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-400"></span>
-                  </span>
-                </div>
-                <div className="text-left">
-                  <h3 className="font-bold text-gray-900 text-base">Kelly - Votre Assistante IA</h3>
-                  <p className="text-xs text-gray-600">Conseils, Pricing & Planification</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {insightsCount > 0 && (
-                  <span className="bg-emerald-100 text-emerald-700 text-sm font-bold px-3 py-1 rounded-full">
-                    {insightsCount} {insightsCount === 1 ? 'nouveau' : 'nouveaux'}
-                  </span>
-                )}
-                <Sparkles className="w-5 h-5 text-emerald-600 group-hover:animate-pulse" />
-              </div>
-            </div>
-          </button>
-        </div>
-
         {/* Content */}
         {filteredItems.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center">
