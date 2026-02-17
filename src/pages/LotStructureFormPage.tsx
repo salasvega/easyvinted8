@@ -16,6 +16,7 @@ interface Lot {
   original_total_price: number;
   reference_number?: string;
   status: string;
+  seo_keywords?: string[];
 }
 
 export function LotStructureFormPage() {
@@ -139,6 +140,10 @@ export function LotStructureFormPage() {
 
   const fullDescription = `${lot.description}\n\nArticles inclus dans ce lot :\n${articlesDescription}`;
 
+  const fullDescriptionWithSeo = lot.seo_keywords && lot.seo_keywords.length > 0
+    ? fullDescription + (fullDescription && !fullDescription.endsWith('\n') ? '\n\n' : '') + lot.seo_keywords.join(' • ')
+    : fullDescription;
+
   const fields = [
     {
       name: 'Photos',
@@ -153,10 +158,13 @@ export function LotStructureFormPage() {
       description: 'Le titre de votre lot',
     },
     {
-      name: 'Description',
-      value: fullDescription,
-      description: 'Description détaillée du lot avec la liste des articles',
+      name: lot.seo_keywords && lot.seo_keywords.length > 0 ? 'Description pour Vinted' : 'Description',
+      value: fullDescriptionWithSeo,
+      description: lot.seo_keywords && lot.seo_keywords.length > 0
+        ? 'Description avec mots-clés SEO automatiquement ajoutés'
+        : 'Description détaillée du lot avec la liste des articles',
       multiline: true,
+      hasSeoKeywords: lot.seo_keywords && lot.seo_keywords.length > 0,
     },
     {
       name: 'Prix',
@@ -228,23 +236,35 @@ export function LotStructureFormPage() {
 
       <div className="space-y-4">
         {fields.map((field, index) => (
-          <div key={index} className="bg-white rounded-lg border border-gray-200 p-4">
+          <div key={index} className={`rounded-lg border p-4 ${
+            field.hasSeoKeywords
+              ? 'bg-gradient-to-br from-teal-50 to-emerald-50 border-teal-200'
+              : 'bg-white border-gray-200'
+          }`}>
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <h3 className={`font-semibold flex items-center gap-2 ${
+                  field.hasSeoKeywords ? 'text-teal-900' : 'text-gray-900'
+                }`}>
                   {field.name}
                   {copiedField === field.name && (
                     <CheckCircle className="w-4 h-4 text-green-600" />
                   )}
                 </h3>
-                <p className="text-sm text-gray-500">{field.description}</p>
+                <p className={`text-sm ${
+                  field.hasSeoKeywords ? 'text-teal-600' : 'text-gray-500'
+                }`}>{field.description}</p>
               </div>
               {field.copyable !== false && (
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => copyToClipboard(field.value, field.name)}
-                  className="ml-4"
+                  className={`ml-4 ${
+                    field.hasSeoKeywords
+                      ? 'bg-teal-100 hover:bg-teal-200 text-teal-700 border-teal-300'
+                      : ''
+                  }`}
                 >
                   <Copy className="w-4 h-4 mr-1" />
                   Copier

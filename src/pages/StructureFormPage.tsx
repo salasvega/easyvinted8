@@ -18,6 +18,7 @@ interface Article {
   color?: string;
   material?: string;
   photos: string[];
+  seo_keywords?: string[];
 }
 
 const CONDITION_LABELS: Record<string, string> = {
@@ -135,10 +136,15 @@ export function StructureFormPage() {
       description: 'Le titre de votre article',
     },
     {
-      name: 'Description',
-      value: article.description,
-      description: 'Description détaillée de l\'article',
+      name: article.seo_keywords && article.seo_keywords.length > 0 ? 'Description pour Vinted' : 'Description',
+      value: article.seo_keywords && article.seo_keywords.length > 0
+        ? article.description + (article.description && !article.description.endsWith('\n') ? '\n\n' : '') + article.seo_keywords.join(' • ')
+        : article.description,
+      description: article.seo_keywords && article.seo_keywords.length > 0
+        ? 'Description avec mots-clés SEO automatiquement ajoutés'
+        : 'Description détaillée de l\'article',
       multiline: true,
+      hasSeoKeywords: article.seo_keywords && article.seo_keywords.length > 0,
     },
     {
       name: 'Marque',
@@ -223,23 +229,35 @@ export function StructureFormPage() {
 
       <div className="space-y-4">
         {fields.map((field, index) => (
-          <div key={index} className="bg-white rounded-lg border border-gray-200 p-4">
+          <div key={index} className={`rounded-lg border p-4 ${
+            field.hasSeoKeywords
+              ? 'bg-gradient-to-br from-teal-50 to-emerald-50 border-teal-200'
+              : 'bg-white border-gray-200'
+          }`}>
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <h3 className={`font-semibold flex items-center gap-2 ${
+                  field.hasSeoKeywords ? 'text-teal-900' : 'text-gray-900'
+                }`}>
                   {field.name}
                   {copiedField === field.name && (
                     <CheckCircle className="w-4 h-4 text-green-600" />
                   )}
                 </h3>
-                <p className="text-sm text-gray-500">{field.description}</p>
+                <p className={`text-sm ${
+                  field.hasSeoKeywords ? 'text-teal-600' : 'text-gray-500'
+                }`}>{field.description}</p>
               </div>
               {field.copyable !== false && (
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={() => copyToClipboard(field.value, field.name)}
-                  className="ml-4"
+                  className={`ml-4 ${
+                    field.hasSeoKeywords
+                      ? 'bg-teal-100 hover:bg-teal-200 text-teal-700 border-teal-300'
+                      : ''
+                  }`}
                 >
                   <Copy className="w-4 h-4 mr-1" />
                   Copier

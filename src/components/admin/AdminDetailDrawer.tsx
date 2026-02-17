@@ -584,47 +584,47 @@ export function AdminDetailDrawer({
 
               {item.description && (
                 <div className={`${!isClosing ? 'drawer-content-item' : 'drawer-content-item-exit'}`} style={{ '--item-index': 2 } as React.CSSProperties}>
-                  <h4 className="text-xs uppercase tracking-wide text-slate-500 font-semibold mb-2">Description</h4>
-                  <div className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-xs uppercase tracking-wide text-slate-500 font-semibold">
+                      {item.seo_keywords && item.seo_keywords.length > 0 ? 'Description pour Vinted' : 'Description'}
+                    </h4>
+                    {item.seo_keywords && item.seo_keywords.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const descriptionWithKeywords = item.description +
+                            (item.description && !item.description.endsWith('\n') ? '\n\n' : '') +
+                            item.seo_keywords!.join(' • ');
+                          navigator.clipboard.writeText(descriptionWithKeywords);
+                          setToast({ type: 'success', text: 'Description copiée !' });
+                        }}
+                        className="px-2 py-1 text-[10px] font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <FileText className="w-3 h-3" />
+                        Copier
+                      </button>
+                    )}
+                  </div>
+                  <div className={`px-4 py-3 border rounded-xl ${
+                    item.seo_keywords && item.seo_keywords.length > 0
+                      ? 'bg-gradient-to-br from-teal-50 to-emerald-50 border-teal-200'
+                      : 'bg-slate-50 border-slate-200'
+                  }`}>
                     <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
                       {item.description}
-                    </p>
-                  </div>
-
-                  {/* Description enrichie avec mots-clés SEO pour Vinted */}
-                  {item.seo_keywords && item.seo_keywords.length > 0 && (
-                    <div className="mt-2 p-3 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <TrendingUp className="w-3.5 h-3.5 text-teal-600" />
-                          <h5 className="text-xs font-semibold text-teal-800">Description pour Vinted (avec SEO)</h5>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const descriptionWithKeywords = item.description +
-                              (item.description && !item.description.endsWith('\n') ? '\n\n' : '') +
-                              item.seo_keywords!.join(' • ');
-                            navigator.clipboard.writeText(descriptionWithKeywords);
-                            setToast({ type: 'success', text: 'Description avec mots-clés copiée !' });
-                          }}
-                          className="px-2 py-1 text-[10px] font-medium text-teal-700 bg-white hover:bg-teal-100 border border-teal-200 rounded-lg transition-colors flex items-center gap-1"
-                        >
-                          <FileText className="w-3 h-3" />
-                          Copier
-                        </button>
-                      </div>
-                      <div className="px-3 py-2 bg-white border border-teal-100 rounded-lg">
-                        <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
-                          {item.description}
+                      {item.seo_keywords && item.seo_keywords.length > 0 && (
+                        <>
                           {item.description && !item.description.endsWith('\n') && '\n\n'}
                           <span className="text-teal-700 font-medium">{item.seo_keywords.join(' • ')}</span>
-                        </p>
-                      </div>
-                      <p className="mt-2 text-[10px] text-teal-600">
-                        Cette version inclut automatiquement vos mots-clés SEO. Copiez-la lors de la publication sur Vinted.
-                      </p>
-                    </div>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                  {item.seo_keywords && item.seo_keywords.length > 0 && (
+                    <p className="mt-2 text-[10px] text-teal-600 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3" />
+                      <span>Mots-clés SEO automatiquement ajoutés</span>
+                    </p>
                   )}
                 </div>
               )}
