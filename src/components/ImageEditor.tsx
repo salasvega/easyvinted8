@@ -181,6 +181,7 @@ export function ImageEditor({
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
   const [showLocationSelector, setShowLocationSelector] = useState(false);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const infoRef = useRef<HTMLDivElement>(null);
   const comparisonRef = useRef<HTMLDivElement>(null);
@@ -581,13 +582,21 @@ export function ImageEditor({
   const handleAddAsNew = () => {
     if (onAddAsNewPhoto && hasEdited) {
       onAddAsNewPhoto(currentImage);
-      onClose();
+      setEditHistory([imageUrl]);
+      setHistoryIndex(0);
+      setShowComparison(false);
+      setSuccessMessage('Photo ajoutée avec succès !');
+      setTimeout(() => setSuccessMessage(null), 3000);
     }
   };
 
   const handleReplace = () => {
     onImageEdited(currentImage);
-    onClose();
+    setEditHistory([imageUrl]);
+    setHistoryIndex(0);
+    setShowComparison(false);
+    setSuccessMessage('Photo remplacée avec succès !');
+    setTimeout(() => setSuccessMessage(null), 3000);
   };
 
   const handleComparisonDrag = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -781,6 +790,13 @@ export function ImageEditor({
                 <div className="absolute top-3 left-3 bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 z-[5]">
                   <Check className="w-3.5 h-3.5" />
                   <span>Editee ({historyIndex} modif.)</span>
+                </div>
+              )}
+
+              {successMessage && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 z-[10] shadow-lg animate-in fade-in slide-in-from-top-2 duration-300">
+                  <Check className="w-4 h-4" />
+                  <span>{successMessage}</span>
                 </div>
               )}
 
