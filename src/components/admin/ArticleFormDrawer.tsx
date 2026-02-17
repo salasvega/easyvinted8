@@ -38,7 +38,7 @@ import { compressImage, formatFileSize } from '../../lib/imageCompression';
 import { parseSuggestionValue } from '../../lib/geminiService';
 
 import { ShippingSimulator } from '../tools/ShippingSimulator';
-import { PriceSuggestion } from '../PriceSuggestion';
+import { PriceSuggestion, PricingData } from '../PriceSuggestion';
 
 const CONDITION_OPTIONS: { value: Condition; label: string }[] = [
   { value: 'new_with_tags', label: 'Neuf avec etiquette' },
@@ -172,6 +172,9 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
     shipping_band_label: '' as string,
     suggested_price_min: null as number | null,
     suggested_price_max: null as number | null,
+    suggested_price_optimal: null as number | null,
+    price_analysis_reasoning: null as string | null,
+    price_analysis_confidence: null as number | null,
 
     seo_keywords: [] as string[],
     hashtags: [] as string[],
@@ -240,6 +243,9 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
       shipping_band_label: '',
       suggested_price_min: null,
       suggested_price_max: null,
+      suggested_price_optimal: null,
+      price_analysis_reasoning: null,
+      price_analysis_confidence: null,
 
       seo_keywords: [],
       hashtags: [],
@@ -321,6 +327,9 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
           shipping_band_label: data.shipping_band_label || '',
           suggested_price_min: data.suggested_price_min ?? null,
           suggested_price_max: data.suggested_price_max ?? null,
+          suggested_price_optimal: data.suggested_price_optimal ?? null,
+          price_analysis_reasoning: data.price_analysis_reasoning ?? null,
+          price_analysis_confidence: data.price_analysis_confidence ?? null,
 
           seo_keywords: Array.isArray(data.seo_keywords) ? data.seo_keywords : [],
           hashtags: Array.isArray(data.hashtags) ? data.hashtags : [],
@@ -570,6 +579,18 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
     }));
   }, []);
 
+  const handlePriceSuggestionGenerated = useCallback((data: PricingData) => {
+    setFormData((prev) => ({
+      ...prev,
+      suggested_price_min: data.suggestedMin,
+      suggested_price_max: data.suggestedMax,
+      suggested_price_optimal: data.optimal,
+      price_analysis_reasoning: data.reasoning,
+      price_analysis_confidence: data.confidence,
+      price: !prev.price ? data.optimal.toString() : prev.price,
+    }));
+  }, []);
+
   const handleSave = async () => {
     if (!user) return;
 
@@ -633,6 +654,10 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
         shipping_band_label: formData.shipping_band_label,
         suggested_price_min: formData.suggested_price_min,
         suggested_price_max: formData.suggested_price_max,
+        suggested_price_optimal: formData.suggested_price_optimal,
+        price_analysis_reasoning: formData.price_analysis_reasoning,
+        price_analysis_confidence: formData.price_analysis_confidence,
+        price_analyzed_at: formData.suggested_price_optimal ? new Date().toISOString() : null,
         seo_keywords: formData.seo_keywords,
         hashtags: formData.hashtags,
         search_terms: formData.search_terms,
@@ -1656,6 +1681,19 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                         condition={formData.condition}
                         currentPrice={formData.price ? parseFloat(formData.price) : undefined}
                         onApplyPrice={(price) => setFormData({ ...formData, price: price.toString() })}
+                        cachedSuggestion={
+                          formData.suggested_price_optimal
+                            ? {
+                                suggestedMin: formData.suggested_price_min || 0,
+                                suggestedMax: formData.suggested_price_max || 0,
+                                optimal: formData.suggested_price_optimal,
+                                reasoning: formData.price_analysis_reasoning || '',
+                                confidence: formData.price_analysis_confidence || 0,
+                              }
+                            : null
+                        }
+                        onSuggestionGenerated={handlePriceSuggestionGenerated}
+                        autoGenerate={!articleId}
                       />
                     </div>
 

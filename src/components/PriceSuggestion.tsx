@@ -8,9 +8,12 @@ interface PriceSuggestionProps {
   condition?: string;
   currentPrice?: number;
   onApplyPrice?: (price: number) => void;
+  cachedSuggestion?: PricingData | null;
+  onSuggestionGenerated?: (data: PricingData) => void;
+  autoGenerate?: boolean;
 }
 
-interface PricingData {
+export interface PricingData {
   suggestedMin: number;
   suggestedMax: number;
   optimal: number;
@@ -71,12 +74,24 @@ export function PriceSuggestion({
   condition,
   currentPrice,
   onApplyPrice,
+  cachedSuggestion,
+  onSuggestionGenerated,
+  autoGenerate = false,
 }: PriceSuggestionProps) {
-  const [suggestion, setSuggestion] = useState<PricingData | null>(null);
+  const [suggestion, setSuggestion] = useState<PricingData | null>(cachedSuggestion || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (cachedSuggestion) {
+      setSuggestion(cachedSuggestion);
+      return;
+    }
+  }, [cachedSuggestion]);
+
+  useEffect(() => {
+    if (!autoGenerate) return;
+    if (cachedSuggestion) return;
     if (!brand || !title || !condition) {
       setSuggestion(null);
       return;
@@ -88,6 +103,9 @@ export function PriceSuggestion({
         setError(null);
         const data = await getPriceSuggestion(brand, title, condition);
         setSuggestion(data);
+        if (onSuggestionGenerated) {
+          onSuggestionGenerated(data);
+        }
       } catch (err) {
         console.error('Error getting price suggestion:', err);
         setError('Impossible de générer une suggestion');
@@ -97,7 +115,7 @@ export function PriceSuggestion({
     }, 1500);
 
     return () => clearTimeout(timer);
-  }, [brand, title, condition]);
+  }, [brand, title, condition, autoGenerate, cachedSuggestion, onSuggestionGenerated]);
 
   if (loading) {
     return (
