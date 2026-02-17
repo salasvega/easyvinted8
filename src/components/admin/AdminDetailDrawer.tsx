@@ -629,213 +629,9 @@ export function AdminDetailDrawer({
                 </div>
               )}
 
-              {item.type === 'lot' && item.articles && item.articles.length > 0 && (
-                <>
-                  <div className="border-t border-slate-100 pt-4">
-                    <h4 className="text-xs uppercase tracking-wide text-slate-500 font-semibold mb-3">
-                      Articles inclus dans ce lot
-                    </h4>
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
-                      {item.articles.map((article) => (
-                        <button
-                          key={article.id}
-                          onClick={() => fetchArticleDetails(article.id)}
-                          className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-200 transition-colors text-left group"
-                        >
-                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                            {article.photos?.[0] ? (
-                              <img
-                                src={article.photos[0]}
-                                alt={article.title}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center">
-                                <Package className="w-5 h-5 text-slate-300" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-slate-900 truncate group-hover:text-blue-600 transition-colors">
-                              {article.title}
-                            </p>
-                            <p className="text-xs text-slate-500">
-                              {article.brand || 'Sans marque'}
-                              {article.size && ` • ${article.size}`}
-                            </p>
-                          </div>
-                          <div className="text-right flex-shrink-0 flex items-center gap-2">
-                            <p className="text-sm font-semibold text-slate-900">
-                              {article.price.toFixed(2)} €
-                            </p>
-                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Articles Statistics */}
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-slate-600" />
-                        <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-wide">
-                          Articles inclus
-                        </p>
-                      </div>
-                      <span className="text-2xl font-bold text-slate-900">{item.articles.length}</span>
-                    </div>
-                  </div>
-
-                  {/* SEO & Marketing Section for Lots */}
-                  {((item.seo_keywords && item.seo_keywords.length > 0) || (item.hashtags && item.hashtags.length > 0) || (item.search_terms && item.search_terms.length > 0)) && (
-                    <div className={`${!isClosing ? 'drawer-content-item' : 'drawer-content-item-exit'}`} style={{ '--item-index': 2.5 } as React.CSSProperties}>
-                      <button
-                        onClick={() => setSeoExpanded(!seoExpanded)}
-                        className="w-full flex items-center justify-between p-3 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl hover:from-teal-100 hover:to-emerald-100 transition-colors"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="p-1.5 bg-teal-600 rounded-lg">
-                            <TrendingUp className="w-4 h-4 text-white" />
-                          </div>
-                          <h4 className="text-sm font-semibold text-teal-900">SEO & Marketing</h4>
-                          {item.ai_confidence_score && (
-                            <span className="ml-2 text-xs px-2 py-0.5 bg-teal-600 text-white rounded-full flex items-center gap-1">
-                              <Zap className="w-3 h-3" />
-                              {item.ai_confidence_score}%
-                            </span>
-                          )}
-                        </div>
-                        <ChevronDown className={`w-5 h-5 text-teal-700 transition-transform ${seoExpanded ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      {seoExpanded && (
-                        <div className="mt-2 p-4 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl space-y-3">
-                          {item.seo_keywords && item.seo_keywords.length > 0 && (
-                            <div>
-                              <div className="flex items-center gap-1.5 text-xs text-teal-700 font-medium mb-1.5">
-                                <Search className="w-3 h-3" />
-                                Mots-clés SEO
-                              </div>
-                              <div className="flex flex-wrap gap-1.5">
-                                {item.seo_keywords.map((keyword, idx) => (
-                                  <span key={idx} className="px-2 py-1 bg-white/70 border border-teal-200 text-teal-800 text-xs rounded-lg">
-                                    {keyword}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {item.hashtags && item.hashtags.length > 0 && (
-                            <div>
-                              <div className="flex items-center gap-1.5 text-xs text-teal-700 font-medium mb-1.5">
-                                <Hash className="w-3 h-3" />
-                                Hashtags tendance
-                              </div>
-                              <div className="flex flex-wrap gap-1.5">
-                                {item.hashtags.map((tag, idx) => (
-                                  <span key={idx} className="px-2 py-1 bg-teal-600/10 text-teal-700 text-xs rounded-lg font-medium">
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {item.search_terms && item.search_terms.length > 0 && (
-                            <div>
-                              <div className="flex items-center gap-1.5 text-xs text-teal-700 font-medium mb-1.5">
-                                <Zap className="w-3 h-3" />
-                                Termes de recherche
-                              </div>
-                              <div className="flex flex-wrap gap-1.5">
-                                {item.search_terms.map((term, idx) => (
-                                  <span key={idx} className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-lg">
-                                    "{term}"
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Prix et Remise */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-                      <p className="text-[10px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">Prix du lot</p>
-                      <p className="text-lg font-bold text-emerald-600">{item.price.toFixed(2)} €</p>
-                    </div>
-                    {item.discount_percentage !== undefined && (
-                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                        <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Remise</p>
-                        <div className="flex items-center gap-1.5">
-                          <TrendingDown className="w-4 h-4 text-rose-500" />
-                          <p className="text-lg font-bold text-slate-900">{item.discount_percentage}%</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {item.type === 'article' && (
-                <div className={`grid grid-cols-2 gap-3 ${!isClosing ? 'drawer-content-item' : 'drawer-content-item-exit'}`} style={{ '--item-index': 3 } as React.CSSProperties}>
-                  {item.brand && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Marque</p>
-                      <p className="text-sm font-medium text-slate-900">{item.brand}</p>
-                    </div>
-                  )}
-                  {item.size && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Taille</p>
-                      <p className="text-sm font-medium text-slate-900">{item.size}</p>
-                    </div>
-                  )}
-                  {item.color && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Couleur</p>
-                      <p className="text-sm font-medium text-slate-900">{item.color}</p>
-                    </div>
-                  )}
-                  {item.material && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Matière</p>
-                      <p className="text-sm font-medium text-slate-900">{item.material}</p>
-                    </div>
-                  )}
-                  {item.condition && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">État</p>
-                      <p className="text-sm font-medium text-slate-900">{CONDITION_LABELS[item.condition] || item.condition}</p>
-                    </div>
-                  )}
-                  {item.season && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Saison</p>
-                      <div className="flex items-center gap-2">
-                        {renderSeasonIcon(item.season)}
-                        <span className="text-sm font-medium text-slate-900">{SEASON_LABELS[item.season]}</span>
-                      </div>
-                    </div>
-                  )}
-                  {item.suggested_period && (
-                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 col-span-2">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Période conseillée</p>
-                      <p className="text-sm font-medium text-slate-900">{item.suggested_period}</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* SEO & Marketing Section */}
-              {item.type === 'article' && ((item.seo_keywords && item.seo_keywords.length > 0) || (item.hashtags && item.hashtags.length > 0) || (item.search_terms && item.search_terms.length > 0)) && (
-                <div className={`${!isClosing ? 'drawer-content-item' : 'drawer-content-item-exit'}`} style={{ '--item-index': 3.5 } as React.CSSProperties}>
+              {/* SEO & Marketing Section for Lots */}
+              {item.type === 'lot' && ((item.seo_keywords && item.seo_keywords.length > 0) || (item.hashtags && item.hashtags.length > 0) || (item.search_terms && item.search_terms.length > 0)) && (
+                <div className={`${!isClosing ? 'drawer-content-item' : 'drawer-content-item-exit'}`} style={{ '--item-index': 2.5 } as React.CSSProperties}>
                   <button
                     onClick={() => setSeoExpanded(!seoExpanded)}
                     className="w-full flex items-center justify-between p-3 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl hover:from-teal-100 hover:to-emerald-100 transition-colors"
@@ -904,6 +700,210 @@ export function AdminDetailDrawer({
                           </div>
                         </div>
                       )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {item.type === 'lot' && item.articles && item.articles.length > 0 && (
+                <>
+                  <div className="border-t border-slate-100 pt-4">
+                    <h4 className="text-xs uppercase tracking-wide text-slate-500 font-semibold mb-3">
+                      Articles inclus dans ce lot
+                    </h4>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {item.articles.map((article) => (
+                        <button
+                          key={article.id}
+                          onClick={() => fetchArticleDetails(article.id)}
+                          className="w-full flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50/80 hover:bg-slate-100 hover:border-slate-200 transition-colors text-left group"
+                        >
+                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
+                            {article.photos?.[0] ? (
+                              <img
+                                src={article.photos[0]}
+                                alt={article.title}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Package className="w-5 h-5 text-slate-300" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                              {article.title}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {article.brand || 'Sans marque'}
+                              {article.size && ` • ${article.size}`}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0 flex items-center gap-2">
+                            <p className="text-sm font-semibold text-slate-900">
+                              {article.price.toFixed(2)} €
+                            </p>
+                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Articles Statistics */}
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-slate-600" />
+                        <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-wide">
+                          Articles inclus
+                        </p>
+                      </div>
+                      <span className="text-2xl font-bold text-slate-900">{item.articles.length}</span>
+                    </div>
+                  </div>
+
+                  {/* Prix et Remise */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                      <p className="text-[10px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">Prix du lot</p>
+                      <p className="text-lg font-bold text-emerald-600">{item.price.toFixed(2)} €</p>
+                    </div>
+                    {item.discount_percentage !== undefined && (
+                      <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                        <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Remise</p>
+                        <div className="flex items-center gap-1.5">
+                          <TrendingDown className="w-4 h-4 text-rose-500" />
+                          <p className="text-lg font-bold text-slate-900">{item.discount_percentage}%</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* SEO & Marketing Section for Articles */}
+              {item.type === 'article' && ((item.seo_keywords && item.seo_keywords.length > 0) || (item.hashtags && item.hashtags.length > 0) || (item.search_terms && item.search_terms.length > 0)) && (
+                <div className={`${!isClosing ? 'drawer-content-item' : 'drawer-content-item-exit'}`} style={{ '--item-index': 2.5 } as React.CSSProperties}>
+                  <button
+                    onClick={() => setSeoExpanded(!seoExpanded)}
+                    className="w-full flex items-center justify-between p-3 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl hover:from-teal-100 hover:to-emerald-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 bg-teal-600 rounded-lg">
+                        <TrendingUp className="w-4 h-4 text-white" />
+                      </div>
+                      <h4 className="text-sm font-semibold text-teal-900">SEO & Marketing</h4>
+                      {item.ai_confidence_score && (
+                        <span className="ml-2 text-xs px-2 py-0.5 bg-teal-600 text-white rounded-full flex items-center gap-1">
+                          <Zap className="w-3 h-3" />
+                          {item.ai_confidence_score}%
+                        </span>
+                      )}
+                    </div>
+                    <ChevronDown className={`w-5 h-5 text-teal-700 transition-transform ${seoExpanded ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {seoExpanded && (
+                    <div className="mt-2 p-4 bg-gradient-to-br from-teal-50 to-emerald-50 border border-teal-200 rounded-xl space-y-3">
+                      {item.seo_keywords && item.seo_keywords.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 text-xs text-teal-700 font-medium mb-1.5">
+                            <Search className="w-3 h-3" />
+                            Mots-clés SEO
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.seo_keywords.map((keyword, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-white/70 border border-teal-200 text-teal-800 text-xs rounded-lg">
+                                {keyword}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {item.hashtags && item.hashtags.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 text-xs text-teal-700 font-medium mb-1.5">
+                            <Hash className="w-3 h-3" />
+                            Hashtags tendance
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.hashtags.map((tag, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-teal-600/10 text-teal-700 text-xs rounded-lg font-medium">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {item.search_terms && item.search_terms.length > 0 && (
+                        <div>
+                          <div className="flex items-center gap-1.5 text-xs text-teal-700 font-medium mb-1.5">
+                            <Zap className="w-3 h-3" />
+                            Termes de recherche
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {item.search_terms.map((term, idx) => (
+                              <span key={idx} className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-lg">
+                                "{term}"
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {item.type === 'article' && (
+                <div className={`grid grid-cols-2 gap-3 ${!isClosing ? 'drawer-content-item' : 'drawer-content-item-exit'}`} style={{ '--item-index': 3 } as React.CSSProperties}>
+                  {item.brand && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Marque</p>
+                      <p className="text-sm font-medium text-slate-900">{item.brand}</p>
+                    </div>
+                  )}
+                  {item.size && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Taille</p>
+                      <p className="text-sm font-medium text-slate-900">{item.size}</p>
+                    </div>
+                  )}
+                  {item.color && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Couleur</p>
+                      <p className="text-sm font-medium text-slate-900">{item.color}</p>
+                    </div>
+                  )}
+                  {item.material && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Matière</p>
+                      <p className="text-sm font-medium text-slate-900">{item.material}</p>
+                    </div>
+                  )}
+                  {item.condition && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">État</p>
+                      <p className="text-sm font-medium text-slate-900">{CONDITION_LABELS[item.condition] || item.condition}</p>
+                    </div>
+                  )}
+                  {item.season && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Saison</p>
+                      <div className="flex items-center gap-2">
+                        {renderSeasonIcon(item.season)}
+                        <span className="text-sm font-medium text-slate-900">{SEASON_LABELS[item.season]}</span>
+                      </div>
+                    </div>
+                  )}
+                  {item.suggested_period && (
+                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 col-span-2">
+                      <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Période conseillée</p>
+                      <p className="text-sm font-medium text-slate-900">{item.suggested_period}</p>
                     </div>
                   )}
                 </div>
