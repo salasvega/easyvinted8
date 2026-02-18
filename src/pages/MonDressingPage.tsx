@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Eye, ClipboardEdit, MoreVertical, Copy, Trash2, DollarSign, Calendar, Clock,
   CheckCircle2, FileText, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, Upload,
-  Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen
+  Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen, TrendingUp
 } from 'lucide-react';
 import { Article, ArticleStatus, Season } from '../types/article';
 import { supabase } from '../lib/supabase';
@@ -435,8 +435,10 @@ export function MonDressingPage() {
   }, [items, statusFilter, sellerFilter, typeFilter, seasonFilter, searchQuery]);
 
   const stats = useMemo(() => {
-    const articles = items.filter(i => i.type === 'article');
-    const lots = items.filter(i => i.type === 'lot');
+    const filteredBySellerAndType = filteredItems;
+
+    const articles = filteredBySellerAndType.filter(i => i.type === 'article');
+    const lots = filteredBySellerAndType.filter(i => i.type === 'lot');
     const totalArticles = articles.length;
     const totalLots = lots.length;
     const draftArticles = articles.filter(a => a.status === 'draft').length;
@@ -450,9 +452,13 @@ export function MonDressingPage() {
     const soldArticles = articles.filter(a => a.status === 'sold' || a.status === 'vendu_en_lot').length;
     const soldLots = lots.filter(l => l.status === 'sold').length;
 
-    const totalNetProfit = items
+    const totalNetProfit = filteredBySellerAndType
       .filter(i => (i.status === 'sold' || i.status === 'vendu_en_lot') && i.net_profit != null)
       .reduce((sum, item) => sum + (item.net_profit || 0), 0);
+
+    const totalPublished = publishedArticles + publishedLots;
+    const totalSold = soldArticles + soldLots;
+    const conversionRate = totalPublished > 0 ? (totalSold / totalPublished) * 100 : 0;
 
     return {
       total: totalArticles + totalLots,
@@ -465,9 +471,10 @@ export function MonDressingPage() {
       sold: soldArticles + soldLots,
       soldArticles: soldArticles,
       soldLots: soldLots,
-      netProfit: totalNetProfit
+      netProfit: totalNetProfit,
+      conversionRate: conversionRate
     };
-  }, [items]);
+  }, [filteredItems]);
 
   const formatDate = useCallback((date?: string) => {
     if (!date) return 'Non defini';
@@ -721,7 +728,7 @@ export function MonDressingPage() {
           <h1 className="text-2xl font-bold text-gray-900">Mon dressing</h1>
           <p className="text-sm text-gray-600 mt-1">Gérez tous vos articles et lots en un seul endroit</p>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mt-4">
             <div
               onClick={() => handleStatClick('all')}
               className={`bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-sm px-4 py-4 border ${statusFilter === 'all' ? 'border-gray-400 ring-2 ring-gray-300' : 'border-gray-200'} hover:shadow-md transition-all cursor-pointer group`}
@@ -811,6 +818,18 @@ export function MonDressingPage() {
                 <div className="text-sm font-medium text-emerald-600">Bénéfices</div>
               </div>
               <div className="text-2xl font-bold text-emerald-700">{stats.netProfit.toFixed(2)}€</div>
+            </div>
+
+            <div
+              className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl shadow-sm px-4 py-4 border border-cyan-200 hover:shadow-md transition-all cursor-default group"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-cyan-200 flex items-center justify-center group-hover:bg-cyan-300 transition-colors">
+                  <TrendingUp className="w-4 h-4 text-cyan-600" />
+                </div>
+                <div className="text-sm font-medium text-cyan-600">Taux de conversion</div>
+              </div>
+              <div className="text-2xl font-bold text-cyan-700">{stats.conversionRate.toFixed(1)}%</div>
             </div>
           </div>
         </div>
