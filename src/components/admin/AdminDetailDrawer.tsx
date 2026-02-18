@@ -1482,7 +1482,10 @@ export function AdminDetailDrawer({
       {showImageEditor && (
         <ImageEditor
           imageUrl={editingArticleId && selectedArticle ? selectedArticle.photos[editingImageIndex] : item.photos[editingImageIndex]}
-          onSave={handleImageEdited}
+          allPhotos={editingArticleId && selectedArticle ? selectedArticle.photos : item.photos}
+          currentPhotoIndex={editingImageIndex}
+          onImageEdited={handleImageEdited}
+          onPhotoSelect={(index) => setEditingImageIndex(index)}
           onClose={() => {
             setShowImageEditor(false);
             setEditingArticleId(null);
