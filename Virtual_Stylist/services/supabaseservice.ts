@@ -193,6 +193,14 @@ export const saveAvatarToDb = async (avatar: AvatarProfile): Promise<AvatarProfi
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('User must be authenticated to save avatars');
 
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('default_seller_id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const familyMemberId = profile?.default_seller_id || null;
+
     let photoUrl = avatar.photoBase64;
 
     if (avatar.photoBase64 && avatar.photoBase64.startsWith('data:')) {
@@ -211,6 +219,7 @@ export const saveAvatarToDb = async (avatar: AvatarProfile): Promise<AvatarProfi
 
     const { data, error } = await supabase.from('avatars').insert([{
       user_id: userId,
+      family_member_id: familyMemberId,
       name: avatar.name,
       gender: avatar.gender,
       age_group: avatar.ageGroup,
@@ -251,11 +260,24 @@ export const fetchAvatarsFromDb = async (): Promise<AvatarProfile[]> => {
     const userId = await getCurrentUserId();
     if (!userId) return [];
 
-    const { data, error } = await supabase
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('default_seller_id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const familyMemberId = profile?.default_seller_id;
+
+    let query = supabase
       .from('avatars')
       .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId);
+
+    if (familyMemberId) {
+      query = query.or(`family_member_id.eq.${familyMemberId},family_member_id.is.null`);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
     if (error) return await idbGetAll<AvatarProfile>(STORE_AVATARS);
     return data.map((item: any) => ({
       id: item.id,
@@ -518,6 +540,14 @@ export const saveLocationToDb = async (loc: LocationProfile): Promise<LocationPr
     const userId = await getCurrentUserId();
     if (!userId) throw new Error('User must be authenticated to save locations');
 
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('default_seller_id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const familyMemberId = profile?.default_seller_id || null;
+
     let photoUrl = loc.photoBase64;
     if (loc.photoBase64 && loc.photoBase64.startsWith('data:')) {
       const shortName = loc.name.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '-');
@@ -527,6 +557,7 @@ export const saveLocationToDb = async (loc: LocationProfile): Promise<LocationPr
 
     const { data, error } = await supabase.from('locations').insert([{
       user_id: userId,
+      family_member_id: familyMemberId,
       name: loc.name,
       description: loc.description,
       photo_url: photoUrl,
@@ -549,11 +580,24 @@ export const fetchLocationsFromDb = async (): Promise<LocationProfile[]> => {
     const userId = await getCurrentUserId();
     if (!userId) return [];
 
-    const { data, error } = await supabase
+    const { data: profile } = await supabase
+      .from('user_profiles')
+      .select('default_seller_id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    const familyMemberId = profile?.default_seller_id;
+
+    let query = supabase
       .from('locations')
       .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .eq('user_id', userId);
+
+    if (familyMemberId) {
+      query = query.or(`family_member_id.eq.${familyMemberId},family_member_id.is.null`);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
     if (error) return await idbGetAll<LocationProfile>(STORE_LOCATIONS);
     return data.map((item: any) => ({
       id: item.id, name: item.name, description: item.description,
@@ -748,6 +792,14 @@ export const saveStylistPhoto = async (photo: StylistPhoto): Promise<StylistPhot
   const userId = await getCurrentUserId();
   if (!userId) throw new Error('User must be authenticated to save photos');
 
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('default_seller_id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const familyMemberId = profile?.default_seller_id || null;
+
   let photoUrl = photo.photoBase64;
   if (photo.photoBase64 && photo.photoBase64.startsWith('data:')) {
     const shortName = photo.name.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '-');
@@ -757,6 +809,7 @@ export const saveStylistPhoto = async (photo: StylistPhoto): Promise<StylistPhot
 
   const { data, error } = await supabase.from('stylist_photos').insert([{
     user_id: userId,
+    family_member_id: familyMemberId,
     name: photo.name,
     photo_url: photoUrl,
     avatar_id: photo.avatarId || null,
@@ -783,11 +836,24 @@ export const fetchStylistPhotos = async (): Promise<StylistPhoto[]> => {
   const userId = await getCurrentUserId();
   if (!userId) return [];
 
-  const { data, error } = await supabase
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('default_seller_id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const familyMemberId = profile?.default_seller_id;
+
+  let query = supabase
     .from('stylist_photos')
     .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .eq('user_id', userId);
+
+  if (familyMemberId) {
+    query = query.or(`family_member_id.eq.${familyMemberId},family_member_id.is.null`);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
 
   if (error) {
     console.error('Error fetching stylist photos:', error);
