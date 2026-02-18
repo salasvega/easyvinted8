@@ -22,6 +22,8 @@ import {
   AlertCircle,
   Download,
   Zap,
+  Euro,
+  Percent,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../contexts/AuthContext";
@@ -1069,7 +1071,7 @@ export function AnalyticsPage() {
             <div className="flex flex-col items-end gap-2">
               <DeltaPill current={metrics.totalNetProfit} previous={metricsPrev.totalNetProfit} isMoney />
               <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-emerald-600 text-white shadow">
-                <CircleDollarSign className="w-6 h-6" />
+                <Euro className="w-6 h-6" />
               </div>
             </div>
           </div>
@@ -1102,7 +1104,7 @@ export function AnalyticsPage() {
               </p>
             </div>
             <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-emerald-600 text-white shadow">
-              <CheckCircle2 className="w-6 h-6" />
+              <Percent className="w-6 h-6" />
             </div>
           </div>
         </div>
