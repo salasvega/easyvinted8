@@ -728,108 +728,108 @@ export function MonDressingPage() {
           <h1 className="text-2xl font-bold text-gray-900">Mon dressing</h1>
           <p className="text-sm text-gray-600 mt-1">Gérez tous vos articles et lots en un seul endroit</p>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3 mt-4">
             <div
               onClick={() => handleStatClick('all')}
-              className={`bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-sm px-4 py-4 border ${statusFilter === 'all' ? 'border-gray-400 ring-2 ring-gray-300' : 'border-gray-200'} hover:shadow-md transition-all cursor-pointer group`}
+              className={`bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-sm px-3 py-3 border ${statusFilter === 'all' ? 'border-gray-400 ring-2 ring-gray-300' : 'border-gray-200'} hover:shadow-md transition-all cursor-pointer group`}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
-                  <Package className="w-4 h-4 text-gray-600" />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors flex-shrink-0">
+                  <Package className="w-3.5 h-3.5 text-gray-600" />
                 </div>
-                <div className="text-sm font-medium text-gray-600">Total</div>
+                <div className="text-xs font-medium text-gray-600 truncate">Total</div>
               </div>
-              <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
+              <div className="text-xl font-bold text-gray-900 truncate">{stats.total}</div>
             </div>
 
             <div
               onClick={() => handleStatClick('draft')}
-              className={`bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-sm px-4 py-4 border ${statusFilter === 'draft' ? 'border-slate-400 ring-2 ring-slate-300' : 'border-slate-200'} hover:shadow-md transition-all cursor-pointer group`}
+              className={`bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-sm px-3 py-3 border ${statusFilter === 'draft' ? 'border-slate-400 ring-2 ring-slate-300' : 'border-slate-200'} hover:shadow-md transition-all cursor-pointer group`}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-slate-200 flex items-center justify-center group-hover:bg-slate-300 transition-colors">
-                  <SquarePen className="w-4 h-4 text-slate-600" />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-slate-200 flex items-center justify-center group-hover:bg-slate-300 transition-colors flex-shrink-0">
+                  <SquarePen className="w-3.5 h-3.5 text-slate-600" />
                 </div>
-                <div className="text-sm font-medium text-slate-600">Brouillons</div>
+                <div className="text-xs font-medium text-slate-600 truncate">Brouillons</div>
               </div>
-              <div className="text-2xl font-bold text-slate-700">{stats.drafts}</div>
+              <div className="text-xl font-bold text-slate-700 truncate">{stats.drafts}</div>
             </div>
 
             <div
               onClick={() => handleStatClick('ready')}
-              className={`bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm px-4 py-4 border ${statusFilter === 'ready' ? 'border-blue-400 ring-2 ring-blue-300' : 'border-blue-200'} hover:shadow-md transition-all cursor-pointer group`}
+              className={`bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm px-3 py-3 border ${statusFilter === 'ready' ? 'border-blue-400 ring-2 ring-blue-300' : 'border-blue-200'} hover:shadow-md transition-all cursor-pointer group`}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-200 flex items-center justify-center group-hover:bg-blue-300 transition-colors">
-                  <Sparkles className="w-4 h-4 text-blue-600" />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-blue-200 flex items-center justify-center group-hover:bg-blue-300 transition-colors flex-shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
                 </div>
-                <div className="text-sm font-medium text-blue-600">Prêt</div>
+                <div className="text-xs font-medium text-blue-600 truncate">Prêt</div>
               </div>
-              <div className="text-2xl font-bold text-blue-700">{stats.ready}</div>
+              <div className="text-xl font-bold text-blue-700 truncate">{stats.ready}</div>
             </div>
 
             <div
               onClick={() => handleStatClick('scheduled')}
-              className={`bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-sm px-4 py-4 border ${statusFilter === 'scheduled' ? 'border-orange-400 ring-2 ring-orange-300' : 'border-orange-200'} hover:shadow-md transition-all cursor-pointer group`}
+              className={`bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-sm px-3 py-3 border ${statusFilter === 'scheduled' ? 'border-orange-400 ring-2 ring-orange-300' : 'border-orange-200'} hover:shadow-md transition-all cursor-pointer group`}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-orange-200 flex items-center justify-center group-hover:bg-orange-300 transition-colors">
-                  <Calendar className="w-4 h-4 text-orange-600" />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-orange-200 flex items-center justify-center group-hover:bg-orange-300 transition-colors flex-shrink-0">
+                  <Calendar className="w-3.5 h-3.5 text-orange-600" />
                 </div>
-                <div className="text-sm font-medium text-orange-600">Planifié</div>
+                <div className="text-xs font-medium text-orange-600 truncate">Planifié</div>
               </div>
-              <div className="text-2xl font-bold text-orange-700">{stats.scheduled}</div>
+              <div className="text-xl font-bold text-orange-700 truncate">{stats.scheduled}</div>
             </div>
 
             <div
               onClick={() => handleStatClick('published')}
-              className={`bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl shadow-sm px-4 py-4 border ${statusFilter === 'published' ? 'border-violet-400 ring-2 ring-violet-300' : 'border-violet-200'} hover:shadow-md transition-all cursor-pointer group`}
+              className={`bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl shadow-sm px-3 py-3 border ${statusFilter === 'published' ? 'border-violet-400 ring-2 ring-violet-300' : 'border-violet-200'} hover:shadow-md transition-all cursor-pointer group`}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-violet-200 flex items-center justify-center group-hover:bg-violet-300 transition-colors">
-                  <Upload className="w-4 h-4 text-violet-600" />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-violet-200 flex items-center justify-center group-hover:bg-violet-300 transition-colors flex-shrink-0">
+                  <Upload className="w-3.5 h-3.5 text-violet-600" />
                 </div>
-                <div className="text-sm font-medium text-violet-600">Publié</div>
+                <div className="text-xs font-medium text-violet-600 truncate">Publié</div>
               </div>
-              <div className="text-2xl font-bold text-violet-700">{stats.published}</div>
+              <div className="text-xl font-bold text-violet-700 truncate">{stats.published}</div>
             </div>
 
             <div
               onClick={() => handleStatClick('sold')}
-              className={`bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl shadow-sm px-4 py-4 border ${statusFilter === 'sold' ? 'border-teal-400 ring-2 ring-teal-300' : 'border-teal-200'} hover:shadow-md transition-all cursor-pointer group`}
+              className={`bg-gradient-to-br from-teal-50 to-teal-100 rounded-xl shadow-sm px-3 py-3 border ${statusFilter === 'sold' ? 'border-teal-400 ring-2 ring-teal-300' : 'border-teal-200'} hover:shadow-md transition-all cursor-pointer group`}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-teal-200 flex items-center justify-center group-hover:bg-teal-300 transition-colors">
-                  <ShoppingBag className="w-4 h-4 text-teal-600" />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-teal-200 flex items-center justify-center group-hover:bg-teal-300 transition-colors flex-shrink-0">
+                  <ShoppingBag className="w-3.5 h-3.5 text-teal-600" />
                 </div>
-                <div className="text-sm font-medium text-teal-600">Vendus</div>
+                <div className="text-xs font-medium text-teal-600 truncate">Vendus</div>
               </div>
-              <div className="text-2xl font-bold text-teal-700">{stats.sold}</div>
+              <div className="text-xl font-bold text-teal-700 truncate">{stats.sold}</div>
+            </div>
+
+            <div
+              className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl shadow-sm px-3 py-3 border border-cyan-200 hover:shadow-md transition-all cursor-default group"
+            >
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-cyan-200 flex items-center justify-center group-hover:bg-cyan-300 transition-colors flex-shrink-0">
+                  <TrendingUp className="w-3.5 h-3.5 text-cyan-600" />
+                </div>
+                <div className="text-xs font-medium text-cyan-600 truncate">Conversion</div>
+              </div>
+              <div className="text-xl font-bold text-cyan-700 truncate">{stats.conversionRate.toFixed(1)}%</div>
             </div>
 
             <div
               onClick={() => handleStatClick('sold')}
-              className={`bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl shadow-sm px-4 py-4 border ${statusFilter === 'sold' ? 'border-emerald-400 ring-2 ring-emerald-300' : 'border-emerald-200'} hover:shadow-md transition-all cursor-pointer group`}
+              className={`bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl shadow-sm px-3 py-3 border ${statusFilter === 'sold' ? 'border-emerald-400 ring-2 ring-emerald-300' : 'border-emerald-200'} hover:shadow-md transition-all cursor-pointer group`}
             >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-emerald-200 flex items-center justify-center group-hover:bg-emerald-300 transition-colors">
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-200 flex items-center justify-center group-hover:bg-emerald-300 transition-colors flex-shrink-0">
+                  <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
                 </div>
-                <div className="text-sm font-medium text-emerald-600">Bénéfices</div>
+                <div className="text-xs font-medium text-emerald-600 truncate">Bénéfices</div>
               </div>
-              <div className="text-2xl font-bold text-emerald-700">{stats.netProfit.toFixed(2)}€</div>
-            </div>
-
-            <div
-              className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl shadow-sm px-4 py-4 border border-cyan-200 hover:shadow-md transition-all cursor-default group"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-8 rounded-lg bg-cyan-200 flex items-center justify-center group-hover:bg-cyan-300 transition-colors">
-                  <TrendingUp className="w-4 h-4 text-cyan-600" />
-                </div>
-                <div className="text-sm font-medium text-cyan-600">Conversion</div>
-              </div>
-              <div className="text-2xl font-bold text-cyan-700">{stats.conversionRate.toFixed(1)}%</div>
+              <div className="text-xl font-bold text-emerald-700 truncate">{stats.netProfit.toFixed(2)}€</div>
             </div>
           </div>
         </div>
