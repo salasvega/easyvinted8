@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import {
   Eye, ClipboardEdit, MoreVertical, Copy, Trash2, DollarSign, Calendar, Clock,
   CheckCircle2, FileText, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, Upload,
-  Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen, TrendingUp
+  Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen, TrendingUp,
+  CheckSquare, Euro
 } from 'lucide-react';
 import { Article, ArticleStatus, Season } from '../types/article';
 import { supabase } from '../lib/supabase';
@@ -762,7 +763,7 @@ export function MonDressingPage() {
             >
               <div className="flex items-center gap-1.5 mb-1.5">
                 <div className="w-7 h-7 rounded-lg bg-blue-200 flex items-center justify-center group-hover:bg-blue-300 transition-colors flex-shrink-0">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                  <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
                 </div>
                 <div className="text-xs font-medium text-blue-600 truncate">Prêt</div>
               </div>
@@ -826,7 +827,7 @@ export function MonDressingPage() {
             >
               <div className="flex items-center gap-1.5 mb-1.5">
                 <div className="w-7 h-7 rounded-lg bg-emerald-200 flex items-center justify-center group-hover:bg-emerald-300 transition-colors flex-shrink-0">
-                  <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
+                  <Euro className="w-3.5 h-3.5 text-emerald-600" />
                 </div>
                 <div className="text-xs font-medium text-emerald-600 truncate">Bénéfices</div>
               </div>
