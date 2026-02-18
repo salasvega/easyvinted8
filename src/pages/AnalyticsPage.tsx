@@ -1117,7 +1117,7 @@ export function AnalyticsPage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                <h3 className="text-lg font-bold text-gray-900">Workflow</h3>
+                <h3 className="text-lg font-bold text-gray-900">Flux de vente</h3>
               </div>
               <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">Vue complète du parcours de vos articles et lots.</p>
             </div>
