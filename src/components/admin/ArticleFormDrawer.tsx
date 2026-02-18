@@ -1177,7 +1177,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                           <button
                             type="button"
                             onClick={() => setEnlargedImage(formData.photos[selectedPhotoIndex].url)}
-                            className="absolute top-4 right-4 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
+                            className="absolute bottom-4 left-4 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
                             title="Agrandir l'image"
                           >
                             <Maximize2 className="w-5 h-5" />

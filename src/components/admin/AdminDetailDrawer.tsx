@@ -518,7 +518,7 @@ export function AdminDetailDrawer({
                   />
                   <button
                     onClick={() => setEnlargedImage(item.photos[currentPhotoIndex])}
-                    className="absolute top-3 right-3 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
+                    className="absolute bottom-3 left-3 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
                     title="Agrandir l'image"
                   >
                     <Maximize2 className="w-5 h-5" />
@@ -1120,7 +1120,7 @@ export function AdminDetailDrawer({
                       />
                       <button
                         onClick={() => setEnlargedImage(selectedArticle.photos[articlePhotoIndex])}
-                        className="absolute top-3 right-3 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
+                        className="absolute bottom-3 left-3 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
                         title="Agrandir l'image"
                       >
                         <Maximize2 className="w-5 h-5" />
