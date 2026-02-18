@@ -716,7 +716,7 @@ export function MonDressingPage() {
         onClose={() => setModalState({ ...modalState, isOpen: false })}
       />
 
-      <div className="max-w-7xl mx-auto px-6 pt-3 pb-20">
+      <div className="max-w-7xl mx-auto px-6 pt-3 pb-16">
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900">Mon dressing</h1>
           <p className="text-sm text-gray-600 mt-1">Gérez tous vos articles et lots en un seul endroit</p>
@@ -1410,27 +1410,25 @@ export function MonDressingPage() {
       />
 
       {/* Footer fixe avec boutons d'action */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none">
-        <div className="max-w-7xl mx-auto px-6 pb-3">
-          <div className="pointer-events-auto backdrop-blur-xl bg-white/80 border border-white/60 rounded-xl shadow-lg shadow-gray-200/50 h-16">
-            <div className="flex items-center justify-center h-full gap-3 px-4">
-              <button
-                onClick={() => setArticleFormDrawer({ isOpen: true, articleId: undefined })}
-                className="flex-1 sm:flex-initial sm:w-52 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all hover:shadow-lg hover:shadow-blue-600/30 hover:scale-[1.02] active:scale-[0.98] font-semibold text-sm group"
-              >
-                <ShoppingBag className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Nouvel article</span>
-                <span className="sm:hidden">Article</span>
-              </button>
-              <button
-                onClick={() => setLotBuilderDrawer({ isOpen: true, lotId: undefined, preselectedArticleIds: undefined, kellyInsightId: undefined })}
-                className="flex-1 sm:flex-initial sm:w-52 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 via-purple-600 to-pink-600 hover:from-purple-700 hover:via-purple-700 hover:to-pink-700 text-white rounded-lg transition-all hover:shadow-lg hover:shadow-purple-600/30 hover:scale-[1.02] active:scale-[0.98] font-semibold text-sm group"
-              >
-                <Package className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">Nouveau lot</span>
-                <span className="sm:hidden">Lot</span>
-              </button>
-            </div>
+      <div className="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl bg-white/80 border-t border-white/60 shadow-lg shadow-gray-200/50 h-16">
+        <div className="max-w-7xl mx-auto h-full px-6">
+          <div className="flex items-center justify-center h-full gap-3">
+            <button
+              onClick={() => setArticleFormDrawer({ isOpen: true, articleId: undefined })}
+              className="flex-1 sm:flex-initial sm:w-52 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-lg transition-all hover:shadow-lg hover:shadow-blue-600/30 hover:scale-[1.02] active:scale-[0.98] font-semibold text-sm group"
+            >
+              <ShoppingBag className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Nouvel article</span>
+              <span className="sm:hidden">Article</span>
+            </button>
+            <button
+              onClick={() => setLotBuilderDrawer({ isOpen: true, lotId: undefined, preselectedArticleIds: undefined, kellyInsightId: undefined })}
+              className="flex-1 sm:flex-initial sm:w-52 flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 via-purple-600 to-pink-600 hover:from-purple-700 hover:via-purple-700 hover:to-pink-700 text-white rounded-lg transition-all hover:shadow-lg hover:shadow-purple-600/30 hover:scale-[1.02] active:scale-[0.98] font-semibold text-sm group"
+            >
+              <Package className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Nouveau lot</span>
+              <span className="sm:hidden">Lot</span>
+            </button>
           </div>
         </div>
       </div>
