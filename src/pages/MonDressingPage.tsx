@@ -449,15 +449,16 @@ export function MonDressingPage() {
     const scheduledLots = lots.filter(l => l.status === 'scheduled').length;
     const publishedArticles = articles.filter(a => a.status === 'published').length;
     const publishedLots = lots.filter(l => l.status === 'published').length;
-    const soldArticles = articles.filter(a => a.status === 'sold' || a.status === 'vendu_en_lot').length;
-    const soldLots = lots.filter(l => l.status === 'sold').length;
+
+    const soldArticles = articles.filter(a => a.status === 'sold' && a.sold_at).length;
+    const soldLots = lots.filter(l => l.status === 'sold' && l.sold_at).length;
 
     const totalNetProfit = filteredBySellerAndType
       .filter(i => (i.status === 'sold' || i.status === 'vendu_en_lot') && i.net_profit != null)
       .reduce((sum, item) => sum + (item.net_profit || 0), 0);
 
-    const totalPublished = publishedArticles + publishedLots;
     const totalSold = soldArticles + soldLots;
+    const totalPublished = publishedArticles + publishedLots;
     const conversionRate = totalPublished > 0 ? (totalSold / totalPublished) * 100 : 0;
 
     return {
@@ -468,7 +469,7 @@ export function MonDressingPage() {
       ready: readyArticles + readyLots,
       scheduled: scheduledArticles + scheduledLots,
       published: publishedArticles + publishedLots,
-      sold: soldArticles + soldLots,
+      sold: totalSold,
       soldArticles: soldArticles,
       soldLots: soldLots,
       netProfit: totalNetProfit,
