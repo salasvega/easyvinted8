@@ -35,12 +35,12 @@ export const CollapsibleFilterSection: React.FC<CollapsibleFilterSectionProps> =
     secondary: {
       bg: 'bg-gradient-to-br from-amber-50 via-white to-amber-50',
       border: 'border-amber-200',
-      headerBg: 'bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600',
-      headerHover: 'hover:from-amber-500 hover:via-amber-400 hover:to-amber-500',
-      textColor: 'text-white',
-      iconColor: 'text-amber-100',
-      accentColor: 'bg-amber-400',
-      glowColor: 'shadow-amber-500/20'
+      headerBg: 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400',
+      headerHover: 'hover:from-amber-300 hover:via-amber-200 hover:to-amber-300',
+      textColor: 'text-gray-900',
+      iconColor: 'text-gray-700',
+      accentColor: 'bg-amber-500',
+      glowColor: 'shadow-amber-400/20'
     },
     accent: {
       bg: 'bg-gradient-to-br from-emerald-50 via-white to-emerald-50',
