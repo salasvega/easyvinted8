@@ -1070,9 +1070,6 @@ export function AnalyticsPage() {
             </div>
             <div className="flex flex-col items-end gap-2">
               <DeltaPill current={metrics.totalNetProfit} previous={metricsPrev.totalNetProfit} isMoney />
-              <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-emerald-600 text-white shadow">
-                <Euro className="w-6 h-6" />
-              </div>
             </div>
           </div>
         </div>
