@@ -1100,7 +1100,7 @@ export function AnalyticsPage() {
               <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Tx de Conversion</p>
               <p className="text-2xl font-black text-gray-900 mt-2">{metrics.conversionRate.toFixed(1)}%</p>
               <p className="text-xs text-gray-500 mt-1">
-                {metrics.soldTransactions} vendus sur période / {metrics.publishedLike} 
+                {metrics.soldTransactions} vendus / {metrics.publishedLike} 
               </p>
             </div>
             <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-emerald-600 text-white shadow">
