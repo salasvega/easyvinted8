@@ -51,7 +51,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [closingMenu, setClosingMenu] = useState(false);
   const [closingSellerMenu, setClosingSellerMenu] = useState(false);
 
-  const [pagesExpanded, setPagesExpanded] = useState(false);
+  const [pagesExpanded, setPagesExpanded] = useState(true);
   const [actionsExpanded, setActionsExpanded] = useState(false);
   const [configExpanded, setConfigExpanded] = useState(false);
 
@@ -309,6 +309,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                     if (mobileMenuOpen) {
                       if (!closingMenu) closeMenuWithAnimation("main");
                     } else {
+                      setPagesExpanded(true);
+                      setActionsExpanded(false);
+                      setConfigExpanded(false);
                       setMobileMenuOpen(true);
                     }
                   }}
