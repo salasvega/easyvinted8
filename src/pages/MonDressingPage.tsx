@@ -827,7 +827,7 @@ export function MonDressingPage() {
                 <div className="w-8 h-8 rounded-lg bg-cyan-200 flex items-center justify-center group-hover:bg-cyan-300 transition-colors">
                   <TrendingUp className="w-4 h-4 text-cyan-600" />
                 </div>
-                <div className="text-sm font-medium text-cyan-600">Taux de conversion</div>
+                <div className="text-sm font-medium text-cyan-600">Tx conversion</div>
               </div>
               <div className="text-2xl font-bold text-cyan-700">{stats.conversionRate.toFixed(1)}%</div>
             </div>
