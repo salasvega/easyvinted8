@@ -879,6 +879,38 @@ export function ImageEditor({
                 ))}
               </div>
             )}
+
+            {/* Boutons d'action - Positionnés juste après la visualisation */}
+            {hasEdited && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm">
+                <p className="text-xs font-medium text-emerald-800 mb-2">
+                  Image editee avec succes ! Que souhaitez-vous faire ?
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <button
+                    type="button"
+                    onClick={handleAddAsNew}
+                    disabled={processing || !onAddAsNewPhoto}
+                    className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    title={!onAddAsNewPhoto ? 'Non disponible' : "Ajouter l'image editee comme nouvelle photo"}
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span className="hidden sm:inline">Ajouter comme nouvelle</span>
+                    <span className="sm:hidden">Ajouter</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleReplace}
+                    disabled={processing}
+                    className="flex-1 px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  >
+                    <Replace className="w-4 h-4" />
+                    <span className="hidden sm:inline">Remplacer l'originale</span>
+                    <span className="sm:hidden">Remplacer</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
             {/* Colonne droite - Content */}
@@ -1239,37 +1271,6 @@ export function ImageEditor({
                 </button>
               </div>
             </div>
-
-            {hasEdited && (
-              <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                <p className="text-xs font-medium text-emerald-800 mb-2">
-                  Image editee avec succes ! Que souhaitez-vous faire ?
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <button
-                    type="button"
-                    onClick={handleAddAsNew}
-                    disabled={processing || !onAddAsNewPhoto}
-                    className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                    title={!onAddAsNewPhoto ? 'Non disponible' : "Ajouter l'image editee comme nouvelle photo"}
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Ajouter comme nouvelle</span>
-                    <span className="sm:hidden">Ajouter</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleReplace}
-                    disabled={processing}
-                    className="flex-1 px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                  >
-                    <Replace className="w-4 h-4" />
-                    <span className="hidden sm:inline">Remplacer l'originale</span>
-                    <span className="sm:hidden">Remplacer</span>
-                  </button>
-                </div>
-              </div>
-            )}
             </div>
           </div>
         </div>
