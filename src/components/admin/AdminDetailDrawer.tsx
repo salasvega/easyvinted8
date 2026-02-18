@@ -304,7 +304,6 @@ export function AdminDetailDrawer({
     );
   };
 
-
   const getStatusMessage = () => {
     switch (item.status) {
       case 'draft':
