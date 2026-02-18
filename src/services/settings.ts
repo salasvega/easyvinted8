@@ -312,22 +312,48 @@ export async function getDefaultAvatarAndLocationDetails(userId: string): Promis
 }
 
 export async function getUserLocations(userId: string): Promise<LocationData[]> {
-  const { data, error } = await supabase
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('default_seller_id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const familyMemberId = profile?.default_seller_id;
+
+  let query = supabase
     .from('locations')
     .select('id, name, description, photo_base64, photo_url, generation_prompt, reference_photo_url')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .eq('user_id', userId);
+
+  if (familyMemberId) {
+    query = query.or(`family_member_id.eq.${familyMemberId},family_member_id.is.null`);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
 
   if (error) throw error;
   return data || [];
 }
 
 export async function getUserAvatars(userId: string): Promise<AvatarData[]> {
-  const { data, error } = await supabase
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('default_seller_id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  const familyMemberId = profile?.default_seller_id;
+
+  let query = supabase
     .from('avatars')
     .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .eq('user_id', userId);
+
+  if (familyMemberId) {
+    query = query.or(`family_member_id.eq.${familyMemberId},family_member_id.is.null`);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
 
   if (error) throw error;
   return data || [];
