@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Trash2, Upload, X, Pencil, Star, Info, Sparkles, Copy, Check, Camera, Eye, Maximize2, Minimize2, Save } from 'lucide-react';
+import { Trash2, Upload, X, Pencil, Star, Info, Sparkles, Copy, Check, Camera, Eye, Maximize2, Minimize2, Save, Filter, Palette } from 'lucide-react';
 import {
   Gender, AgeGroup, Origin, SkinTone, AvatarProfile, LocationProfile, AppState, Build, RenderStyle, HairColor, EyeColor, HairCut, HairTexture, Preset, StylistPhoto
 } from './types';
@@ -18,6 +18,7 @@ import { NewVersionModal } from './components/NewVersionModal';
 import StudioLoader from './components/StudioLoader';
 import CardSkeletonLoader from './components/CardSkeletonLoader';
 import AvatarEditModal from './components/AvatarEditModal';
+import { CollapsibleFilterSection } from './components/CollapsibleFilterSection';
 import './styles.css';
 
 const GalleryLoader: React.FC = () => (
@@ -2277,8 +2278,14 @@ const App: React.FC = () => {
               ) : (
                 <>
                 {/* Filtres */}
-                <div className="mb-8 sm:mb-12">
-                  <div className="max-w-7xl mx-auto px-4">
+                <div className="mb-8 sm:mb-12 max-w-7xl mx-auto px-4">
+                  <CollapsibleFilterSection
+                    title="Filtres de recherche"
+                    subtitle={`${getFilteredLocations().length} fond${getFilteredLocations().length > 1 ? 's' : ''} trouvé${getFilteredLocations().length > 1 ? 's' : ''}`}
+                    icon={<Palette className="w-5 h-5" />}
+                    defaultOpen={false}
+                    variant="secondary"
+                  >
                     {/* Filtre Environnement */}
                     <div className="mb-6">
                       <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Type d'environnement</h4>
@@ -2450,21 +2457,18 @@ const App: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Compteur de résultats */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                        {getFilteredLocations().length} fond{getFilteredLocations().length > 1 ? 's' : ''} trouvé{getFilteredLocations().length > 1 ? 's' : ''}
-                      </p>
-                      {(locationFilters.environment !== 'all' || locationFilters.style !== 'all' || locationFilters.tone !== 'all') && (
+                    {/* Bouton de réinitialisation */}
+                    {(locationFilters.environment !== 'all' || locationFilters.style !== 'all' || locationFilters.tone !== 'all') && (
+                      <div className="pt-4 border-t border-gray-100">
                         <button
                           onClick={() => setLocationFilters({ environment: 'all', style: 'all', tone: 'all' })}
-                          className="px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-black hover:bg-gray-100 rounded-lg transition-all"
+                          className="w-full px-4 py-3 text-sm font-bold uppercase tracking-wider text-white bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-xl transition-all shadow-md hover:shadow-lg"
                         >
-                          Réinitialiser
+                          Réinitialiser tous les filtres
                         </button>
-                      )}
-                    </div>
-                  </div>
+                      </div>
+                    )}
+                  </CollapsibleFilterSection>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 sm:gap-10 lg:gap-12">
@@ -2976,8 +2980,14 @@ const App: React.FC = () => {
             ) : (
               <>
                 {/* Filtres */}
-                <div className="mb-8 sm:mb-12">
-                  <div className="max-w-7xl mx-auto px-4">
+                <div className="mb-8 sm:mb-12 max-w-7xl mx-auto px-4">
+                  <CollapsibleFilterSection
+                    title="Filtres de recherche"
+                    subtitle={`${getFilteredAvatars().length} modèle${getFilteredAvatars().length > 1 ? 's' : ''} trouvé${getFilteredAvatars().length > 1 ? 's' : ''}`}
+                    icon={<Filter className="w-5 h-5" />}
+                    defaultOpen={false}
+                    variant="primary"
+                  >
                     {/* Filtre Genre */}
                     <div className="mb-6">
                       <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Genre</h4>
@@ -3149,21 +3159,18 @@ const App: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Compteur de résultats */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <p className="text-[10px] sm:text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-                        {getFilteredAvatars().length} modèle{getFilteredAvatars().length > 1 ? 's' : ''} trouvé{getFilteredAvatars().length > 1 ? 's' : ''}
-                      </p>
-                      {(avatarFilters.gender !== 'all' || avatarFilters.hairColor !== 'all' || avatarFilters.ageGroup !== 'all') && (
+                    {/* Bouton de réinitialisation */}
+                    {(avatarFilters.gender !== 'all' || avatarFilters.hairColor !== 'all' || avatarFilters.ageGroup !== 'all') && (
+                      <div className="pt-4 border-t border-gray-100">
                         <button
                           onClick={() => setAvatarFilters({ gender: 'all', hairColor: 'all', ageGroup: 'all' })}
-                          className="px-3 py-1.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-gray-500 hover:text-black hover:bg-gray-100 rounded-lg transition-all"
+                          className="w-full px-4 py-3 text-sm font-bold uppercase tracking-wider text-white bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 rounded-xl transition-all shadow-md hover:shadow-lg"
                         >
-                          Réinitialiser
+                          Réinitialiser tous les filtres
                         </button>
-                      )}
-                    </div>
-                  </div>
+                      </div>
+                    )}
+                  </CollapsibleFilterSection>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 sm:gap-10 lg:gap-12">
