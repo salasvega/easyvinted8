@@ -114,6 +114,7 @@ interface Metrics {
   // pipeline counts
   draft: number;
   ready: number;
+  scheduled: number;
   processing: number;
   vinted_draft: number;
   publishedLike: number; // published+scheduled+sold+vendu_en_lot (all items)
@@ -502,6 +503,7 @@ export function AnalyticsPage() {
     // Count items in scope (all items when timeRange='all', or created in period otherwise)
     const draft = scope.filter((x) => s(x) === "draft").length;
     const ready = scope.filter((x) => s(x) === "ready").length;
+    const scheduled = scope.filter((x) => s(x) === "scheduled").length;
     const processing = scope.filter((x) => s(x) === "processing").length;
     const vinted_draft = scope.filter((x) => s(x) === "vinted_draft").length;
     const publishedLike = scope.filter((x) => ["published", "scheduled", "sold", "vendu_en_lot"].includes(s(x))).length;
@@ -520,6 +522,7 @@ export function AnalyticsPage() {
 
       draft,
       ready,
+      scheduled,
       processing,
       vinted_draft,
       publishedLike,
@@ -1126,7 +1129,7 @@ export function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
+        <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
           <button
             onClick={() => setStatusFilters(["draft"])}
             className="rounded-2xl bg-slate-50 ring-1 ring-slate-200 p-3 sm:p-4 text-left hover:bg-slate-100 transition overflow-hidden"
@@ -1143,6 +1146,15 @@ export function AnalyticsPage() {
             <p className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider truncate">Prêts</p>
             <p className="text-lg sm:text-xl font-black text-blue-900 mt-1 truncate">{nfNumber.format(metrics.ready)}</p>
             <p className="text-[11px] text-blue-700/80 mt-1 truncate">{timeRange === 'all' ? 'à publier' : 'créés période'}</p>
+          </button>
+
+          <button
+            onClick={() => setStatusFilters(["scheduled"])}
+            className="rounded-2xl bg-orange-50 ring-1 ring-orange-200 p-3 sm:p-4 text-left hover:bg-orange-100 transition overflow-hidden"
+          >
+            <p className="text-[10px] font-semibold text-orange-700 uppercase tracking-wider truncate">Planifiés</p>
+            <p className="text-lg sm:text-xl font-black text-orange-900 mt-1 truncate">{nfNumber.format(metrics.scheduled)}</p>
+            <p className="text-[11px] text-orange-700/80 mt-1 truncate">{timeRange === 'all' ? 'en attente' : 'créés période'}</p>
           </button>
 
           <button
