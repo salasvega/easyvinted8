@@ -1427,11 +1427,6 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                           placeholder="Titre de l'article *"
                         />
                       </h3>
-                      {formData.reference_number && (
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-xs text-slate-400 font-mono">Ref. #{formData.reference_number}</span>
-                        </div>
-                      )}
                     </div>
 
                     {/* Description */}

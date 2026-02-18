@@ -575,11 +575,6 @@ export function AdminDetailDrawer({
                   {item.brand || 'Sans marque'}
                   {item.size && ` • ${item.size}`}
                 </p>
-                {item.reference_number && (
-                  <div className="flex items-center gap-2 mt-2">
-                    <span className="text-xs text-slate-400 font-mono">Ref. #{item.reference_number}</span>
-                  </div>
-                )}
               </div>
 
               {item.description && (
@@ -1186,11 +1181,6 @@ export function AdminDetailDrawer({
                       {selectedArticle.brand || 'Sans marque'}
                       {selectedArticle.size && ` • ${selectedArticle.size}`}
                     </p>
-                    {selectedArticle.reference_number && (
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-slate-400 font-mono">Ref. #{selectedArticle.reference_number}</span>
-                      </div>
-                    )}
                   </div>
 
                   {selectedArticle.description && (
