@@ -625,7 +625,7 @@ export function ImageEditor({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-[80]">
-      <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full h-[95vh] sm:h-[90vh] shadow-2xl relative flex flex-col">
+      <div className="bg-white rounded-xl sm:rounded-2xl max-w-4xl w-full h-[95vh] sm:h-[90vh] shadow-2xl relative flex flex-col overflow-hidden">
         <div className="flex-shrink-0 bg-white border-b border-slate-200 px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between rounded-t-xl sm:rounded-t-2xl z-[100]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center flex-shrink-0">
@@ -706,7 +706,7 @@ export function ImageEditor({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" style={{ paddingBottom: hasEdited ? '0' : '0' }}>
           <div className="p-3 sm:p-6 flex flex-col lg:flex-row gap-4 sm:gap-6">
             {/* Colonne gauche - Preview optimisée */}
             <div className="flex-shrink-0 w-full lg:w-80 xl:w-96 space-y-3">
@@ -877,38 +877,6 @@ export function ImageEditor({
                     <img src={photo} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
                   </button>
                 ))}
-              </div>
-            )}
-
-            {/* Boutons d'action - Positionnés juste après la visualisation */}
-            {hasEdited && (
-              <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm">
-                <p className="text-xs font-medium text-emerald-800 mb-2">
-                  Image editee avec succes ! Que souhaitez-vous faire ?
-                </p>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <button
-                    type="button"
-                    onClick={handleAddAsNew}
-                    disabled={processing || !onAddAsNewPhoto}
-                    className="flex-1 px-3 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                    title={!onAddAsNewPhoto ? 'Non disponible' : "Ajouter l'image editee comme nouvelle photo"}
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span className="hidden sm:inline">Ajouter comme nouvelle</span>
-                    <span className="sm:hidden">Ajouter</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleReplace}
-                    disabled={processing}
-                    className="flex-1 px-3 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
-                  >
-                    <Replace className="w-4 h-4" />
-                    <span className="hidden sm:inline">Remplacer l'originale</span>
-                    <span className="sm:hidden">Remplacer</span>
-                  </button>
-                </div>
               </div>
             )}
           </div>
@@ -1274,6 +1242,40 @@ export function ImageEditor({
             </div>
           </div>
         </div>
+
+        {/* Footer avec boutons d'action - Toujours visible */}
+        {hasEdited && (
+          <div className="flex-shrink-0 bg-gradient-to-r from-emerald-50 via-emerald-100 to-teal-50 border-t-2 border-emerald-200 px-3 sm:px-6 py-3 sm:py-4 rounded-b-xl sm:rounded-b-2xl shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-2 text-emerald-800 text-xs sm:text-sm font-semibold">
+                <Check className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+                <span className="hidden sm:inline">Image editee avec succes !</span>
+                <span className="sm:hidden">Editee !</span>
+              </div>
+              <div className="flex-1 flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleAddAsNew}
+                  disabled={processing || !onAddAsNewPhoto}
+                  className="flex-1 px-4 py-2.5 sm:py-3 bg-emerald-600 text-white rounded-lg sm:rounded-xl hover:bg-emerald-700 hover:shadow-lg transition-all font-semibold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  title={!onAddAsNewPhoto ? 'Non disponible' : "Ajouter l'image editee comme nouvelle photo"}
+                >
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Ajouter comme nouvelle</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleReplace}
+                  disabled={processing}
+                  className="flex-1 px-4 py-2.5 sm:py-3 bg-amber-600 text-white rounded-lg sm:rounded-xl hover:bg-amber-700 hover:shadow-lg transition-all font-semibold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  <Replace className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Remplacer l'originale</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Enlarged Image Modal */}
