@@ -1,10 +1,9 @@
-import { X, Package, ClipboardEdit, Upload, Calendar, DollarSign, Trash2, FileText, CheckCircle2, Clock, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, ExternalLink, ChevronLeft, ChevronRight, Tag, Layers, TrendingDown, ArrowLeft, Hash, Search, TrendingUp, Zap, ChevronDown, Loader, AlertCircle, Maximize2, Minimize2, Wand2 } from 'lucide-react';
+import { X, Package, ClipboardEdit, Upload, Calendar, DollarSign, Trash2, FileText, CheckCircle2, Clock, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, ExternalLink, ChevronLeft, ChevronRight, Tag, Layers, TrendingDown, ArrowLeft, Hash, Search, TrendingUp, Zap, ChevronDown, Loader, AlertCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { ArticleStatus, Season } from '../../types/article';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import VirtualAgent from '../VirtualAgent';
 import { Toast } from '../ui/Toast';
-import { ImageEditor } from '../ImageEditor';
 
 interface LotArticle {
   id: string;
@@ -185,9 +184,6 @@ export function AdminDetailDrawer({
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [seoExpanded, setSeoExpanded] = useState(false);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
-  const [showImageEditor, setShowImageEditor] = useState(false);
-  const [editingImageIndex, setEditingImageIndex] = useState<number>(0);
-  const [editingArticleId, setEditingArticleId] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -308,81 +304,6 @@ export function AdminDetailDrawer({
     );
   };
 
-  const handleEditImage = (index: number, articleId?: string) => {
-    setEditingImageIndex(index);
-    setEditingArticleId(articleId || null);
-    setShowImageEditor(true);
-  };
-
-  const handleImageEdited = async (newImageDataUrl: string) => {
-    try {
-      const base64Data = newImageDataUrl.split(',')[1];
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const byteArray = new Uint8Array(byteNumbers);
-      const blob = new Blob([byteArray], { type: 'image/jpeg' });
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      const targetId = editingArticleId || item.id;
-      const targetType = editingArticleId ? 'articles' : (item.type === 'lot' ? 'lots' : 'articles');
-
-      const timestamp = Date.now();
-      const filename = `${targetId}_edited_${timestamp}.jpg`;
-      const filePath = `${user.id}/${filename}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('article-photos')
-        .upload(filePath, blob, { contentType: 'image/jpeg' });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('article-photos')
-        .getPublicUrl(filePath);
-
-      const newPhotoUrl = urlData.publicUrl;
-
-      let updatedPhotos: string[];
-      let oldPhotoUrl: string;
-
-      if (editingArticleId && selectedArticle) {
-        updatedPhotos = [...selectedArticle.photos];
-        oldPhotoUrl = updatedPhotos[editingImageIndex];
-        updatedPhotos[editingImageIndex] = newPhotoUrl;
-      } else {
-        updatedPhotos = [...item.photos];
-        oldPhotoUrl = updatedPhotos[editingImageIndex];
-        updatedPhotos[editingImageIndex] = newPhotoUrl;
-      }
-
-      const { error: updateError } = await supabase
-        .from(targetType)
-        .update({ photos: updatedPhotos })
-        .eq('id', targetId);
-
-      if (updateError) throw updateError;
-
-      if (oldPhotoUrl && oldPhotoUrl.includes(user.id)) {
-        const oldPath = oldPhotoUrl.split('/article-photos/')[1];
-        if (oldPath) {
-          await supabase.storage.from('article-photos').remove([oldPath]);
-        }
-      }
-
-      setToast({ type: 'success', text: 'Photo mise à jour avec succès' });
-      setShowImageEditor(false);
-      setEditingArticleId(null);
-      onRefresh?.();
-    } catch (error) {
-      console.error('Error updating photo:', error);
-      setToast({ type: 'error', text: 'Erreur lors de la mise à jour de la photo' });
-    }
-  };
 
   const getStatusMessage = () => {
     switch (item.status) {
@@ -596,15 +517,6 @@ export function AdminDetailDrawer({
                     alt={item.title}
                     className="w-full h-full object-cover"
                   />
-                  <button
-                    onClick={() => handleEditImage(currentPhotoIndex)}
-                    className="absolute top-4 right-4 px-4 py-2.5 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 text-white rounded-2xl shadow-xl hover:shadow-2xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 flex items-center gap-2.5 z-10 border border-white/20 hover:border-white/40 group"
-                    title="Editer avec IA"
-                  >
-                    <Wand2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-                    <span className="font-bold text-sm tracking-wide">Éditer</span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
-                  </button>
                   <button
                     onClick={() => setEnlargedImage(item.photos[currentPhotoIndex])}
                     className="absolute bottom-3 left-3 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
@@ -1208,15 +1120,6 @@ export function AdminDetailDrawer({
                         className="w-full h-full object-cover"
                       />
                       <button
-                        onClick={() => handleEditImage(articlePhotoIndex, selectedArticle.id)}
-                        className="absolute top-4 right-4 px-4 py-2.5 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 text-white rounded-2xl shadow-xl hover:shadow-2xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 flex items-center gap-2.5 z-10 border border-white/20 hover:border-white/40 group"
-                        title="Editer avec IA"
-                      >
-                        <Wand2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-                        <span className="font-bold text-sm tracking-wide">Éditer</span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
-                      </button>
-                      <button
                         onClick={() => setEnlargedImage(selectedArticle.photos[articlePhotoIndex])}
                         className="absolute bottom-3 left-3 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
                         title="Agrandir l'image"
@@ -1477,20 +1380,6 @@ export function AdminDetailDrawer({
             </div>
           </div>
         </div>
-      )}
-
-      {showImageEditor && (
-        <ImageEditor
-          imageUrl={editingArticleId && selectedArticle ? selectedArticle.photos[editingImageIndex] : item.photos[editingImageIndex]}
-          allPhotos={editingArticleId && selectedArticle ? selectedArticle.photos : item.photos}
-          currentPhotoIndex={editingImageIndex}
-          onImageEdited={handleImageEdited}
-          onPhotoSelect={(index) => setEditingImageIndex(index)}
-          onClose={() => {
-            setShowImageEditor(false);
-            setEditingArticleId(null);
-          }}
-        />
       )}
 
       {toast && <Toast message={toast.text} type={toast.type} onClose={() => setToast(null)} />}
