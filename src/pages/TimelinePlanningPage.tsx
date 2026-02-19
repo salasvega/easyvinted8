@@ -791,7 +791,7 @@ export default function TimelinePlanningPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-slate-600">Prix</p>
-                    <p className="text-2xl font-bold text-blue-600">{selectedItem.price.toFixed(2)} €</p>
+                    <p className="text-2xl font-bold text-emerald-600">{selectedItem.price.toFixed(2)} €</p>
                   </div>
                   <div>
                     <p className="text-sm text-slate-600">Date planifiée</p>
@@ -813,7 +813,7 @@ export default function TimelinePlanningPage() {
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={handlePublishNow}
-                    className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
                   >
                     <Clock className="w-5 h-5" />
                     Publier maintenant
