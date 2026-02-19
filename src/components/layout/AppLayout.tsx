@@ -417,7 +417,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </div>
 
                     {/* Section Configuration */}
-                    <div>
+                    <div className="border-b border-gray-100">
                       <button
                         onClick={() => setConfigExpanded(!configExpanded)}
                         className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
@@ -455,16 +455,19 @@ export function AppLayout({ children }: AppLayoutProps) {
                           <Users className="w-5 h-5 group-hover:scale-110 transition-transform" />
                           Vendeurs
                         </Link>
-
-                        <button
-                          onClick={handleSignOut}
-                          className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
-                          style={{ animationDelay: mobileMenuOpen && configExpanded ? "130ms" : "0ms" }}
-                        >
-                          <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
-                          Se déconnecter
-                        </button>
                       </div>
+                    </div>
+
+                    {/* Bouton Se déconnecter - en dehors de la section Configuration */}
+                    <div className="px-4 py-2">
+                      <button
+                        onClick={handleSignOut}
+                        className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
+                        style={{ animationDelay: mobileMenuOpen ? "50ms" : "0ms" }}
+                      >
+                        <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
+                        Se déconnecter
+                      </button>
                     </div>
                   </div>
                 )}
