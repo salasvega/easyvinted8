@@ -1328,8 +1328,8 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                               </select>
                             </div>
 
-                            {/* Section Analyse de l'article - s'affiche seulement si un vendeur est sélectionné */}
-                            {formData.seller_id && (
+                            {/* Section Analyse de l'article - MASQUÉE (logique conservée) */}
+                            {formData.seller_id && false && (
                               <div className="p-3 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
                                 <h4 className="text-xs uppercase tracking-wide text-blue-800 font-semibold mb-2 flex items-center gap-2">
                                   <Sparkles className="w-3.5 h-3.5" />
