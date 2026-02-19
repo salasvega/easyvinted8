@@ -39,26 +39,8 @@ export default function TimelinePlanningPage() {
   const [fullItemDetails, setFullItemDetails] = useState<any>(null);
 
   const allSellers = useMemo(() => {
-    const sellers: Array<FamilyMember & { isOwner?: boolean }> = [...familyMembers];
-    if (user) {
-      sellers.unshift({
-        id: user.id,
-        name: 'Moi',
-        age: 0,
-        persona_id: '',
-        custom_persona_id: null,
-        writing_style: null,
-        is_default: true,
-        top_size: null,
-        bottom_size: null,
-        shoe_size: null,
-        default_avatar_id: null,
-        default_location_id: null,
-        isOwner: true
-      });
-    }
-    return sellers;
-  }, [familyMembers, user]);
+    return [...familyMembers];
+  }, [familyMembers]);
 
   useEffect(() => {
     if (allSellers.length > 0 && selectedSellers.length === 0) {
@@ -91,6 +73,9 @@ export default function TimelinePlanningPage() {
 
       if (articles) {
         articles.forEach((article: Article) => {
+          // Ignorer les articles sans vendeur assigné
+          if (!article.seller_id) return;
+
           timelineItems.push({
             id: article.id,
             type: 'article',
@@ -98,7 +83,7 @@ export default function TimelinePlanningPage() {
             price: article.price,
             photo: article.photos?.[0] || null,
             scheduledFor: new Date(article.scheduled_for!),
-            sellerId: article.seller_id || user.id,
+            sellerId: article.seller_id,
             status: article.status,
             referenceNumber: article.reference_number
           });
@@ -107,6 +92,9 @@ export default function TimelinePlanningPage() {
 
       if (lots) {
         lots.forEach((lot: Lot) => {
+          // Ignorer les lots sans vendeur assigné
+          if (!lot.seller_id) return;
+
           timelineItems.push({
             id: lot.id,
             type: 'lot',
@@ -114,7 +102,7 @@ export default function TimelinePlanningPage() {
             price: lot.price,
             photo: lot.cover_photo || lot.photos?.[0] || null,
             scheduledFor: new Date(lot.scheduled_for!),
-            sellerId: lot.seller_id || user.id,
+            sellerId: lot.seller_id,
             status: lot.status,
             referenceNumber: lot.reference_number
           });
