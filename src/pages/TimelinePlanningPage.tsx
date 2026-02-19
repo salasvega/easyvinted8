@@ -520,7 +520,7 @@ export default function TimelinePlanningPage() {
                 <h3 className="font-semibold text-slate-900">Filtrer par vendeur</h3>
                 <p className="text-xs text-slate-500">
                   {selectedSellers.length === allSellers.length
-                    ? 'Tous les vendeurs sont affichés'
+                    ? `${allSellers.length} vendeur${allSellers.length > 1 ? 's' : ''}`
                     : `${selectedSellers.length} vendeur${selectedSellers.length > 1 ? 's' : ''} sélectionné${selectedSellers.length > 1 ? 's' : ''}`}
                 </p>
               </div>
@@ -530,14 +530,6 @@ export default function TimelinePlanningPage() {
                   className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
                 >
                   Tout sélectionner
-                </button>
-              )}
-              {selectedSellers.length > 0 && selectedSellers.length === allSellers.length && (
-                <button
-                  onClick={() => setSelectedSellers([])}
-                  className="text-xs font-medium text-slate-600 hover:text-slate-700 hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  Tout désélectionner
                 </button>
               )}
             </div>
