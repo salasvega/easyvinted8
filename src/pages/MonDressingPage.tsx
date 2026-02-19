@@ -916,7 +916,9 @@ export function MonDressingPage() {
                 className="px-3 py-1.5 border border-gray-300 rounded-full text-xs font-medium hover:border-gray-400 focus:ring-2 focus:ring-blue-500 transition-all bg-white"
               >
                 <option value="all">Vendeur: Tous</option>
-                <option value="none">Sans vendeur</option>
+                {items.some(item => !item.seller_id) && (
+                  <option value="none">Sans vendeur</option>
+                )}
                 {familyMembers.map(member => (
                   <option key={member.id} value={member.id}>{member.name}</option>
                 ))}
