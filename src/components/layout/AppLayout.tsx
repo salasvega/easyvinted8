@@ -352,12 +352,24 @@ export function AppLayout({ children }: AppLayoutProps) {
                         </Link>
 
                         <Link
+                          to="/planner"
+                          onClick={() => closeMenuWithAnimation("main")}
+                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                            isActive("/planner") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "90ms" : "0ms" }}
+                        >
+                          <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          Planificateur
+                        </Link>
+
+                        <Link
                           to="/timeline"
                           onClick={() => closeMenuWithAnimation("main")}
                           className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
                             isActive("/timeline") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
                           }`}
-                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "90ms" : "0ms" }}
+                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "130ms" : "0ms" }}
                         >
                           <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
                           Timeline Planning
@@ -369,7 +381,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                           className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
                             isActive("/virtual-stylist") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
                           }`}
-                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "130ms" : "0ms" }}
+                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "170ms" : "0ms" }}
                         >
                           <Shirt className="w-5 h-5 group-hover:scale-110 transition-transform" />
                           Cabine d'essayage
