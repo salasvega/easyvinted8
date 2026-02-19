@@ -916,7 +916,7 @@ export function MonDressingPage() {
                 className="px-3 py-1.5 border border-gray-300 rounded-full text-xs font-medium hover:border-gray-400 focus:ring-2 focus:ring-blue-500 transition-all bg-white"
               >
                 <option value="all">Vendeur: Tous</option>
-                {items.some(item => !item.seller_id) && (
+                {items.some(item => !item.seller_id || item.seller_id === null || item.seller_id === undefined) && (
                   <option value="none">Sans vendeur</option>
                 )}
                 {familyMembers.map(member => (
