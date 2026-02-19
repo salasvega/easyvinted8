@@ -36,6 +36,7 @@ import VirtualAgent from '../VirtualAgent';
 import { Hash, Search, TrendingUp, Zap } from 'lucide-react';
 import { compressImage, formatFileSize } from '../../lib/imageCompression';
 import { parseSuggestionValue } from '../../lib/geminiService';
+import { ArticleAnalysisLoader } from '../ui/ArticleAnalysisLoader';
 
 import { ShippingSimulator } from '../tools/ShippingSimulator';
 import { PriceSuggestion, PricingData } from '../PriceSuggestion';
@@ -1148,6 +1149,9 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
         className={`fixed inset-y-0 right-0 w-full max-w-md bg-white z-[60] shadow-2xl ${!isClosing ? 'form-drawer-enter' : 'form-drawer-exit'}`}
         style={{ perspective: '1000px' }}
       >
+        {/* Loader d'analyse IA avec fond semi-transparent et messages contextuels */}
+        {analyzingWithAI && <ArticleAnalysisLoader stage="analyzing" />}
+
         <div className="h-full flex flex-col">
           <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
             <div>
