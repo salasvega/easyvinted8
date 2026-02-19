@@ -813,16 +813,10 @@ export default function TimelinePlanningPage() {
                 <div className="flex gap-3 pt-4">
                   <button
                     onClick={handlePublishNow}
-                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
                   >
                     <Clock className="w-5 h-5" />
                     Publier maintenant
-                  </button>
-                  <button
-                    onClick={handleViewDetails}
-                    className="flex-1 bg-slate-100 text-slate-700 px-6 py-3 rounded-lg font-semibold hover:bg-slate-200 transition-colors"
-                  >
-                    Voir les détails
                   </button>
                 </div>
               </div>
