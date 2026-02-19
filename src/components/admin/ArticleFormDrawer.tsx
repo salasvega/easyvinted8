@@ -1170,141 +1170,140 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
           ) : (
             <>
               <div className="flex-1 overflow-y-auto">
-                <div className="p-5 space-y-5">
-                  {/* Photos */}
-                  <div className={`space-y-4 ${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 0 } as React.CSSProperties}>
-                    <div className="bg-white rounded-3xl border-2 border-slate-200 overflow-hidden aspect-square relative">
-                      {formData.photos.length > 0 ? (
+                {/* Photos - Pleine largeur */}
+                <div className={`aspect-square bg-slate-100 relative ${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 0 } as React.CSSProperties}>
+                  {formData.photos.length > 0 ? (
+                    <>
+                      <img src={formData.photos[selectedPhotoIndex].url} alt="Produit" className="w-full h-full object-cover" />
+
+                      <button
+                        type="button"
+                        onClick={() => setEnlargedImage(formData.photos[selectedPhotoIndex].url)}
+                        className="absolute bottom-3 left-3 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
+                        title="Agrandir l'image"
+                      >
+                        <Maximize2 className="w-5 h-5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleEditImage(selectedPhotoIndex)}
+                        className="absolute top-3 right-3 px-4 py-2.5 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 text-white rounded-2xl shadow-xl hover:shadow-2xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 flex items-center gap-2.5 z-10 border border-white/20 hover:border-white/40 group"
+                        title="Editer avec IA"
+                      >
+                        <Wand2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
+                        <span className="font-bold text-sm tracking-wide">Éditer</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+                      </button>
+
+                      {formData.photos.length > 1 && (
                         <>
-                          <img src={formData.photos[selectedPhotoIndex].url} alt="Produit" className="w-full h-full object-cover" />
-
                           <button
                             type="button"
-                            onClick={() => setEnlargedImage(formData.photos[selectedPhotoIndex].url)}
-                            className="absolute bottom-4 left-4 p-2.5 rounded-lg transition-all shadow-lg bg-white/95 backdrop-blur-sm text-slate-700 hover:bg-white border border-slate-200 hover:border-blue-400 z-10"
-                            title="Agrandir l'image"
+                            onClick={handlePreviousPhoto}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-lg"
                           >
-                            <Maximize2 className="w-5 h-5" />
+                            <ChevronLeft className="w-4 h-4 text-slate-900" />
                           </button>
-
                           <button
                             type="button"
-                            onClick={() => handleEditImage(selectedPhotoIndex)}
-                            className="absolute top-4 right-4 px-4 py-2.5 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 text-white rounded-2xl shadow-xl hover:shadow-2xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 flex items-center gap-2.5 z-10 border border-white/20 hover:border-white/40 group"
+                            onClick={handleNextPhoto}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-lg"
+                          >
+                            <ChevronRight className="w-4 h-4 text-slate-900" />
+                          </button>
+                          <div className="absolute bottom-3 right-3 bg-slate-900/80 text-white px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+                            {selectedPhotoIndex + 1} / {formData.photos.length}
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors">
+                      <Plus className="w-16 h-16 text-slate-300 mb-4" />
+                      <span className="text-slate-400 font-medium">Ajouter des photos</span>
+                      <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
+                    </label>
+                  )}
+                </div>
+
+                {/* Miniatures - Bande horizontale scrollable (x5) */}
+                {formData.photos.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto p-3 bg-slate-50 border-b border-slate-200">
+                    {formData.photos.map((photo, index) => (
+                      <div
+                        key={`${photo.url}-${index}`}
+                        draggable
+                        onDragStart={(e) => handlePhotoDragStart(e, index)}
+                        onDragOver={(e) => handlePhotoDragOver(e, index)}
+                        onDragLeave={handlePhotoDragLeave}
+                        onDrop={(e) => handlePhotoDrop(e, index)}
+                        onDragEnd={handlePhotoDragEnd}
+                        onClick={() => setSelectedPhotoIndex(index)}
+                        className={`relative flex-shrink-0 w-16 h-16 rounded-lg border-2 overflow-hidden cursor-pointer transition-all group ${
+                          selectedPhotoIndex === index
+                            ? 'border-blue-500 ring-2 ring-blue-100'
+                            : 'border-slate-200 hover:border-slate-300'
+                        } ${draggedIndex === index ? 'opacity-50 scale-95' : ''} ${dragOverIndex === index ? 'ring-2 ring-emerald-500' : ''}`}
+                      >
+                        <img src={photo.url} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                        <div className="absolute top-1 left-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="p-0.5 bg-slate-900/70 text-white rounded">
+                            <GripVertical className="w-3 h-3" />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditImage(index);
+                            }}
+                            className="p-0.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                             title="Editer avec IA"
                           >
-                            <Wand2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-                            <span className="font-bold text-sm tracking-wide">Éditer</span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+                            <Wand2 className="w-3 h-3" />
                           </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removePhoto(index);
+                          }}
+                          className="absolute top-1 right-1 p-0.5 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Supprimer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        {index === 0 && (
+                          <div className="absolute bottom-0.5 left-0.5 px-1.5 py-0.5 bg-emerald-500 text-white text-[10px] rounded font-medium">
+                            Principale
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {formData.photos.length < 8 && (
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex-shrink-0 w-16 h-16 border-2 border-dashed border-slate-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors"
+                      >
+                        <ImageIcon className="w-5 h-5 text-slate-400" />
+                        <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                          {formData.photos.length > 1 && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={handlePreviousPhoto}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-lg"
-                              >
-                                <ChevronLeft className="w-5 h-5 text-slate-900" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={handleNextPhoto}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white transition-colors shadow-lg"
-                              >
-                                <ChevronRight className="w-5 h-5 text-slate-900" />
-                              </button>
-                              <div className="absolute bottom-4 right-4 bg-slate-900/80 text-white px-3 py-1.5 rounded-full text-xs font-medium backdrop-blur-sm">
-                                {selectedPhotoIndex + 1} / {formData.photos.length}
-                              </div>
-                            </>
-                          )}
-                        </>
-                      ) : (
-                        <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-slate-50 transition-colors">
-                          <Plus className="w-16 h-16 text-slate-300 mb-4" />
-                          <span className="text-slate-400 font-medium">Ajouter des photos</span>
-                          <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
-                        </label>
-                      )}
-                    </div>
-
+                <div className="p-5 space-y-5">
+                  {/* Contenu du formulaire */}
+                  <div className={`space-y-4 ${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 1 } as React.CSSProperties}>
                     {formData.photos.length > 0 && (
                       <div className="bg-white rounded-2xl border border-slate-200 p-4">
                         <p className="text-xs font-medium text-slate-600 mb-3">
-                          Glissez-deposez les photos pour reorganiser leur ordre. La premiere photo sera la photo principale.
+                          Glissez-deposez les miniatures ci-dessus pour reorganiser leur ordre. La premiere photo sera la photo principale.
                         </p>
-                        <div className="grid grid-cols-4 gap-3">
-                          {Array.isArray(formData.photos) && formData.photos.map((photo, index) => (
-                            <div
-                              key={`${photo.url}-${index}`}
-                              draggable
-                              onDragStart={(e) => handlePhotoDragStart(e, index)}
-                              onDragOver={(e) => handlePhotoDragOver(e, index)}
-                              onDragLeave={handlePhotoDragLeave}
-                              onDrop={(e) => handlePhotoDrop(e, index)}
-                              onDragEnd={handlePhotoDragEnd}
-                              onClick={() => setSelectedPhotoIndex(index)}
-                              className={`relative group aspect-square transition-all ${
-                                draggedIndex === index ? 'opacity-50 scale-95 cursor-grabbing' : 'cursor-grab hover:cursor-pointer'
-                              } ${dragOverIndex === index ? 'ring-2 ring-emerald-500' : ''}`}
-                            >
-                              <img
-                                src={photo.url}
-                                alt={`Photo ${index + 1}`}
-                                className={`w-full h-full object-cover rounded-xl border-2 transition-all ${
-                                  selectedPhotoIndex === index ? 'border-blue-500 ring-2 ring-blue-100' : 'border-slate-200 hover:border-slate-300'
-                                }`}
-                              />
-                              <div className="absolute top-2 left-2 flex gap-1">
-                                <div className="p-1 bg-slate-900/70 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <GripVertical className="w-4 h-4" />
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditImage(index);
-                                  }}
-                                  className="p-1 bg-blue-600 text-white rounded hover:bg-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                                  title="Editer avec IA"
-                                >
-                                  <Wand2 className="w-4 h-4" />
-                                </button>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removePhoto(index);
-                                }}
-                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                                title="Supprimer"
-                              >
-                                <X className="w-4 h-4" />
-                              </button>
-                              {index === 0 && (
-                                <div className="absolute bottom-2 left-2 px-2 py-1 bg-emerald-500 text-white text-xs rounded-md font-medium">
-                                  Photo principale
-                                </div>
-                              )}
-                            </div>
-                          ))}
-
-                          {formData.photos.length < 8 && (
-                            <div
-                              onClick={() => fileInputRef.current?.click()}
-                              className="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition-colors"
-                            >
-                              <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />
-                              <p className="text-xs text-slate-500 font-medium">Ajouter</p>
-                              <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
-                            </div>
-                          )}
-                        </div>
 
                         {familyMembers.length > 0 && formData.photos.length > 0 && (
-                          <div className="mt-4 space-y-3">
+                          <div className="space-y-3">
                             {/* Section Sélection du Vendeur */}
                             <div className="p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
                               <h4 className="text-xs uppercase tracking-wide text-purple-800 font-semibold mb-1 flex items-center gap-2">
