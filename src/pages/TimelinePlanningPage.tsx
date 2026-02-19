@@ -489,9 +489,6 @@ export default function TimelinePlanningPage() {
                                       ) : (
                                         <Tag className="w-3 h-3 text-blue-600 flex-shrink-0" />
                                       )}
-                                      {item.referenceNumber && (
-                                        <span className="text-xs text-slate-500">#{item.referenceNumber}</span>
-                                      )}
                                     </div>
                                     <p className="text-xs font-medium text-slate-900 line-clamp-2 group-hover:text-blue-600">
                                       {item.title}
