@@ -578,36 +578,57 @@ export default function TimelinePlanningPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
             <div className="inline-block min-w-full">
-              <div className="grid" style={{ gridTemplateColumns: `200px repeat(${timeSlots.length}, minmax(150px, 1fr))` }}>
-                <div className="sticky left-0 bg-slate-50 border-r border-slate-200 p-4 font-semibold text-slate-700">
-                  Vendeur
-                </div>
-                {timeSlots.map((date, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-slate-50 border-r border-slate-200 p-3 text-center"
-                  >
-                    <div className="text-sm font-semibold text-slate-900">
-                      {formatDateHeader(date)}
-                    </div>
-                    {viewMode === 'week' && (
-                      <div className="text-xs text-slate-500 mt-1">
-                        {date.getDate() === new Date().getDate() &&
-                         date.getMonth() === new Date().getMonth() &&
-                         date.getFullYear() === new Date().getFullYear() && (
-                          <span className="inline-block w-2 h-2 bg-blue-600 rounded-full"></span>
-                        )}
-                      </div>
-                    )}
+              <div className="grid" style={{
+                gridTemplateColumns: `minmax(100px, max-content) repeat(${timeSlots.length}, ${viewMode === 'week' ? '140px' : viewMode === 'month' ? '80px' : '200px'})`
+              }}>
+                <div className="sticky left-0 bg-gradient-to-r from-slate-50 to-slate-100 border-r-2 border-slate-300 px-3 py-3 font-semibold text-slate-700 z-10 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="text-xs sm:text-sm whitespace-nowrap">Vendeur</span>
                   </div>
-                ))}
+                </div>
+                {timeSlots.map((date, idx) => {
+                  const isToday = date.getDate() === new Date().getDate() &&
+                    date.getMonth() === new Date().getMonth() &&
+                    date.getFullYear() === new Date().getFullYear();
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`bg-gradient-to-b from-slate-50 to-slate-100 border-r border-slate-200 px-2 py-2 text-center ${
+                        isToday ? 'bg-gradient-to-b from-blue-50 to-blue-100 border-blue-300' : ''
+                      }`}
+                    >
+                      <div className={`text-xs font-bold ${isToday ? 'text-blue-700' : 'text-slate-900'}`}>
+                        {formatDateHeader(date)}
+                      </div>
+                      {viewMode === 'week' && (
+                        <div className="text-[10px] text-slate-500 mt-0.5">
+                          {isToday && (
+                            <span className="inline-flex items-center gap-1 text-blue-600 font-medium">
+                              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-pulse"></span>
+                              Aujourd'hui
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 {filteredSellers.map((seller) => (
                   <div key={seller.id} className="contents">
-                    <div className="sticky left-0 bg-white border-r border-t border-slate-200 p-4 font-medium text-slate-900">
-                      {seller.name}
+                    <div className="sticky left-0 bg-white border-r-2 border-t border-slate-300 px-3 py-3 font-medium text-slate-900 z-10 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          {seller.name.charAt(0).toUpperCase()}
+                        </div>
+                        <span className="text-xs sm:text-sm font-semibold whitespace-nowrap truncate">{seller.name}</span>
+                      </div>
                     </div>
                     {timeSlots.map((date, idx) => {
                       const cellItems = getItemsForDateAndSeller(date, seller.id);
@@ -619,50 +640,90 @@ export default function TimelinePlanningPage() {
                       return (
                         <div
                           key={`${seller.id}-${idx}`}
-                          className={`border-r border-t border-slate-200 p-2 min-h-[120px] transition-colors ${
-                            isToday ? 'bg-blue-50/30' : 'bg-white'
-                          } ${draggedItem ? 'hover:bg-blue-50' : ''}`}
+                          className={`border-r border-t border-slate-200 p-1.5 min-h-[100px] transition-all duration-200 ${
+                            isToday ? 'bg-blue-50/40 border-blue-200' : 'bg-white hover:bg-slate-50'
+                          } ${draggedItem ? 'hover:bg-blue-100/50 hover:border-blue-300' : ''}`}
                           onDragOver={handleDragOver}
                           onDrop={(e) => {
                             e.preventDefault();
                             handleDrop(date, seller.id);
                           }}
                         >
-                          <div className="space-y-2">
-                            {cellItems.map((item) => (
-                              <div
-                                key={item.id}
-                                draggable
-                                onDragStart={() => handleDragStart(item)}
-                                onClick={() => handleItemClick(item)}
-                                className="bg-white border border-slate-200 rounded-lg p-2 cursor-move hover:shadow-md transition-all group"
-                              >
-                                <div className="flex items-start gap-2">
-                                  {item.photo && (
-                                    <img
-                                      src={item.photo}
-                                      alt={item.title}
-                                      className="w-12 h-12 rounded object-cover flex-shrink-0"
-                                    />
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-1 mb-1">
-                                      {item.type === 'lot' ? (
-                                        <Package className="w-3 h-3 text-purple-600 flex-shrink-0" />
-                                      ) : (
-                                        <Tag className="w-3 h-3 text-blue-600 flex-shrink-0" />
+                          <div className="space-y-1.5">
+                            {cellItems.length > 0 ? (
+                              cellItems.map((item) => (
+                                <div
+                                  key={item.id}
+                                  draggable
+                                  onDragStart={() => handleDragStart(item)}
+                                  onClick={() => handleItemClick(item)}
+                                  className="bg-white border border-slate-200 rounded-lg p-1.5 cursor-move hover:shadow-lg hover:scale-[1.02] hover:border-blue-400 transition-all duration-200 group"
+                                >
+                                  {viewMode === 'week' ? (
+                                    <div className="space-y-1">
+                                      {item.photo && (
+                                        <img
+                                          src={item.photo}
+                                          alt={item.title}
+                                          className="w-full h-16 rounded object-cover"
+                                        />
                                       )}
+                                      <div className="flex items-center gap-1">
+                                        {item.type === 'lot' ? (
+                                          <div className="w-5 h-5 bg-purple-100 rounded flex items-center justify-center flex-shrink-0">
+                                            <Package className="w-3 h-3 text-purple-600" />
+                                          </div>
+                                        ) : (
+                                          <div className="w-5 h-5 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
+                                            <Tag className="w-3 h-3 text-blue-600" />
+                                          </div>
+                                        )}
+                                        <p className="text-[10px] font-bold text-emerald-600 flex-shrink-0">
+                                          {item.price.toFixed(2)}€
+                                        </p>
+                                      </div>
+                                      <p className="text-[10px] font-medium text-slate-700 line-clamp-2 group-hover:text-blue-600 leading-tight">
+                                        {item.title}
+                                      </p>
                                     </div>
-                                    <p className="text-xs font-medium text-slate-900 line-clamp-2 group-hover:text-blue-600">
-                                      {item.title}
-                                    </p>
-                                    <p className="text-sm font-bold text-emerald-600 mt-1">
-                                      {item.price.toFixed(2)} €
-                                    </p>
-                                  </div>
+                                  ) : (
+                                    <div className="flex items-center gap-1.5">
+                                      {item.photo && (
+                                        <img
+                                          src={item.photo}
+                                          alt={item.title}
+                                          className="w-10 h-10 rounded object-cover flex-shrink-0"
+                                        />
+                                      )}
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1 mb-0.5">
+                                          {item.type === 'lot' ? (
+                                            <Package className="w-2.5 h-2.5 text-purple-600 flex-shrink-0" />
+                                          ) : (
+                                            <Tag className="w-2.5 h-2.5 text-blue-600 flex-shrink-0" />
+                                          )}
+                                          <p className="text-[9px] font-bold text-emerald-600">
+                                            {item.price.toFixed(2)}€
+                                          </p>
+                                        </div>
+                                        <p className="text-[9px] font-medium text-slate-700 line-clamp-1 group-hover:text-blue-600">
+                                          {item.title}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="h-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div className="text-center text-slate-400">
+                                  <svg className="w-6 h-6 mx-auto mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                  </svg>
+                                  <p className="text-[9px]">Déposer ici</p>
                                 </div>
                               </div>
-                            ))}
+                            )}
                           </div>
                         </div>
                       );
