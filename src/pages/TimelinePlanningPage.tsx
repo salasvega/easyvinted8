@@ -493,7 +493,7 @@ export default function TimelinePlanningPage() {
                                     <p className="text-xs font-medium text-slate-900 line-clamp-2 group-hover:text-blue-600">
                                       {item.title}
                                     </p>
-                                    <p className="text-sm font-bold text-blue-600 mt-1">
+                                    <p className="text-sm font-bold text-emerald-600 mt-1">
                                       {item.price.toFixed(2)} €
                                     </p>
                                   </div>
