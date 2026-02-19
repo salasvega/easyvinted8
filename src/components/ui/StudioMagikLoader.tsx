@@ -15,7 +15,7 @@ export function StudioMagikLoader({ message = "Édition en cours" }: Props) {
   }, []);
 
   return (
-    <div className="absolute inset-0 bg-white/95 backdrop-blur-sm flex items-center justify-center z-[100]">
+    <div className="absolute inset-0 bg-white/90 backdrop-blur-md flex items-center justify-center z-[100]">
       <div className="max-w-lg w-full px-6">
         <div className="relative mb-12">
           {/* Cercles animés multiples */}

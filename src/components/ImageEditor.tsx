@@ -802,10 +802,6 @@ export function ImageEditor({
                 </div>
               )}
 
-              {processing && (
-                <StudioMagikLoader message={loadingMessage} />
-              )}
-
               <button
                 type="button"
                 onClick={() => setEnlargedImage(currentImage)}
@@ -1272,6 +1268,13 @@ export function ImageEditor({
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Loader en plein écran sur toute la modale */}
+        {processing && (
+          <div className="absolute inset-0 z-[150] rounded-xl sm:rounded-2xl overflow-hidden">
+            <StudioMagikLoader message={loadingMessage} />
           </div>
         )}
       </div>
