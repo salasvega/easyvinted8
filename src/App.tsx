@@ -27,6 +27,7 @@ const StructureFormPage = lazy(() => import('./pages/StructureFormPage').then(m 
 const LotStructureFormPage = lazy(() => import('./pages/LotStructureFormPage').then(m => ({ default: m.LotStructureFormPage })));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const VirtualStylistPage = lazy(() => import('./pages/VirtualStylistPage').then(m => ({ default: m.VirtualStylistPage })));
+const TimelinePlanningPage = lazy(() => import('./pages/TimelinePlanningPage'));
 
 const LoadingFallback = () => (
   <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -109,6 +110,7 @@ function App() {
                         <Route path="/lots/:id/structure" element={<LotStructureFormPage />} />
                         <Route path="/analytics" element={<AnalyticsPage />} />
                         <Route path="/planner" element={<PlannerPage />} />
+                        <Route path="/timeline" element={<TimelinePlanningPage />} />
                         <Route path="/virtual-stylist" element={<VirtualStylistPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/family" element={<FamilyMembersPage />} />
