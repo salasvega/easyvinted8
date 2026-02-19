@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Filter, Clock, Package, Tag } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Filter, Clock, Package, Tag } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamilyMembers } from '../hooks/useFamilyMembers';
 import { supabase } from '../lib/supabase';
-import { Article } from '../types/article';
+import { Article, ArticleStatus } from '../types/article';
 import { Lot } from '../types/lot';
 import { FamilyMember } from '../services/settings';
+import { AdminDetailDrawer } from '../components/admin/AdminDetailDrawer';
 
 type ViewMode = 'week' | 'month';
 
@@ -34,6 +35,8 @@ export default function TimelinePlanningPage() {
   const [draggedItem, setDraggedItem] = useState<TimelineItem | null>(null);
   const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null);
   const [selectedSellers, setSelectedSellers] = useState<string[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [fullItemDetails, setFullItemDetails] = useState<any>(null);
 
   const allSellers = useMemo(() => {
     const sellers: Array<FamilyMember & { isOwner?: boolean }> = [...familyMembers];
@@ -266,36 +269,160 @@ export default function TimelinePlanningPage() {
     });
   };
 
-  const handleItemClick = (item: TimelineItem) => {
+  const handleItemClick = async (item: TimelineItem) => {
     setSelectedItem(item);
+
+    // Charger les détails complets pour le drawer
+    try {
+      if (item.type === 'article') {
+        const { data } = await supabase
+          .from('articles')
+          .select('*')
+          .eq('id', item.id)
+          .single();
+
+        if (data) {
+          const seller = allSellers.find(s => s.id === data.seller_id);
+          setFullItemDetails({
+            ...data,
+            type: 'article',
+            seller_name: seller?.name || 'Inconnu'
+          });
+        }
+      } else {
+        const { data } = await supabase
+          .from('lots')
+          .select('*')
+          .eq('id', item.id)
+          .single();
+
+        if (data) {
+          const seller = allSellers.find(s => s.id === data.seller_id);
+
+          // Charger les articles du lot
+          const { data: lotArticles } = await supabase
+            .from('articles')
+            .select('id, title, brand, price, photos, size')
+            .eq('lot_id', item.id);
+
+          setFullItemDetails({
+            id: data.id,
+            type: 'lot',
+            title: data.name,
+            brand: data.brand,
+            price: data.price,
+            status: data.status as ArticleStatus,
+            photos: data.photos || [],
+            created_at: data.created_at,
+            season: data.season,
+            scheduled_for: data.scheduled_for,
+            seller_id: data.seller_id,
+            seller_name: seller?.name || 'Inconnu',
+            published_at: data.published_at,
+            sold_at: data.sold_at,
+            sold_price: data.sold_price,
+            reference_number: data.reference_number,
+            lot_article_count: lotArticles?.length || 0,
+            description: data.description,
+            vinted_url: data.vinted_url,
+            articles: lotArticles || [],
+            original_total_price: data.original_total_price,
+            discount_percentage: data.discount_percentage,
+            seo_keywords: data.seo_keywords,
+            hashtags: data.hashtags,
+            search_terms: data.search_terms
+          });
+        }
+      }
+
+      setDrawerOpen(true);
+    } catch (error) {
+      console.error('Error loading item details:', error);
+    }
   };
 
-  const handlePublishNow = async () => {
-    if (!selectedItem || !user) return;
+  const handlePublishNow = () => {
+    if (!selectedItem) return;
+
+    // Rediriger vers la page de structure pour publication
+    if (selectedItem.type === 'article') {
+      navigate(`/articles/${selectedItem.id}/structure`);
+    } else {
+      navigate(`/lots/${selectedItem.id}/structure`);
+    }
+  };
+
+  const handleViewDetails = () => {
+    setDrawerOpen(true);
+  };
+
+  const formatDate = (date?: string) => {
+    if (!date) return 'Non défini';
+    return new Intl.DateTimeFormat('fr-FR', {
+      dateStyle: 'full',
+      timeStyle: 'short'
+    }).format(new Date(date));
+  };
+
+  const handleEdit = () => {
+    if (!fullItemDetails) return;
+
+    if (fullItemDetails.type === 'article') {
+      navigate(`/articles/${fullItemDetails.id}/edit-v2`);
+    } else {
+      // Pour les lots, on peut rediriger vers une page d'édition de lot si elle existe
+      navigate(`/lots/${fullItemDetails.id}/structure`);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    // Implémenter la duplication si nécessaire
+    console.log('Duplicate item:', fullItemDetails);
+  };
+
+  const handleSchedule = () => {
+    // La modale de planification pourrait être ajoutée ici
+    console.log('Schedule item:', fullItemDetails);
+  };
+
+  const handleMarkSold = () => {
+    // Ouvrir la modale de vente
+    console.log('Mark as sold:', fullItemDetails);
+  };
+
+  const handleDelete = async () => {
+    if (!fullItemDetails) return;
 
     try {
-      const updates = {
-        status: 'ready',
-        scheduled_for: new Date().toISOString()
-      };
-
-      if (selectedItem.type === 'article') {
+      if (fullItemDetails.type === 'article') {
         await supabase
           .from('articles')
-          .update(updates)
-          .eq('id', selectedItem.id);
+          .delete()
+          .eq('id', fullItemDetails.id);
       } else {
         await supabase
           .from('lots')
-          .update(updates)
-          .eq('id', selectedItem.id);
+          .delete()
+          .eq('id', fullItemDetails.id);
       }
 
-      await loadItems();
+      setDrawerOpen(false);
+      setFullItemDetails(null);
       setSelectedItem(null);
+      await loadItems();
     } catch (error) {
-      console.error('Error publishing item:', error);
+      console.error('Error deleting item:', error);
     }
+  };
+
+  const handleStatusChange = () => {
+    // Ouvrir la modale de changement de statut
+    console.log('Change status:', fullItemDetails);
+  };
+
+  const handleLabelOpen = () => {
+    // Ouvrir la modale d'étiquette
+    console.log('Open label modal:', fullItemDetails);
   };
 
   const toggleSellerFilter = (sellerId: string) => {
@@ -535,7 +662,7 @@ export default function TimelinePlanningPage() {
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
-                <h3 className="text-2xl font-bold text-slate-900">Détails de l'item</h3>
+                <h3 className="text-2xl font-bold text-slate-900">Actions rapides</h3>
                 <button
                   onClick={() => setSelectedItem(null)}
                   className="text-slate-400 hover:text-slate-600"
@@ -603,7 +730,7 @@ export default function TimelinePlanningPage() {
                     Publier maintenant
                   </button>
                   <button
-                    onClick={() => navigate(selectedItem.type === 'lot' ? `/lot/${selectedItem.id}` : `/article/${selectedItem.id}`)}
+                    onClick={handleViewDetails}
                     className="flex-1 bg-slate-100 text-slate-700 px-6 py-3 rounded-lg font-semibold hover:bg-slate-200 transition-colors"
                   >
                     Voir les détails
@@ -614,6 +741,24 @@ export default function TimelinePlanningPage() {
           </div>
         </div>
       )}
+
+      <AdminDetailDrawer
+        item={fullItemDetails}
+        isOpen={drawerOpen}
+        onClose={() => {
+          setDrawerOpen(false);
+          setSelectedItem(null);
+        }}
+        onEdit={handleEdit}
+        onPublish={handlePublishNow}
+        onDuplicate={handleDuplicate}
+        onSchedule={handleSchedule}
+        onMarkSold={handleMarkSold}
+        onDelete={handleDelete}
+        onStatusChange={handleStatusChange}
+        onLabelOpen={handleLabelOpen}
+        formatDate={formatDate}
+      />
     </div>
   );
 }
