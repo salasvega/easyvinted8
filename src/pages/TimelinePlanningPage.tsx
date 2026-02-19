@@ -511,24 +511,69 @@ export default function TimelinePlanningPage() {
             </button>
           </div>
 
-          <div className="mt-4 flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <Filter className="w-4 h-4" />
-              <span className="font-medium">Vendeurs:</span>
+          <div className="mt-4 bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <Filter className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-slate-900">Filtrer par vendeur</h3>
+                <p className="text-xs text-slate-500">
+                  {selectedSellers.length === allSellers.length
+                    ? 'Tous les vendeurs sont affichés'
+                    : `${selectedSellers.length} vendeur${selectedSellers.length > 1 ? 's' : ''} sélectionné${selectedSellers.length > 1 ? 's' : ''}`}
+                </p>
+              </div>
+              {selectedSellers.length < allSellers.length && (
+                <button
+                  onClick={() => setSelectedSellers(allSellers.map(s => s.id))}
+                  className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Tout sélectionner
+                </button>
+              )}
+              {selectedSellers.length > 0 && selectedSellers.length === allSellers.length && (
+                <button
+                  onClick={() => setSelectedSellers([])}
+                  className="text-xs font-medium text-slate-600 hover:text-slate-700 hover:bg-slate-100 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Tout désélectionner
+                </button>
+              )}
             </div>
-            {allSellers.map(seller => (
-              <button
-                key={seller.id}
-                onClick={() => toggleSellerFilter(seller.id)}
-                className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                  selectedSellers.includes(seller.id)
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300'
-                }`}
-              >
-                {seller.name}
-              </button>
-            ))}
+            <div className="flex items-center gap-2 flex-wrap">
+              {allSellers.map(seller => {
+                const isSelected = selectedSellers.includes(seller.id);
+                return (
+                  <button
+                    key={seller.id}
+                    onClick={() => toggleSellerFilter(seller.id)}
+                    className={`group relative px-4 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
+                      isSelected
+                        ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 scale-105'
+                        : 'bg-slate-50 text-slate-600 border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 hover:scale-102'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-white shadow-sm'
+                          : 'bg-slate-300 group-hover:bg-blue-400'
+                      }`} />
+                      <span>{seller.name}</span>
+                      {isSelected && (
+                        <svg className="w-3.5 h-3.5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    {isSelected && (
+                      <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
