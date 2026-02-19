@@ -269,16 +269,32 @@ export default function TimelinePlanningPage() {
     });
   };
 
-  const handleItemClick = async (item: TimelineItem) => {
+  const handleItemClick = (item: TimelineItem) => {
+    // Afficher seulement la modale inline
     setSelectedItem(item);
+  };
+
+  const handlePublishNow = () => {
+    if (!selectedItem) return;
+
+    // Rediriger vers la page de structure pour publication
+    if (selectedItem.type === 'article') {
+      navigate(`/articles/${selectedItem.id}/structure`);
+    } else {
+      navigate(`/lots/${selectedItem.id}/structure`);
+    }
+  };
+
+  const handleViewDetails = async () => {
+    if (!selectedItem) return;
 
     // Charger les détails complets pour le drawer
     try {
-      if (item.type === 'article') {
+      if (selectedItem.type === 'article') {
         const { data } = await supabase
           .from('articles')
           .select('*')
-          .eq('id', item.id)
+          .eq('id', selectedItem.id)
           .single();
 
         if (data) {
@@ -293,7 +309,7 @@ export default function TimelinePlanningPage() {
         const { data } = await supabase
           .from('lots')
           .select('*')
-          .eq('id', item.id)
+          .eq('id', selectedItem.id)
           .single();
 
         if (data) {
@@ -303,7 +319,7 @@ export default function TimelinePlanningPage() {
           const { data: lotArticles } = await supabase
             .from('articles')
             .select('id, title, brand, price, photos, size')
-            .eq('lot_id', item.id);
+            .eq('lot_id', selectedItem.id);
 
           setFullItemDetails({
             id: data.id,
@@ -335,25 +351,12 @@ export default function TimelinePlanningPage() {
         }
       }
 
+      // Fermer la modale inline et ouvrir le drawer
+      setSelectedItem(null);
       setDrawerOpen(true);
     } catch (error) {
       console.error('Error loading item details:', error);
     }
-  };
-
-  const handlePublishNow = () => {
-    if (!selectedItem) return;
-
-    // Rediriger vers la page de structure pour publication
-    if (selectedItem.type === 'article') {
-      navigate(`/articles/${selectedItem.id}/structure`);
-    } else {
-      navigate(`/lots/${selectedItem.id}/structure`);
-    }
-  };
-
-  const handleViewDetails = () => {
-    setDrawerOpen(true);
   };
 
   const formatDate = (date?: string) => {
