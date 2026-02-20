@@ -1293,15 +1293,20 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                   </div>
                 )}
 
+                {/* Texte explicatif pour le réarrangement des photos */}
+                {formData.photos.length > 0 && (
+                  <div className="px-5 pt-3">
+                    <p className="text-xs font-medium text-slate-600">
+                      Glissez-deposez les miniatures ci-dessus pour reorganiser leur ordre. La premiere photo sera la photo principale.
+                    </p>
+                  </div>
+                )}
+
                 <div className="p-5 space-y-5">
                   {/* Contenu du formulaire */}
                   <div className={`space-y-4 ${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 1 } as React.CSSProperties}>
                     {formData.photos.length > 0 && (
                       <div className="bg-white rounded-2xl border border-slate-200 p-4">
-                        <p className="text-xs font-medium text-slate-600 mb-3">
-                          Glissez-deposez les miniatures ci-dessus pour reorganiser leur ordre. La premiere photo sera la photo principale.
-                        </p>
-
                         {familyMembers.length > 0 && formData.photos.length > 0 && (
                           <div className="space-y-3">
                             {/* Section Sélection du Vendeur */}
