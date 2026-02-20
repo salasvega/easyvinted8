@@ -79,6 +79,17 @@ const PRIORITY_BADGE: Record<string, { label: string; class: string }> = {
   low: { label: 'Conseil', class: 'bg-gray-100 text-gray-700' },
 };
 
+const isAutoExecutableInsight = (type: string): boolean => {
+  return [
+    'ready_to_publish',
+    'ready_to_list',
+    'price_drop',
+    'stale',
+    'bundle',
+    'seo_optimization'
+  ].includes(type);
+};
+
 interface ActionModalState {
   isOpen: boolean;
   insight: ProactiveInsight | null;
@@ -734,6 +745,7 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
                     const priority = PRIORITY_BADGE[insight.priority] || PRIORITY_BADGE.low;
                     const Icon = config.icon;
                     const isExecuting = executingAction === insight.title;
+                    const isAutoExecutable = isAutoExecutableInsight(insight.type);
 
                     return (
                       <div
@@ -749,7 +761,7 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
                               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${priority.class}`}>
                                 {priority.label}
                               </span>
-                              {(insight.type === 'price_drop' || insight.type === 'stale' || insight.type === 'bundle' || insight.type === 'ready_to_publish' || insight.type === 'ready_to_list' || insight.type === 'seo_optimization') && (
+                              {isAutoExecutable && (
                                 <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700">
                                   Action rapide
                                 </span>
@@ -772,25 +784,23 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
                             <p className="text-xs text-gray-600 leading-relaxed mb-2">
                               {insight.message}
                             </p>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleAction(insight)}
-                                disabled={isExecuting}
-                                className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ${
-                                  insight.type === 'price_drop' || insight.type === 'stale' || insight.type === 'bundle' || insight.type === 'ready_to_publish' || insight.type === 'ready_to_list' || insight.type === 'seo_optimization'
-                                    ? `${config.bg} ${config.color} border ${config.border} hover:shadow-sm`
-                                    : `${config.color} hover:underline`
-                                } disabled:opacity-50`}
-                              >
-                                {isExecuting ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <>
-                                    {insight.actionLabel}
-                                    <ChevronRight className="w-3 h-3" />
-                                  </>
-                                )}
-                              </button>
+                            <div className="flex items-center justify-between gap-2">
+                              {isAutoExecutable && (
+                                <button
+                                  onClick={() => handleAction(insight)}
+                                  disabled={isExecuting}
+                                  className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ${config.bg} ${config.color} border ${config.border} hover:shadow-sm disabled:opacity-50`}
+                                >
+                                  {isExecuting ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <>
+                                      {insight.actionLabel}
+                                      <ChevronRight className="w-3 h-3" />
+                                    </>
+                                  )}
+                                </button>
+                              )}
                               <button
                                 onClick={() => handleDismiss(insight)}
                                 className="ml-auto p-1 text-gray-400 hover:text-gray-600 transition-colors"
@@ -817,6 +827,7 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
                   const priority = PRIORITY_BADGE[insight.priority] || PRIORITY_BADGE.low;
                   const Icon = config.icon;
                   const isExecuting = executingAction === insight.title;
+                  const isAutoExecutable = isAutoExecutableInsight(insight.type);
 
                   return (
                     <div
@@ -832,7 +843,7 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${priority.class}`}>
                               {priority.label}
                             </span>
-                            {(insight.type === 'price_drop' || insight.type === 'stale' || insight.type === 'bundle' || insight.type === 'ready_to_publish' || insight.type === 'ready_to_list' || insight.type === 'seo_optimization') && (
+                            {isAutoExecutable && (
                               <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-emerald-100 text-emerald-700">
                                 Action rapide
                               </span>
@@ -855,28 +866,26 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
                           <p className="text-xs text-gray-600 leading-relaxed mb-2">
                             {insight.message}
                           </p>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleAction(insight)}
-                              disabled={isExecuting}
-                              className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ${
-                                insight.type === 'price_drop' || insight.type === 'stale' || insight.type === 'bundle' || insight.type === 'ready_to_publish' || insight.type === 'ready_to_list' || insight.type === 'seo_optimization'
-                                  ? `${config.bg} ${config.color} border ${config.border} hover:shadow-sm`
-                                  : `${config.color} hover:underline`
-                              } disabled:opacity-50`}
-                            >
-                              {isExecuting ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <>
-                                  {insight.actionLabel}
-                                  <ChevronRight className="w-3 h-3" />
-                                </>
-                              )}
-                            </button>
+                          <div className="flex items-center justify-between gap-2">
+                            {isAutoExecutable && (
+                              <button
+                                onClick={() => handleAction(insight)}
+                                disabled={isExecuting}
+                                className={`flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all ${config.bg} ${config.color} border ${config.border} hover:shadow-sm disabled:opacity-50`}
+                              >
+                                {isExecuting ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <>
+                                    {insight.actionLabel}
+                                    <ChevronRight className="w-3 h-3" />
+                                  </>
+                                )}
+                              </button>
+                            )}
                             <button
                               onClick={() => handleDismiss(insight)}
-                              className="text-xs text-gray-400 hover:text-gray-600"
+                              className="ml-auto text-xs text-gray-400 hover:text-gray-600"
                             >
                               Ignorer
                             </button>
