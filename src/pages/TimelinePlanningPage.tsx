@@ -586,9 +586,11 @@ export default function TimelinePlanningPage() {
 
         <div className="bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
-            <div className="inline-block min-w-full">
+            <div className={viewMode === 'month' ? 'w-full' : 'inline-block min-w-full'}>
               <div className="grid" style={{
-                gridTemplateColumns: `minmax(100px, max-content) repeat(${timeSlots.length}, ${viewMode === 'week' ? '140px' : viewMode === 'month' ? '80px' : '200px'})`
+                gridTemplateColumns: viewMode === 'week'
+                  ? `minmax(100px, max-content) repeat(${timeSlots.length}, 140px)`
+                  : `minmax(100px, 150px) repeat(${timeSlots.length}, 1fr)`
               }}>
                 <div className="sticky left-0 bg-gradient-to-r from-slate-50 to-slate-100 border-r-2 border-slate-300 px-3 py-3 font-semibold text-slate-700 z-10 shadow-sm">
                   <div className="flex items-center gap-2">
@@ -703,35 +705,39 @@ export default function TimelinePlanningPage() {
                                       </p>
                                     </div>
                                   ) : (
-                                    <div className="flex items-center gap-1.5">
+                                    <div className="space-y-1.5">
                                       {item.photo && (
                                         <div className="relative">
                                           <img
                                             src={item.photo}
                                             alt={item.title}
-                                            className="w-10 h-10 rounded object-cover flex-shrink-0"
+                                            className="w-full h-20 rounded object-cover"
                                           />
                                           <button
                                             onClick={(e) => handlePublishClick(item, e)}
-                                            className="absolute inset-0 bg-emerald-500/90 hover:bg-emerald-600/90 text-white rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                            className="absolute top-1 right-1 w-6 h-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
                                             title="Publier"
                                           >
                                             <Play className="w-3 h-3 fill-white" />
                                           </button>
                                         </div>
                                       )}
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1 mb-0.5">
+                                      <div className="space-y-1">
+                                        <div className="flex items-center gap-1.5">
                                           {item.type === 'lot' ? (
-                                            <Package className="w-2.5 h-2.5 text-purple-600 flex-shrink-0" />
+                                            <div className="w-4 h-4 bg-purple-100 rounded flex items-center justify-center flex-shrink-0">
+                                              <Package className="w-2.5 h-2.5 text-purple-600" />
+                                            </div>
                                           ) : (
-                                            <Tag className="w-2.5 h-2.5 text-blue-600 flex-shrink-0" />
+                                            <div className="w-4 h-4 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
+                                              <Tag className="w-2.5 h-2.5 text-blue-600" />
+                                            </div>
                                           )}
-                                          <p className="text-[9px] font-bold text-emerald-600">
+                                          <p className="text-[10px] font-bold text-emerald-600">
                                             {item.price.toFixed(2)}€
                                           </p>
                                         </div>
-                                        <p className="text-[9px] font-medium text-slate-700 line-clamp-1 group-hover:text-blue-600">
+                                        <p className="text-[10px] font-medium text-slate-700 line-clamp-2 group-hover:text-blue-600 leading-tight">
                                           {item.title}
                                         </p>
                                       </div>
