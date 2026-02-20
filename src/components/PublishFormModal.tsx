@@ -198,147 +198,13 @@ export function PublishFormModal({ isOpen, onClose, itemId, itemType, onPublishe
           {itemType === 'article' ? (
             // Article Form
             <div className="space-y-4">
-              <div className="bg-white border border-slate-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Titre
-                  </label>
-                  <button
-                    onClick={() => copyToClipboard(item.title, 'Titre')}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    {copiedField === 'Titre' ? (
-                      <CheckCircle className="w-4 h-4" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                    Copier
-                  </button>
-                </div>
-                <p className="text-slate-900 font-medium">{item.title}</p>
-              </div>
-
-              <div className="bg-white border border-slate-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Description
-                  </label>
-                  <button
-                    onClick={() => copyToClipboard(item.description, 'Description')}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                  >
-                    {copiedField === 'Description' ? (
-                      <CheckCircle className="w-4 h-4" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                    Copier
-                  </button>
-                </div>
-                <p className="text-slate-700 whitespace-pre-wrap">{item.description}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Prix
-                  </label>
-                  <p className="text-2xl font-bold text-emerald-600">{item.price} €</p>
-                </div>
-
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    État
-                  </label>
-                  <p className="text-slate-900 font-medium">
-                    {CONDITION_LABELS[item.condition] || item.condition}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-semibold text-slate-700">
-                      Marque
-                    </label>
-                    <button
-                      onClick={() => copyToClipboard(item.brand, 'Marque')}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      {copiedField === 'Marque' ? (
-                        <CheckCircle className="w-4 h-4" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                      Copier
-                    </button>
-                  </div>
-                  <p className="text-slate-900 font-medium">{item.brand}</p>
-                </div>
-
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Taille
-                  </label>
-                  <p className="text-slate-900 font-medium">{item.size}</p>
-                </div>
-              </div>
-
-              {item.color && (
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Couleur
-                  </label>
-                  <p className="text-slate-900 font-medium">{item.color}</p>
-                </div>
-              )}
-
-              {item.material && (
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Matière
-                  </label>
-                  <p className="text-slate-900 font-medium">{item.material}</p>
-                </div>
-              )}
-
-              {item.seo_keywords && item.seo_keywords.length > 0 && (
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-semibold text-slate-700">
-                      Mots-clés SEO
-                    </label>
-                    <button
-                      onClick={() => copyToClipboard(item.seo_keywords.join(', '), 'Mots-clés')}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      {copiedField === 'Mots-clés' ? (
-                        <CheckCircle className="w-4 h-4" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                      Copier
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {item.seo_keywords.map((keyword: string, index: number) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full"
-                      >
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
+              {/* 1. Photos */}
               {item.photos && item.photos.length > 0 && (
                 <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-3">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Photos ({item.photos.length})
                   </label>
+                  <p className="text-xs text-slate-500 mb-3">Téléchargez vos photos dans l'ordre</p>
                   <div className="grid grid-cols-4 gap-2">
                     {item.photos.map((photo: string, index: number) => (
                       <div key={index} className="relative aspect-square rounded-lg overflow-hidden border-2 border-slate-200">
@@ -357,18 +223,19 @@ export function PublishFormModal({ isOpen, onClose, itemId, itemType, onPublishe
                   </div>
                 </div>
               )}
-            </div>
-          ) : (
-            // Lot Form
-            <div className="space-y-4">
+
+              {/* 2. Titre */}
               <div className="bg-white border border-slate-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Titre du lot
-                  </label>
+                  <div className="flex-1">
+                    <label className="block text-sm font-semibold text-slate-700">
+                      Titre
+                    </label>
+                    <p className="text-xs text-slate-500">Le titre de votre article</p>
+                  </div>
                   <button
-                    onClick={() => copyToClipboard(item.name, 'Titre')}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                    onClick={() => copyToClipboard(item.title, 'Titre')}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors ml-4"
                   >
                     {copiedField === 'Titre' ? (
                       <CheckCircle className="w-4 h-4" />
@@ -378,19 +245,46 @@ export function PublishFormModal({ isOpen, onClose, itemId, itemType, onPublishe
                     Copier
                   </button>
                 </div>
-                <p className="text-slate-900 font-medium">{item.name}</p>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm">{item.title}</p>
+                </div>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-lg p-4">
+              {/* 3. Description */}
+              <div className={`rounded-lg border p-4 ${
+                item.seo_keywords && item.seo_keywords.length > 0
+                  ? 'bg-gradient-to-br from-teal-50 to-emerald-50 border-teal-200'
+                  : 'bg-white border-slate-200'
+              }`}>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-semibold text-slate-700">
-                    Description du lot
-                  </label>
+                  <div className="flex-1">
+                    <label className={`block text-sm font-semibold ${
+                      item.seo_keywords && item.seo_keywords.length > 0 ? 'text-teal-900' : 'text-slate-700'
+                    }`}>
+                      {item.seo_keywords && item.seo_keywords.length > 0 ? 'Description pour Vinted' : 'Description'}
+                    </label>
+                    <p className={`text-xs ${
+                      item.seo_keywords && item.seo_keywords.length > 0 ? 'text-teal-600' : 'text-slate-500'
+                    }`}>
+                      {item.seo_keywords && item.seo_keywords.length > 0
+                        ? 'Description avec mots-clés SEO automatiquement ajoutés'
+                        : 'Description détaillée de l\'article'}
+                    </p>
+                  </div>
                   <button
-                    onClick={() => copyToClipboard(item.description, 'Description')}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
+                    onClick={() => {
+                      const descWithSeo = item.seo_keywords && item.seo_keywords.length > 0
+                        ? item.description + (item.description && !item.description.endsWith('\n') ? '\n\n' : '') + item.seo_keywords.join(' • ')
+                        : item.description;
+                      copyToClipboard(descWithSeo, item.seo_keywords && item.seo_keywords.length > 0 ? 'Description pour Vinted' : 'Description');
+                    }}
+                    className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ml-4 ${
+                      item.seo_keywords && item.seo_keywords.length > 0
+                        ? 'bg-teal-100 hover:bg-teal-200 text-teal-700 border border-teal-300'
+                        : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                    }`}
                   >
-                    {copiedField === 'Description' ? (
+                    {copiedField === (item.seo_keywords && item.seo_keywords.length > 0 ? 'Description pour Vinted' : 'Description') ? (
                       <CheckCircle className="w-4 h-4" />
                     ) : (
                       <Copy className="w-4 h-4" />
@@ -398,99 +292,244 @@ export function PublishFormModal({ isOpen, onClose, itemId, itemType, onPublishe
                     Copier
                   </button>
                 </div>
-                <p className="text-slate-700 whitespace-pre-wrap">{item.description}</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Prix du lot
-                  </label>
-                  <p className="text-2xl font-bold text-emerald-600">{item.price} €</p>
-                </div>
-
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Prix d'origine
-                  </label>
-                  <p className="text-lg font-medium text-slate-600 line-through">
-                    {item.original_total_price} €
-                  </p>
-                </div>
-
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
-                    Réduction
-                  </label>
-                  <p className="text-lg font-bold text-orange-600">
-                    -{item.discount_percentage}%
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm whitespace-pre-wrap">
+                    {item.seo_keywords && item.seo_keywords.length > 0
+                      ? item.description + (item.description && !item.description.endsWith('\n') ? '\n\n' : '') + item.seo_keywords.join(' • ')
+                      : item.description}
                   </p>
                 </div>
               </div>
 
-              {item.seo_keywords && item.seo_keywords.length > 0 && (
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
+              {/* 4. Marque */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex-1">
                     <label className="block text-sm font-semibold text-slate-700">
-                      Mots-clés SEO
+                      Marque
                     </label>
-                    <button
-                      onClick={() => copyToClipboard(item.seo_keywords.join(', '), 'Mots-clés')}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                    >
-                      {copiedField === 'Mots-clés' ? (
-                        <CheckCircle className="w-4 h-4" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                      Copier
-                    </button>
+                    <p className="text-xs text-slate-500">La marque du produit</p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {item.seo_keywords.map((keyword: string, index: number) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-700 text-sm font-medium rounded-full"
-                      >
-                        {keyword}
-                      </span>
-                    ))}
-                  </div>
+                  <button
+                    onClick={() => copyToClipboard(item.brand, 'Marque')}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors ml-4"
+                  >
+                    {copiedField === 'Marque' ? (
+                      <CheckCircle className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                    Copier
+                  </button>
                 </div>
-              )}
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm">{item.brand}</p>
+                </div>
+              </div>
 
-              {articles.length > 0 && (
-                <div className="bg-white border border-slate-200 rounded-lg p-4">
-                  <label className="block text-sm font-semibold text-slate-700 mb-3">
-                    Articles inclus ({articles.length})
-                  </label>
-                  <div className="space-y-3">
-                    {articles.map((article: any, index: number) => (
-                      <div
-                        key={article.id}
-                        className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg border border-slate-200"
-                      >
-                        {article.photos && article.photos[0] && (
-                          <img
-                            src={article.photos[0]}
-                            alt={article.title}
-                            className="w-16 h-16 object-cover rounded"
-                          />
-                        )}
-                        <div className="flex-1">
-                          <p className="font-medium text-slate-900">{article.title}</p>
-                          <p className="text-sm text-slate-600">
-                            {article.brand} - Taille {article.size}
-                          </p>
-                          <p className="text-sm font-semibold text-emerald-600">
-                            {article.price} €
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+              {/* 5. Taille */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Taille
+                </label>
+                <p className="text-xs text-slate-500 mb-2">La taille de l'article</p>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm">{item.size}</p>
                 </div>
-              )}
+              </div>
+
+              {/* 6. État */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  État
+                </label>
+                <p className="text-xs text-slate-500 mb-2">L'état du produit</p>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm">
+                    {CONDITION_LABELS[item.condition] || item.condition}
+                  </p>
+                </div>
+              </div>
+
+              {/* 7. Couleur */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Couleur
+                </label>
+                <p className="text-xs text-slate-500 mb-2">Couleur principale</p>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm">{item.color || 'Non définie'}</p>
+                </div>
+              </div>
+
+              {/* 8. Matière */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Matière
+                </label>
+                <p className="text-xs text-slate-500 mb-2">Matière principale</p>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm">{item.material || 'Non définie'}</p>
+                </div>
+              </div>
+
+              {/* 9. Prix */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Prix
+                </label>
+                <p className="text-xs text-slate-500 mb-2">Prix de vente</p>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-2xl font-bold text-emerald-600">{item.price.toFixed(2)} €</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            // Lot Form
+            <div className="space-y-4">
+              {/* 1. Photos */}
+              {(() => {
+                const allPhotos = articles.flatMap((a: any) => a.photos || []);
+                return allPhotos.length > 0 && (
+                  <div className="bg-white border border-slate-200 rounded-lg p-4">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Photos ({allPhotos.length})
+                    </label>
+                    <p className="text-xs text-slate-500 mb-3">Téléchargez toutes les photos des articles dans l'ordre</p>
+                    <div className="grid grid-cols-4 gap-2">
+                      {allPhotos.slice(0, 8).map((photo: string, idx: number) => (
+                        <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-slate-100">
+                          <img
+                            src={photo}
+                            alt={`Photo ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                      {allPhotos.length > 8 && (
+                        <div className="aspect-square rounded-lg bg-slate-200 flex items-center justify-center">
+                          <span className="text-slate-600 font-medium">+{allPhotos.length - 8}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 2. Titre */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex-1">
+                    <label className="block text-sm font-semibold text-slate-700">
+                      Titre
+                    </label>
+                    <p className="text-xs text-slate-500">Le titre de votre lot</p>
+                  </div>
+                  <button
+                    onClick={() => copyToClipboard(item.name, 'Titre')}
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors ml-4"
+                  >
+                    {copiedField === 'Titre' ? (
+                      <CheckCircle className="w-4 h-4" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                    Copier
+                  </button>
+                </div>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm">{item.name}</p>
+                </div>
+              </div>
+
+              {/* 3. Description */}
+              {(() => {
+                const articlesDescription = articles.map((a: any, idx: number) =>
+                  `${idx + 1}. ${a.title} - ${a.brand || 'Sans marque'} - Taille ${a.size || 'N/A'}`
+                ).join('\n');
+                const fullDescription = `${item.description}\n\nArticles inclus dans ce lot :\n${articlesDescription}`;
+                const fullDescriptionWithSeo = item.seo_keywords && item.seo_keywords.length > 0
+                  ? fullDescription + (fullDescription && !fullDescription.endsWith('\n') ? '\n\n' : '') + item.seo_keywords.join(' • ')
+                  : fullDescription;
+
+                return (
+                  <div className={`rounded-lg border p-4 ${
+                    item.seo_keywords && item.seo_keywords.length > 0
+                      ? 'bg-gradient-to-br from-teal-50 to-emerald-50 border-teal-200'
+                      : 'bg-white border-slate-200'
+                  }`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex-1">
+                        <label className={`block text-sm font-semibold ${
+                          item.seo_keywords && item.seo_keywords.length > 0 ? 'text-teal-900' : 'text-slate-700'
+                        }`}>
+                          {item.seo_keywords && item.seo_keywords.length > 0 ? 'Description pour Vinted' : 'Description'}
+                        </label>
+                        <p className={`text-xs ${
+                          item.seo_keywords && item.seo_keywords.length > 0 ? 'text-teal-600' : 'text-slate-500'
+                        }`}>
+                          {item.seo_keywords && item.seo_keywords.length > 0
+                            ? 'Description avec mots-clés SEO automatiquement ajoutés'
+                            : 'Description détaillée du lot avec la liste des articles'}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => copyToClipboard(fullDescriptionWithSeo, item.seo_keywords && item.seo_keywords.length > 0 ? 'Description pour Vinted' : 'Description')}
+                        className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ml-4 ${
+                          item.seo_keywords && item.seo_keywords.length > 0
+                            ? 'bg-teal-100 hover:bg-teal-200 text-teal-700 border border-teal-300'
+                            : 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
+                        }`}
+                      >
+                        {copiedField === (item.seo_keywords && item.seo_keywords.length > 0 ? 'Description pour Vinted' : 'Description') ? (
+                          <CheckCircle className="w-4 h-4" />
+                        ) : (
+                          <Copy className="w-4 h-4" />
+                        )}
+                        Copier
+                      </button>
+                    </div>
+                    <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                      <p className="text-slate-900 font-mono text-sm whitespace-pre-wrap">{fullDescriptionWithSeo}</p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* 4. Prix */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Prix
+                </label>
+                <p className="text-xs text-slate-500 mb-2">Prix du lot</p>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-2xl font-bold text-emerald-600">{item.price.toFixed(2)} €</p>
+                </div>
+              </div>
+
+              {/* 5. Nombre d'articles */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Nombre d'articles
+                </label>
+                <p className="text-xs text-slate-500 mb-2">Nombre total d'articles dans le lot</p>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm">
+                    {articles.length} article{articles.length > 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+
+              {/* 6. Remise */}
+              <div className="bg-white border border-slate-200 rounded-lg p-4">
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Remise
+                </label>
+                <p className="text-xs text-slate-500 mb-2">Pourcentage de remise appliqué</p>
+                <div className="mt-2 p-3 bg-slate-50 rounded border border-slate-200">
+                  <p className="text-slate-900 font-mono text-sm">{item.discount_percentage}%</p>
+                </div>
+              </div>
             </div>
           )}
         </div>
