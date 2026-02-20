@@ -28,6 +28,16 @@ const BOTTOM_CATEGORIES = [
   'jean',
   'short',
   'jupe',
+  'pantalon de randonnée',
+  'pantalon de ski',
+  'pantalon de sport',
+  'pantalon cargo',
+  'pantalon chino',
+  'pantalon tailleur',
+  'bas',
+  'bermuda',
+  'cycliste',
+  'sarouel',
 ];
 
 const TOP_CATEGORIES = [

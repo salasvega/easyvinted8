@@ -614,14 +614,30 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
             confidenceScore: rawResult['QUALITE']?.confidenceScore || rawResult.confidenceScore,
           };
 
+          const newTitle = result.title || prev.title;
+          const newDescription = result.description || prev.description;
+          const newBrand = result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand;
+
+          let newSize = result.size || prev.size;
+          if (!newSize || newSize === 'Non renseignée' || newSize === 'Non renseigné') {
+            const selectedMember = familyMembers.find(m => m.id === prev.seller_id);
+            if (selectedMember) {
+              const sizeType = determineSizeType('', newBrand, `${newTitle} ${newDescription}`);
+              const defaultSize = getSizeFromMember(selectedMember, sizeType);
+              if (defaultSize) {
+                newSize = defaultSize;
+              }
+            }
+          }
+
           setFormData((prev) => ({
             ...prev,
-            title: result.title || prev.title,
-            description: result.description || prev.description,
-            brand: result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand,
+            title: newTitle,
+            description: newDescription,
+            brand: newBrand,
             color: result.color || prev.color,
             material: result.material || prev.material,
-            size: result.size || prev.size,
+            size: newSize,
             price: result.estimatedPrice?.toString() || prev.price,
             condition: result.condition || prev.condition,
             season: result.season || prev.season,
