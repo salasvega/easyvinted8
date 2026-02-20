@@ -41,6 +41,16 @@ export interface PricingInsight {
 const CACHE_DURATION_MINUTES = 30;
 const CACHE_KEY = 'pricing_insights';
 
+function getOptimizationThreshold(price: number): number {
+  if (price < 10) {
+    return 0.20;
+  } else if (price <= 50) {
+    return 0.15;
+  } else {
+    return 0.10;
+  }
+}
+
 function getAI() {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
@@ -64,20 +74,26 @@ function buildPricingAnalysisPrompt(
   userSoldArticles: Article[],
   marketStats: MarketStats[]
 ): string {
-  const articlesData = articles.map(a => ({
-    id: a.id,
-    title: a.title,
-    brand: a.brand,
-    category: a.title.split(' ')[0],
-    condition: a.condition,
-    price: a.price,
-    status: a.status,
-    season: a.season,
-    color: a.color,
-    material: a.material,
-    suggestedMin: a.suggested_price_min,
-    suggestedMax: a.suggested_price_max,
-  }));
+  const articlesData = articles.map(a => {
+    const threshold = getOptimizationThreshold(a.price);
+    const thresholdPercent = Math.round(threshold * 100);
+
+    return {
+      id: a.id,
+      title: a.title,
+      brand: a.brand,
+      category: a.title.split(' ')[0],
+      condition: a.condition,
+      price: a.price,
+      optimizationThreshold: thresholdPercent,
+      status: a.status,
+      season: a.season,
+      color: a.color,
+      material: a.material,
+      suggestedMin: a.suggested_price_min,
+      suggestedMax: a.suggested_price_max,
+    };
+  });
 
   const userSoldData = userSoldArticles.map(a => ({
     brand: a.brand,
@@ -100,8 +116,8 @@ ${JSON.stringify(marketStats, null, 2)}
 🎯 MISSION:
 Identifie 3-5 insights de prix CONCRETS basés sur les DONNÉES RÉELLES DU MARCHÉ:
 
-1. **Sous-évalués** (underpriced): Articles dont le prix est 20%+ sous avgSoldPrice du marché
-2. **Sur-évalués** (overpriced): Articles 20%+ au-dessus de avgSoldPrice du marché
+1. **Sous-évalués** (underpriced): Articles avec un écart significatif sous avgSoldPrice du marché
+2. **Sur-évalués** (overpriced): Articles avec un écart significatif au-dessus de avgSoldPrice du marché
 3. **Prix optimal** (optimal_price): Prix dans la fourchette min-max du marché
 4. **Opportunités de lot** (bundle_opportunity): 3+ articles similaires à grouper
 5. **Prix psychologiques** (psychological_pricing): Ajuster vers prix psychologiques (X9€)
@@ -111,10 +127,23 @@ Identifie 3-5 insights de prix CONCRETS basés sur les DONNÉES RÉELLES DU MARC
 - Compare chaque article à son segment de marché (brand + condition + category)
 - Si pas de données marché pour un article, utilise les suggested_price_min/max
 - Sois PRÉCIS sur les montants (ex: "18€ au lieu de 15€")
+- **SEUIL D'OPTIMISATION SEGMENTÉ** (optimizationThreshold dans chaque article):
+  * Articles < 10€: suggère une optimisation UNIQUEMENT si l'écart est ≥ 20%
+  * Articles 10-50€: suggère une optimisation UNIQUEMENT si l'écart est ≥ 15%
+  * Articles > 50€: suggère une optimisation UNIQUEMENT si l'écart est ≥ 10%
+- NE suggère PAS d'optimisation si l'écart est inférieur au seuil de l'article
 - Priorité HIGH = opportunité >10€ de gain OU >30% d'écart au marché
-- Priorité MEDIUM = opportunité 5-10€ OU 15-30% d'écart
-- Priorité LOW = optimisations <5€ OU <15% d'écart
+- Priorité MEDIUM = opportunité 5-10€ OU écart entre seuil et 30%
+- Priorité LOW = optimisations <5€ OU écart proche du seuil minimum
 - CITE les données de marché dans ton reasoning (ex: "Marché: 27€ moyenne sur 15 ventes")
+
+💡 EXEMPLES DE SEUILS:
+- Article à 8€ avec marché à 9€: écart de 12.5% → PAS de suggestion (< 20%)
+- Article à 8€ avec marché à 11€: écart de 37.5% → Suggestion (≥ 20%)
+- Article à 25€ avec marché à 27€: écart de 8% → PAS de suggestion (< 15%)
+- Article à 25€ avec marché à 30€: écart de 20% → Suggestion (≥ 15%)
+- Article à 60€ avec marché à 65€: écart de 8% → PAS de suggestion (< 10%)
+- Article à 60€ avec marché à 70€: écart de 16.7% → Suggestion (≥ 10%)
 
 📝 FORMAT DE RÉPONSE (JSON strict):
 {
@@ -145,7 +174,7 @@ Identifie 3-5 insights de prix CONCRETS basés sur les DONNÉES RÉELLES DU MARC
   ]
 }
 
-GÉNÈRE MAINTENANT 3-5 INSIGHTS CONCRETS:`;
+GÉNÈRE MAINTENANT 3-5 INSIGHTS CONCRETS (en respectant les seuils d'optimisation):`;
 }
 
 async function generatePricingInsightsWithAI(
@@ -410,4 +439,28 @@ export async function applyPricingSuggestion(
   if (error) {
     throw new Error('Impossible de mettre à jour le prix');
   }
+}
+
+export function calculateOptimizationThreshold(price: number): {
+  threshold: number;
+  thresholdPercent: number;
+  description: string;
+} {
+  const threshold = getOptimizationThreshold(price);
+  const thresholdPercent = Math.round(threshold * 100);
+
+  let description = '';
+  if (price < 10) {
+    description = 'Article < 10€: optimisation suggérée si écart ≥ 20%';
+  } else if (price <= 50) {
+    description = 'Article 10-50€: optimisation suggérée si écart ≥ 15%';
+  } else {
+    description = 'Article > 50€: optimisation suggérée si écart ≥ 10%';
+  }
+
+  return {
+    threshold,
+    thresholdPercent,
+    description,
+  };
 }
