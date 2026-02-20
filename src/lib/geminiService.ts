@@ -962,7 +962,7 @@ ${JSON.stringify(articlesSummary, null, 2)}
 TYPES D'INSIGHTS DISPONIBLES:
 
 🟢 ACTIONS AUTO-EXECUTABLES (prioritaires) :
-1. "ready_to_publish" : Articles brouillons complets (photos, description, prix) prêts à être publiés
+1. "ready_to_publish" : Articles brouillons complets (photos, description, prix) à passer en statut "Prêt" pour maximiser les ventes
 2. "ready_to_list" : Articles qui peuvent passer en statut "prêt"
 3. "price_drop" : Baisser le prix d'articles qui ne se vendent pas
 4. "stale" : Articles publiés depuis longtemps sans vues/ventes
@@ -977,7 +977,9 @@ TYPES D'INSIGHTS DISPONIBLES:
 REGLES:
 - Maximum 5 insights, priorise ACTIONS AUTO-EXECUTABLES
 - Privilégie "ready_to_publish" si brouillons complets trouvés
-- actionLabel doit être un verbe d'action ("Publier maintenant", "Créer le lot", "Baisser de 10%", etc.)
+- Pour "ready_to_publish" : le message doit expliquer que l'action va passer les articles en statut "Prêt" pour être publiés et maximiser les ventes
+- Pour "ready_to_publish" : actionLabel doit être "Passer en Prêt"
+- Pour autres types : actionLabel doit être un verbe d'action ("Créer le lot", "Baisser de 10%", etc.)
 - priority: "high" pour urgent, "medium" pour important, "low" pour conseil simple`;
 
   try {
