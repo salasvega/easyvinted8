@@ -29,6 +29,7 @@ import { Modal } from '../ui/Modal';
 import { ImageEditor } from '../ImageEditor';
 import { ArticleSoldModal } from '../ArticleSoldModal';
 import { determineArticleStatus } from '../../lib/statusHelpers';
+import { determineSizeType, getSizeFromMember } from '../../lib/sizeHelpers';
 import { LabelModal } from '../LabelModal';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -215,11 +216,39 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
     }
   }, [familyMembers, articleId, formData.seller_id]);
 
+  useEffect(() => {
+    if (formData.seller_id && familyMembers.length > 0 && !formData.size) {
+      const selectedMember = familyMembers.find(m => m.id === formData.seller_id);
+      if (selectedMember) {
+        const sizeType = determineSizeType(formData.category, formData.brand, formData.title);
+        const defaultSize = getSizeFromMember(selectedMember, sizeType);
+        if (defaultSize) {
+          setFormData(prev => ({ ...prev, size: defaultSize }));
+        }
+      }
+    }
+  }, [formData.seller_id, formData.category, formData.brand, formData.title, familyMembers, formData.size]);
+
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
       onClose();
     }, 50);
+  };
+
+  const handleSellerChange = (sellerId: string | null) => {
+    setFormData(prev => ({ ...prev, seller_id: sellerId }));
+
+    if (sellerId && familyMembers.length > 0) {
+      const selectedMember = familyMembers.find(m => m.id === sellerId);
+      if (selectedMember) {
+        const sizeType = determineSizeType(formData.category, formData.brand, formData.title);
+        const defaultSize = getSizeFromMember(selectedMember, sizeType);
+        if (defaultSize && !formData.size) {
+          setFormData(prev => ({ ...prev, size: defaultSize }));
+        }
+      }
+    }
   };
 
   const resetForm = () => {
@@ -1333,7 +1362,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                               </p>
                               <select
                                 value={formData.seller_id || ''}
-                                onChange={(e) => setFormData({ ...formData, seller_id: e.target.value || null })}
+                                onChange={(e) => handleSellerChange(e.target.value || null)}
                                 className="w-full text-sm font-medium text-slate-900 bg-white border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 px-3 py-2"
                               >
                                 <option value="">Sélectionner un vendeur</option>
