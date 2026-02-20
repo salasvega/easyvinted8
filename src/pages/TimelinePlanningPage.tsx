@@ -10,7 +10,7 @@ import { FamilyMember } from '../services/settings';
 import { AdminDetailDrawer } from '../components/admin/AdminDetailDrawer';
 import { PublishFormModal } from '../components/PublishFormModal';
 
-type ViewMode = 'week' | 'month';
+type ViewMode = 'week' | 'month' | 'year';
 
 type TimelineItem = {
   id: string;
@@ -139,9 +139,16 @@ export default function TimelinePlanningPage() {
       end.setHours(23, 59, 59, 999);
 
       return { start, end };
-    } else {
+    } else if (viewMode === 'month') {
       start.setDate(1);
       const end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    } else {
+      // year mode
+      start.setMonth(0);
+      start.setDate(1);
+      const end = new Date(start.getFullYear(), 11, 31);
       end.setHours(23, 59, 59, 999);
       return { start, end };
     }
@@ -157,13 +164,19 @@ export default function TimelinePlanningPage() {
         slots.push(new Date(current));
         current.setDate(current.getDate() + 1);
       }
-    } else {
+    } else if (viewMode === 'month') {
       const daysInMonth = end.getDate();
       const weeksToShow = Math.ceil(daysInMonth / 7);
       for (let week = 0; week < weeksToShow; week++) {
         const weekStart = new Date(start);
         weekStart.setDate(1 + week * 7);
         slots.push(weekStart);
+      }
+    } else {
+      // year mode - generate 12 months
+      for (let month = 0; month < 12; month++) {
+        const monthDate = new Date(start.getFullYear(), month, 1);
+        slots.push(monthDate);
       }
     }
 
@@ -174,8 +187,11 @@ export default function TimelinePlanningPage() {
     const newDate = new Date(currentDate);
     if (viewMode === 'week') {
       newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7));
-    } else {
+    } else if (viewMode === 'month') {
       newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1));
+    } else {
+      // year mode
+      newDate.setFullYear(newDate.getFullYear() + (direction === 'next' ? 1 : -1));
     }
     setCurrentDate(newDate);
   };
@@ -234,9 +250,14 @@ export default function TimelinePlanningPage() {
         day: 'numeric',
         month: 'short'
       }).format(date);
-    } else {
+    } else if (viewMode === 'month') {
       const weekNum = Math.ceil(date.getDate() / 7);
       return `S${weekNum}`;
+    } else {
+      // year mode - show month name
+      return new Intl.DateTimeFormat('fr-FR', {
+        month: 'short'
+      }).format(date);
     }
   };
 
@@ -247,8 +268,13 @@ export default function TimelinePlanningPage() {
 
     if (viewMode === 'week') {
       dateEnd.setHours(23, 59, 59, 999);
-    } else {
+    } else if (viewMode === 'month') {
       dateEnd.setDate(dateEnd.getDate() + 6);
+      dateEnd.setHours(23, 59, 59, 999);
+    } else {
+      // year mode - get all items for the month
+      dateEnd.setMonth(dateEnd.getMonth() + 1);
+      dateEnd.setDate(0);
       dateEnd.setHours(23, 59, 59, 999);
     }
 
@@ -491,6 +517,16 @@ export default function TimelinePlanningPage() {
                 >
                   Mois
                 </button>
+                <button
+                  onClick={() => setViewMode('year')}
+                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                    viewMode === 'year'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  Année
+                </button>
               </div>
             </div>
           </div>
@@ -507,7 +543,9 @@ export default function TimelinePlanningPage() {
               <h2 className="text-lg font-semibold text-slate-900">
                 {viewMode === 'week'
                   ? `${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' }).format(start)} - ${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(end)}`
-                  : new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(currentDate)
+                  : viewMode === 'month'
+                  ? new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(currentDate)
+                  : currentDate.getFullYear().toString()
                 }
               </h2>
               <button
@@ -586,7 +624,7 @@ export default function TimelinePlanningPage() {
 
         <div className="bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-slate-100">
-            <div className={viewMode === 'month' ? 'w-full' : 'inline-block min-w-full'}>
+            <div className={viewMode === 'week' ? 'inline-block min-w-full' : 'w-full'}>
               <div className="grid" style={{
                 gridTemplateColumns: viewMode === 'week'
                   ? `minmax(100px, max-content) repeat(${timeSlots.length}, 140px)`
@@ -668,7 +706,41 @@ export default function TimelinePlanningPage() {
                                   onClick={() => handleItemClick(item)}
                                   className="bg-white border border-slate-200 rounded-lg p-1.5 cursor-move hover:shadow-lg hover:scale-[1.02] hover:border-blue-400 transition-all duration-200 group relative"
                                 >
-                                  {viewMode === 'week' ? (
+                                  {viewMode === 'year' ? (
+                                    <div className="flex items-center gap-1.5">
+                                      {item.photo && (
+                                        <div className="relative">
+                                          <img
+                                            src={item.photo}
+                                            alt={item.title}
+                                            className="w-10 h-10 rounded object-cover flex-shrink-0"
+                                          />
+                                          <button
+                                            onClick={(e) => handlePublishClick(item, e)}
+                                            className="absolute inset-0 bg-emerald-500/90 hover:bg-emerald-600/90 text-white rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                            title="Publier"
+                                          >
+                                            <Play className="w-3 h-3 fill-white" />
+                                          </button>
+                                        </div>
+                                      )}
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1 mb-0.5">
+                                          {item.type === 'lot' ? (
+                                            <Package className="w-2.5 h-2.5 text-purple-600 flex-shrink-0" />
+                                          ) : (
+                                            <Tag className="w-2.5 h-2.5 text-blue-600 flex-shrink-0" />
+                                          )}
+                                          <p className="text-[9px] font-bold text-emerald-600">
+                                            {item.price.toFixed(2)}€
+                                          </p>
+                                        </div>
+                                        <p className="text-[9px] font-medium text-slate-700 line-clamp-1 group-hover:text-blue-600">
+                                          {item.title}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ) : viewMode === 'week' ? (
                                     <div className="space-y-1">
                                       {item.photo && (
                                         <div className="relative">
