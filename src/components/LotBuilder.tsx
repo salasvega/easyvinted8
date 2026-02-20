@@ -28,6 +28,7 @@ import { Article, Season } from '../types/article';
 import { LotStatus } from '../types/lot';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { generateLotTitleAndDescription } from '../lib/lotAnalysisService';
+import { determineLotStatus } from '../lib/statusHelpers';
 
 import { Card, Pill, IconButton } from './ui/UiKit';
 import { ShippingSimulator } from './tools/ShippingSimulator';
@@ -566,6 +567,17 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
 
       const reference_number = existingLotId ? undefined : await generateLotReferenceNumber();
 
+      const lotDataForValidation = {
+        name: lotData.name.trim(),
+        description: lotData.description?.trim() || null,
+        season: lotData.season || null,
+        category_id: lotData.category_id || null,
+        price: lotData.price,
+        photos: (lotData.photos || []).slice(0, 5),
+      };
+
+      const autoStatus = statusOverride ?? determineLotStatus(lotDataForValidation, lotData.status);
+
       const payload: any = {
         user_id: uid,
         name: lotData.name.trim(),
@@ -577,7 +589,7 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
         discount_percentage,
         cover_photo: lotData.cover_photo || lotData.photos?.[0],
         photos: (lotData.photos || []).slice(0, 5),
-        status: statusOverride ?? lotData.status,
+        status: autoStatus,
         seller_id: lotData.seller_id,
         scheduled_for: lotData.scheduled_for ?? null,
         seo_keywords: lotData.seo_keywords || null,

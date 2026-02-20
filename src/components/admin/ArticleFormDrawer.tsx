@@ -28,6 +28,7 @@ import { ConfirmModal } from '../ui/ConfirmModal';
 import { Modal } from '../ui/Modal';
 import { ImageEditor } from '../ImageEditor';
 import { ArticleSoldModal } from '../ArticleSoldModal';
+import { determineArticleStatus } from '../../lib/statusHelpers';
 import { LabelModal } from '../LabelModal';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -717,6 +718,18 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
         formData.reference_number ||
         `REF-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
 
+      const articleDataForValidation = {
+        title: formData.title,
+        description: formData.description,
+        brand: formData.brand,
+        size: formData.size,
+        condition: formData.condition,
+        price: parseFloat(formData.price),
+        photos: finalPhotoUrls,
+      };
+
+      const autoStatus = determineArticleStatus(articleDataForValidation, articleStatus);
+
       const articleData = {
         title: formData.title,
         description: formData.description,
@@ -746,7 +759,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
         search_terms: formData.search_terms,
         ai_confidence_score: formData.ai_confidence_score,
         user_id: user.id,
-        status: 'draft' as ArticleStatus,
+        status: autoStatus,
         updated_at: new Date().toISOString(),
       };
 
