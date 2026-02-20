@@ -208,7 +208,7 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
         }
       }
 
-      const [articlesResult, soldResult] = await Promise.all([
+      const [articlesResult, soldResult, lotItemsResult] = await Promise.all([
         supabase
           .from('articles')
           .select('*')
@@ -219,10 +219,16 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
           .select('*')
           .eq('user_id', user.id)
           .eq('status', 'sold'),
+        supabase
+          .from('lot_items')
+          .select('article_id')
       ]);
 
       if (articlesResult.error) throw articlesResult.error;
       if (soldResult.error) throw soldResult.error;
+      if (lotItemsResult.error) throw lotItemsResult.error;
+
+      const articlesInLots = new Set((lotItemsResult.data || []).map(item => item.article_id));
 
       const currentMonth = new Date().getMonth() + 1;
       const generatedInsights = await generateProactiveInsights(
@@ -249,9 +255,21 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
         })
       );
 
-      await saveCachedInsights(enrichedInsights);
+      // Filter out bundle suggestions with articles already in lots
+      const filteredInsights = enrichedInsights.filter(insight => {
+        if (insight.type === 'bundle' && insight.articleIds) {
+          const hasArticlesInLots = insight.articleIds.some(id => articlesInLots.has(id));
+          if (hasArticlesInLots) {
+            console.log('[Kelly Bundle Filter] Filtering out bundle suggestion with articles already in lots:', insight.articleIds);
+            return false;
+          }
+        }
+        return true;
+      });
 
-      setInsights(enrichedInsights.filter(i => !dismissed.has(i.title)));
+      await saveCachedInsights(filteredInsights);
+
+      setInsights(filteredInsights.filter(i => !dismissed.has(i.title)));
       setLastRefresh(new Date());
     } catch (error) {
       console.error('Error loading insights:', error);
@@ -449,6 +467,36 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
           }
 
           console.log('[Kelly Bundle] Loaded articles:', fullArticles);
+
+          // Check if articles are already in a lot
+          const { data: existingLotItems, error: lotItemsError } = await supabase
+            .from('lot_items')
+            .select('article_id, lot_id')
+            .in('article_id', insight.articleIds);
+
+          if (lotItemsError) {
+            console.error('[Kelly Bundle] Error checking existing lots:', lotItemsError);
+            setToast({
+              type: 'error',
+              text: 'Erreur lors de la vérification des articles.'
+            });
+            break;
+          }
+
+          if (existingLotItems && existingLotItems.length > 0) {
+            console.error('[Kelly Bundle] Articles already in lots:', existingLotItems);
+            const articleNames = fullArticles
+              .filter(a => existingLotItems.some(item => item.article_id === a.id))
+              .map(a => a.title)
+              .join(', ');
+            setToast({
+              type: 'error',
+              text: `Ces articles sont déjà dans un lot : ${articleNames}. Retirez-les d'abord de leur lot actuel.`
+            });
+            break;
+          }
+
+          console.log('[Kelly Bundle] Articles are available for bundling');
 
           const { data: userProfile } = await supabase
             .from('user_profiles')
