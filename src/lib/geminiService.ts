@@ -815,7 +815,9 @@ export interface ProactiveInsight {
     | "incomplete"
     | "opportunity"
     | "bundle"
-    | "seo_optimization";
+    | "seo_optimization"
+    | "ready_to_publish"
+    | "ready_to_list";
   priority: "high" | "medium" | "low";
   title: string;
   message: string;
@@ -957,8 +959,26 @@ CONTEXTE:
 ARTICLES:
 ${JSON.stringify(articlesSummary, null, 2)}
 
+TYPES D'INSIGHTS DISPONIBLES:
+
+🟢 ACTIONS AUTO-EXECUTABLES (prioritaires) :
+1. "ready_to_publish" : Articles brouillons complets (photos, description, prix) prêts à être publiés
+2. "ready_to_list" : Articles qui peuvent passer en statut "prêt"
+3. "price_drop" : Baisser le prix d'articles qui ne se vendent pas
+4. "stale" : Articles publiés depuis longtemps sans vues/ventes
+5. "bundle" : Créer un lot avec plusieurs articles similaires
+6. "seo_optimization" : Optimiser mots-clés/hashtags/termes de recherche
+
+🟡 CONSEILS (non auto-exécutables) :
+1. "seasonal" : Articles à mettre en avant selon la saison
+2. "incomplete" : Articles sans photos/description/infos manquantes
+3. "opportunity" : Opportunités de vente basées sur les tendances
+
 REGLES:
-- Maximum 5 insights, priorise fort impact.`;
+- Maximum 5 insights, priorise ACTIONS AUTO-EXECUTABLES
+- Privilégie "ready_to_publish" si brouillons complets trouvés
+- actionLabel doit être un verbe d'action ("Publier maintenant", "Créer le lot", "Baisser de 10%", etc.)
+- priority: "high" pour urgent, "medium" pour important, "low" pour conseil simple`;
 
   try {
     const response = await getAI().models.generateContent({
