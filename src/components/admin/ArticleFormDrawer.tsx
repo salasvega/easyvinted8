@@ -1228,7 +1228,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                 </div>
 
                 {/* Miniatures - Bande horizontale scrollable (x5) */}
-                {formData.photos.length > 1 && (
+                {formData.photos.length > 0 && (
                   <div className="flex gap-2 overflow-x-auto p-3 bg-slate-50 border-b border-slate-200">
                     {formData.photos.map((photo, index) => (
                       <div
