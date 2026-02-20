@@ -24,7 +24,8 @@ export function ToPublishPage() {
   const [items, setItems] = useState<PublishableItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [daysFilter, setDaysFilter] = useState(7);
-  const [selectedItem, setSelectedItem] = useState<PublishableItem | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [selectedItemType, setSelectedItemType] = useState<'article' | 'lot' | null>(null);
   const [showPublishModal, setShowPublishModal] = useState(false);
 
   useEffect(() => {
@@ -124,13 +125,15 @@ export function ToPublishPage() {
   }
 
   const handlePublish = (item: PublishableItem) => {
-    setSelectedItem(item);
+    setSelectedItemId(item.id);
+    setSelectedItemType(item.type);
     setShowPublishModal(true);
   };
 
   const handleModalClose = () => {
     setShowPublishModal(false);
-    setSelectedItem(null);
+    setSelectedItemId(null);
+    setSelectedItemType(null);
     loadItems();
   };
 
@@ -322,12 +325,13 @@ export function ToPublishPage() {
       )}
 
       {/* Publish Modal */}
-      {showPublishModal && selectedItem && (
+      {showPublishModal && selectedItemId && selectedItemType && (
         <PublishFormModal
-          item={selectedItem.data}
-          itemType={selectedItem.type}
+          isOpen={showPublishModal}
+          itemId={selectedItemId}
+          itemType={selectedItemType}
           onClose={handleModalClose}
-          articles={selectedItem.type === 'lot' ? (selectedItem.data as any).articles : undefined}
+          onPublished={handleModalClose}
         />
       )}
     </div>
