@@ -76,8 +76,23 @@ export default function TimelinePlanningPage() {
 
       if (articles) {
         articles.forEach((article: Article) => {
-          // Ignorer les articles sans vendeur assigné
           if (!article.seller_id) return;
+
+          const scheduledFor = new Date(article.scheduled_for!);
+          const daysUntilPublication = Math.ceil((scheduledFor.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+          if (daysUntilPublication < -7) {
+            console.log(`🚫 Article filtré (planification expirée): ${article.title} (${daysUntilPublication} jours)`);
+            return;
+          }
+
+          if (article.season) {
+            const seasonalUrgency = getSeasonalUrgency(article.season);
+            if (seasonalUrgency < 30 && daysUntilPublication > 30) {
+              console.log(`🚫 Article filtré (hors saison): ${article.title} (urgence: ${seasonalUrgency})`);
+              return;
+            }
+          }
 
           timelineItems.push({
             id: article.id,
@@ -85,7 +100,7 @@ export default function TimelinePlanningPage() {
             title: article.title,
             price: article.price,
             photo: article.photos?.[0] || null,
-            scheduledFor: new Date(article.scheduled_for!),
+            scheduledFor,
             sellerId: article.seller_id,
             status: article.status,
             referenceNumber: article.reference_number
@@ -95,8 +110,23 @@ export default function TimelinePlanningPage() {
 
       if (lots) {
         lots.forEach((lot: Lot) => {
-          // Ignorer les lots sans vendeur assigné
           if (!lot.seller_id) return;
+
+          const scheduledFor = new Date(lot.scheduled_for!);
+          const daysUntilPublication = Math.ceil((scheduledFor.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+          if (daysUntilPublication < -7) {
+            console.log(`🚫 Lot filtré (planification expirée): ${lot.name} (${daysUntilPublication} jours)`);
+            return;
+          }
+
+          if (lot.season) {
+            const seasonalUrgency = getSeasonalUrgency(lot.season);
+            if (seasonalUrgency < 30 && daysUntilPublication > 30) {
+              console.log(`🚫 Lot filtré (hors saison): ${lot.name} (urgence: ${seasonalUrgency})`);
+              return;
+            }
+          }
 
           timelineItems.push({
             id: lot.id,
@@ -104,7 +134,7 @@ export default function TimelinePlanningPage() {
             title: lot.name,
             price: lot.price,
             photo: lot.cover_photo || lot.photos?.[0] || null,
-            scheduledFor: new Date(lot.scheduled_for!),
+            scheduledFor,
             sellerId: lot.seller_id,
             status: lot.status,
             referenceNumber: lot.reference_number
@@ -119,6 +149,37 @@ export default function TimelinePlanningPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getSeasonalUrgency = (season: string | undefined): number => {
+    const currentMonth = new Date().getMonth();
+
+    const seasonalMonths: Record<string, number[]> = {
+      'Printemps': [2, 3, 4],
+      'Été': [5, 6, 7],
+      'Automne': [8, 9, 10],
+      'Hiver': [11, 0, 1],
+    };
+
+    if (!season || season === 'Toutes saisons') return 50;
+
+    const months = seasonalMonths[season] || [];
+
+    if (months.includes(currentMonth)) {
+      return 90;
+    }
+
+    const nextMonthMatch = months.includes((currentMonth + 1) % 12);
+    if (nextMonthMatch) {
+      return 70;
+    }
+
+    const prevMonthMatch = months.includes((currentMonth - 1 + 12) % 12);
+    if (prevMonthMatch) {
+      return 40;
+    }
+
+    return 20;
   };
 
   useEffect(() => {
@@ -564,23 +625,26 @@ export default function TimelinePlanningPage() {
             </button>
           </div>
 
-          <div className="mt-4 bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <Filter className="w-4 h-4 text-blue-600" />
+          <div className="mt-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm border-2 border-blue-200 p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2.5 bg-blue-600 rounded-xl shadow-lg">
+                <Filter className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-slate-900">Filtrer par vendeur</h3>
-                <p className="text-xs text-slate-500">
-                  {selectedSellers.length === allSellers.length
-                    ? `${allSellers.length} vendeur${allSellers.length > 1 ? 's' : ''}`
-                    : `${selectedSellers.length} vendeur${selectedSellers.length > 1 ? 's' : ''} sélectionné${selectedSellers.length > 1 ? 's' : ''}`}
+                <h3 className="font-bold text-slate-900 text-lg">Filtrer par vendeur</h3>
+                <p className="text-sm text-slate-600 flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-blue-200 text-blue-800 rounded-full text-xs font-semibold">
+                    {selectedSellers.length === allSellers.length
+                      ? `${allSellers.length} vendeur${allSellers.length > 1 ? 's' : ''}`
+                      : `${selectedSellers.length}/${allSellers.length} sélectionné${selectedSellers.length > 1 ? 's' : ''}`}
+                  </span>
+                  • Planning optimisé pour la saison actuelle
                 </p>
               </div>
               {selectedSellers.length < allSellers.length && (
                 <button
                   onClick={() => setSelectedSellers(allSellers.map(s => s.id))}
-                  className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+                  className="text-sm font-semibold text-blue-700 hover:text-blue-800 hover:bg-blue-200/60 px-4 py-2 rounded-xl transition-all shadow-sm hover:shadow-md"
                 >
                   Tout sélectionner
                 </button>
@@ -838,21 +902,31 @@ export default function TimelinePlanningPage() {
           </div>
         </div>
 
-        <div className="mt-6 bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+        <div className="mt-6 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl shadow-lg border-2 border-slate-300 p-5">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-600 rounded"></div>
-                <span className="text-sm text-slate-600">Articles</span>
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-2.5">
+                <div className="w-5 h-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm"></div>
+                <span className="text-sm font-semibold text-slate-700">Articles</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-purple-600 rounded"></div>
-                <span className="text-sm text-slate-600">Lots</span>
+              <div className="flex items-center gap-2.5">
+                <div className="w-5 h-5 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-sm"></div>
+                <span className="text-sm font-semibold text-slate-700">Lots</span>
               </div>
             </div>
-            <div className="text-sm text-slate-600">
-              <span className="font-semibold">{items.length}</span> items planifiés
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl shadow-md">
+                <Calendar className="w-4 h-4" />
+                <span className="text-sm font-bold">{items.length}</span>
+                <span className="text-sm">items planifiés</span>
+              </div>
             </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-slate-300">
+            <p className="text-xs text-slate-600 flex items-center gap-2">
+              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+              Les planifications hors saison ou expirées sont automatiquement filtrées
+            </p>
           </div>
         </div>
       </div>
