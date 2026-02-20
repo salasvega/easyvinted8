@@ -72,12 +72,68 @@ interface UserHistory {
 const CACHE_DURATION_HOURS = 6;
 const CACHE_KEY = 'planning_insights';
 
+const STALE_INVENTORY_THRESHOLD_DAYS = 45;
+const MIN_PRICE_ADJUSTMENT_THRESHOLD = 0.15;
+const MIN_GAIN_FOR_SUGGESTION_EUR = 3;
+const MIN_TIME_WINDOW_FOR_URGENCY_DAYS = 7;
+const MIN_ARTICLES_FOR_BUNDLE = 3;
+
 function getAI() {
   const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error('VITE_GEMINI_API_KEY is not configured');
   }
   return new GoogleGenAI({ apiKey });
+}
+
+function shouldSuggestPriceAdjustment(currentPrice: number, suggestedPrice: number): boolean {
+  const diff = Math.abs(suggestedPrice - currentPrice);
+  const percentChange = diff / currentPrice;
+
+  if (diff < MIN_GAIN_FOR_SUGGESTION_EUR) {
+    return false;
+  }
+
+  if (currentPrice < 10 && percentChange < 0.20) {
+    return false;
+  } else if (currentPrice <= 50 && percentChange < 0.15) {
+    return false;
+  } else if (currentPrice > 50 && percentChange < 0.10) {
+    return false;
+  }
+
+  return true;
+}
+
+function getSeasonalUrgency(season: string | undefined): number {
+  const currentMonth = new Date().getMonth();
+
+  const seasonalMonths: Record<string, number[]> = {
+    'Printemps': [2, 3, 4],
+    'Été': [5, 6, 7],
+    'Automne': [8, 9, 10],
+    'Hiver': [11, 0, 1],
+  };
+
+  if (!season || season === 'Toutes saisons') return 50;
+
+  const months = seasonalMonths[season] || [];
+
+  if (months.includes(currentMonth)) {
+    return 90;
+  }
+
+  const nextMonthMatch = months.includes((currentMonth + 1) % 12);
+  if (nextMonthMatch) {
+    return 70;
+  }
+
+  const prevMonthMatch = months.includes((currentMonth - 1 + 12) % 12);
+  if (prevMonthMatch) {
+    return 40;
+  }
+
+  return 20;
 }
 
 function calculateDaysInInventory(createdAt: string): number {
@@ -145,19 +201,27 @@ function buildPlanningAnalysisPrompt(
   userHistory: UserHistory,
   currentDate: string
 ): string {
-  const articlesData = readyArticles.map(a => ({
-    id: a.id,
-    title: a.title,
-    brand: a.brand,
-    category: a.category,
-    season: a.season,
-    price: a.price,
-    color: a.color,
-    material: a.material,
-    condition: a.condition,
-    daysInInventory: calculateDaysInInventory(a.created_at),
-    hasPhotos: a.photos && a.photos.length > 0,
-  }));
+  const articlesData = readyArticles.map(a => {
+    const daysInInventory = calculateDaysInInventory(a.created_at);
+    const seasonalUrgency = getSeasonalUrgency(a.season);
+
+    return {
+      id: a.id,
+      title: a.title,
+      brand: a.brand,
+      category: a.category,
+      season: a.season,
+      price: a.price,
+      color: a.color,
+      material: a.material,
+      condition: a.condition,
+      daysInInventory,
+      seasonalUrgency,
+      isStale: daysInInventory >= STALE_INVENTORY_THRESHOLD_DAYS,
+      hasPhotos: a.photos && a.photos.length > 0,
+      minPriceAdjustmentThreshold: MIN_PRICE_ADJUSTMENT_THRESHOLD * 100,
+    };
+  });
 
   const lotsData = readyLots.map(l => ({
     id: l.id,
@@ -167,9 +231,10 @@ function buildPlanningAnalysisPrompt(
     category: l.category,
     season: l.season,
     daysInInventory: calculateDaysInInventory(l.created_at),
+    seasonalUrgency: getSeasonalUrgency(l.season),
   }));
 
-  return `Tu es Kelly, stratège de vente Vinted. Analyse le timing optimal de publication.
+  return `Tu es Kelly, stratège de vente Vinted. Analyse le timing optimal de publication avec des critères de HAUTE PERTINENCE.
 
 📅 DATE ACTUELLE: ${currentDate}
 
@@ -185,31 +250,52 @@ ${JSON.stringify(lotsData, null, 2)}
 - Taux de conversion par saison: ${JSON.stringify(userHistory.seasonalConversion)}
 - Performance par catégorie: ${JSON.stringify(userHistory.categoryPerformance)}
 
-🎯 ANALYSE DEMANDÉE:
+🎯 CRITÈRES DE PERTINENCE (OBLIGATOIRES):
 
-1. **OPPORTUNITÉS URGENTES** (fenêtre < 7 jours):
-   - Pics saisonniers immédiats
-   - Événements à venir (rentrée, fêtes, vacances)
-   - Articles qui correspondent à une demande actuelle forte
+1. **SEUILS D'IMPACT MINIMUM**:
+   - NE suggère un ajustement de prix QUE si le gain est ≥ 3€
+   - NE suggère un ajustement QUE si l'écart est ≥ 15% du prix actuel
+   - Articles < 10€: ajustement UNIQUEMENT si écart ≥ 20%
+   - Articles 10-50€: ajustement UNIQUEMENT si écart ≥ 15%
+   - Articles > 50€: ajustement UNIQUEMENT si écart ≥ 10%
 
-2. **ARTICLES DORMANTS** (> 30 jours):
-   - Suggérer ajustement prix ou bundling
-   - Identifier pourquoi ils ne se vendent pas
+2. **URGENCE SAISONNIÈRE** (utilise le champ seasonalUrgency de chaque article):
+   - 90+: Saison en cours, opportunité CRITIQUE
+   - 70-89: Saison proche (sous 1 mois), URGENT
+   - 40-69: Fin de saison, publication RAPIDE conseillée
+   - 20-39: Hors saison, ATTENDRE la bonne période
+   - ÉVITE les suggestions "publie dans 3 mois" - préfère "attends la saison"
 
-3. **TIMING OPTIMAL**:
-   - Meilleur jour de la semaine selon historique
-   - Meilleure saison pour chaque article
-   - Fenêtres d'opportunité par catégorie
+3. **ARTICLES DORMANTS** (isStale = true, ≥ ${STALE_INVENTORY_THRESHOLD_DAYS} jours):
+   - Suggère UNIQUEMENT si ajustement significatif (≥ 3€ ET ≥ 15%)
+   - OU si opportunité de lot avec ≥ ${MIN_ARTICLES_FOR_BUNDLE} articles similaires
+   - Sinon, NE PAS suggérer (évite fatigue décisionnelle)
 
 4. **SUGGESTIONS DE LOTS**:
-   - Regrouper articles complémentaires
-   - Créer valeur ajoutée
+   - MINIMUM ${MIN_ARTICLES_FOR_BUNDLE} articles similaires requis
+   - Économie pour l'acheteur ≥ 15% vs achat séparé
+   - Articles complémentaires (même taille, saison, style)
 
-5. **PRIORISATION**:
-   urgent: publier dans les 48h
-   high: publier cette semaine
-   medium: publier dans 2-3 semaines
-   low: attendre meilleure période
+5. **FENÊTRES TEMPORELLES RÉALISTES**:
+   - timeWindowDays ≤ ${MIN_TIME_WINDOW_FOR_URGENCY_DAYS} = priorité "urgent"
+   - timeWindowDays 8-14 = priorité "high"
+   - timeWindowDays 15-30 = priorité "medium"
+   - timeWindowDays > 30 = attendre, pas de suggestion OU "hold_for_season"
+
+6. **PRIORISATION INTELLIGENTE**:
+   urgent: Opportunité critique dans les 48h (pic saisonnier, événement imminent)
+   high: Publier cette semaine (bonne période, historique positif)
+   medium: Publier dans 2-3 semaines (période acceptable mais pas optimale)
+   low: ÉVITER ce niveau - suggère plutôt d'attendre avec "hold_for_season"
+
+⚠️ RÈGLES DE FILTRAGE STRICTES:
+
+- **NE suggère PAS** d'ajustement de prix < 3€ de gain
+- **NE suggère PAS** de publier des articles hors saison (seasonalUrgency < 40)
+- **NE suggère PAS** de lots avec < ${MIN_ARTICLES_FOR_BUNDLE} articles
+- **NE suggère PAS** d'actions vagues ("optimise", "révise") sans montant précis
+- **LIMITE à 5-7 insights maximum** (les plus impactants uniquement)
+- **Chaque insight doit avoir un impact ≥ 5€ de gain potentiel OU une urgence temporelle ≤ 7 jours**
 
 📝 FORMAT DE RÉPONSE (JSON strict):
 
@@ -265,26 +351,76 @@ ${JSON.stringify(lotsData, null, 2)}
   ]
 }
 
+💡 EXEMPLES DE SUGGESTIONS VALIDES:
+
+✅ VALIDE: "Robe d'été à 25€ alors que le marché est à 32€ (+7€, +28%). Saison en cours (seasonalUrgency: 90). Publie MAINTENANT."
+✅ VALIDE: "3 t-shirts Nike identiques (tailles M/L/XL) = opportunité de lot à 35€ au lieu de 45€ séparés. Économie de 22%."
+✅ VALIDE: "Manteau d'hiver dort depuis 60 jours à 45€. Baisse à 35€ (-22%, -10€) pour débloquer la vente."
+
+❌ INVALIDE: "Optimise le prix" (trop vague, pas de montant)
+❌ INVALIDE: "T-shirt à 8€ → 9€" (gain de 1€ seulement, < 3€)
+❌ INVALIDE: "Publie cette doudoune en juillet" (hors saison, seasonalUrgency < 40)
+❌ INVALIDE: "Crée un lot avec 2 articles" (< ${MIN_ARTICLES_FOR_BUNDLE} articles requis)
+
 IMPORTANT:
-- Sois spécifique et actionnable
-- Base-toi sur la date actuelle pour la saisonnalité
-- Priorise les opportunités à fort impact
-- Limite à 10 insights maximum
-- Chaque insight doit avoir une action claire
+- Sois ULTRA-SPÉCIFIQUE et actionnable avec montants exacts
+- Base-toi sur la date actuelle ET seasonalUrgency pour la pertinence
+- Priorise UNIQUEMENT les opportunités à fort impact (≥ 5€ OU urgence ≤ 7j)
+- LIMITE à 5-7 insights maximum (qualité > quantité)
+- Chaque insight doit justifier son existence avec des chiffres concrets
 
 ⚠️ TYPES D'ACTION AUTORISÉS (utilise UNIQUEMENT ces types):
-- "publish_now": pour publication immédiate (48h)
-- "schedule": pour planifier à une date précise
-- "publish_later": pour publication dans quelques semaines
-- "bundle_first": créer un lot avant de publier
-- "adjust_price": ajuster le prix d'un article
-- "edit_and_publish": modifier l'article puis planifier
-- "hold_for_season": attendre la bonne saison
-- "wait": pas d'action recommandée pour le moment
+- "publish_now": publication immédiate (48h) - UNIQUEMENT si seasonalUrgency ≥ 70 OU timeWindow ≤ 3j
+- "schedule": planifier à une date précise dans les 14 jours
+- "publish_later": publication dans 2-4 semaines (seasonalUrgency 40-69)
+- "bundle_first": créer un lot (≥ ${MIN_ARTICLES_FOR_BUNDLE} articles, économie ≥ 15%)
+- "adjust_price": ajuster le prix (gain ≥ 3€ ET écart ≥ 15%)
+- "edit_and_publish": modifier puis planifier (problème de qualité photo/description)
+- "hold_for_season": attendre la bonne saison (seasonalUrgency < 40)
+- "wait": pas d'action recommandée (article optimal, attente normale)
 
 N'UTILISE AUCUN AUTRE TYPE D'ACTION!
 
-GÉNÈRE MAINTENANT 3-10 INSIGHTS CONCRETS au format JSON:`;
+GÉNÈRE MAINTENANT 3-7 INSIGHTS ULTRA-PERTINENTS au format JSON (filtre agressivement):`;
+}
+
+function filterLowImpactInsights(insights: PlanningInsight[], articles: Article[]): PlanningInsight[] {
+  return insights.filter(insight => {
+    if (insight.suggestedAction.type === 'adjust_price' && insight.suggestedAction.priceAdjustment) {
+      const { current, suggested } = insight.suggestedAction.priceAdjustment;
+
+      if (!shouldSuggestPriceAdjustment(current, suggested)) {
+        console.log(`🚫 Insight filtré: ajustement de prix trop faible (${current}€ → ${suggested}€)`);
+        return false;
+      }
+    }
+
+    if (insight.suggestedAction.type === 'bundle_first') {
+      const articleCount = insight.articleIds?.length || 0;
+      if (articleCount < MIN_ARTICLES_FOR_BUNDLE) {
+        console.log(`🚫 Insight filtré: lot avec seulement ${articleCount} articles (min: ${MIN_ARTICLES_FOR_BUNDLE})`);
+        return false;
+      }
+    }
+
+    if (insight.suggestedAction.type === 'publish_now' || insight.suggestedAction.type === 'schedule') {
+      const relevantArticles = articles.filter(a => insight.articleIds?.includes(a.id));
+      const avgSeasonalUrgency = relevantArticles.reduce((sum, a) =>
+        sum + getSeasonalUrgency(a.season), 0) / relevantArticles.length;
+
+      if (avgSeasonalUrgency < 40) {
+        console.log(`🚫 Insight filtré: articles hors saison (urgence: ${Math.round(avgSeasonalUrgency)})`);
+        return false;
+      }
+    }
+
+    if (insight.priority === 'low') {
+      console.log(`🚫 Insight filtré: priorité "low" (pas assez impactant)`);
+      return false;
+    }
+
+    return true;
+  });
 }
 
 async function generateInsightsWithAI(
@@ -309,7 +445,7 @@ async function generateInsightsWithAI(
     const result = response.text;
     const parsed = JSON.parse(result);
 
-    return parsed.insights.map((insight: any) => {
+    const rawInsights = parsed.insights.map((insight: any) => {
       const normalizedInsight = {
         id: crypto.randomUUID(),
         ...insight,
@@ -327,6 +463,12 @@ async function generateInsightsWithAI(
 
       return normalizedInsight;
     });
+
+    const filteredInsights = filterLowImpactInsights(rawInsights, readyArticles);
+
+    console.log(`✅ Kelly Planning: ${rawInsights.length} insights générés, ${filteredInsights.length} retenus après filtrage`);
+
+    return filteredInsights;
   } catch (error) {
     console.error('Error generating planning insights:', error);
     throw new Error('Impossible de générer les recommandations. Réessaie dans quelques instants.');
@@ -595,3 +737,19 @@ export function getTypeIcon(type: PlanningInsightType): string {
     case 'price_optimize': return '💰';
   }
 }
+
+export function calculateSeasonalUrgencyScore(season: string | undefined): number {
+  return getSeasonalUrgency(season);
+}
+
+export function isPriceAdjustmentWorthwhile(currentPrice: number, suggestedPrice: number): boolean {
+  return shouldSuggestPriceAdjustment(currentPrice, suggestedPrice);
+}
+
+export const PLANNING_THRESHOLDS = {
+  STALE_INVENTORY_DAYS: STALE_INVENTORY_THRESHOLD_DAYS,
+  MIN_PRICE_ADJUSTMENT_PERCENT: MIN_PRICE_ADJUSTMENT_THRESHOLD,
+  MIN_GAIN_EUR: MIN_GAIN_FOR_SUGGESTION_EUR,
+  MIN_TIME_WINDOW_URGENCY_DAYS: MIN_TIME_WINDOW_FOR_URGENCY_DAYS,
+  MIN_BUNDLE_ARTICLES: MIN_ARTICLES_FOR_BUNDLE,
+};
