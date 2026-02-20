@@ -15,6 +15,7 @@ import {
   Check,
   Shirt,
   Calendar,
+  Play,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingBag } from "lucide-react";
@@ -376,12 +377,24 @@ export function AppLayout({ children }: AppLayoutProps) {
                         </Link>
 
                         <Link
+                          to="/to-publish"
+                          onClick={() => closeMenuWithAnimation("main")}
+                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                            isActive("/to-publish") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                          }`}
+                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "170ms" : "0ms" }}
+                        >
+                          <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          À Publier
+                        </Link>
+
+                        <Link
                           to="/virtual-stylist"
                           onClick={() => closeMenuWithAnimation("main")}
                           className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
                             isActive("/virtual-stylist") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
                           }`}
-                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "170ms" : "0ms" }}
+                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "210ms" : "0ms" }}
                         >
                           <Shirt className="w-5 h-5 group-hover:scale-110 transition-transform" />
                           Cabine d'essayage
