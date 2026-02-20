@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, ChevronLeft, ChevronRight, Filter, Clock, Package, Tag } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Filter, Clock, Package, Tag, Play } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamilyMembers } from '../hooks/useFamilyMembers';
 import { supabase } from '../lib/supabase';
@@ -8,6 +8,7 @@ import { Article, ArticleStatus } from '../types/article';
 import { Lot } from '../types/lot';
 import { FamilyMember } from '../services/settings';
 import { AdminDetailDrawer } from '../components/admin/AdminDetailDrawer';
+import { PublishFormModal } from '../components/PublishFormModal';
 
 type ViewMode = 'week' | 'month';
 
@@ -37,6 +38,8 @@ export default function TimelinePlanningPage() {
   const [selectedSellers, setSelectedSellers] = useState<string[]>([]);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [fullItemDetails, setFullItemDetails] = useState<any>(null);
+  const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [publishItem, setPublishItem] = useState<{ id: string; type: 'article' | 'lot' } | null>(null);
 
   const allSellers = useMemo(() => {
     return [...familyMembers];
@@ -424,6 +427,18 @@ export default function TimelinePlanningPage() {
     );
   };
 
+  const handlePublishClick = (item: TimelineItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPublishItem({ id: item.id, type: item.type });
+    setPublishModalOpen(true);
+  };
+
+  const handlePublished = async () => {
+    await loadItems();
+    setPublishModalOpen(false);
+    setPublishItem(null);
+  };
+
   const filteredSellers = allSellers.filter(s => selectedSellers.includes(s.id));
   const timeSlots = generateTimeSlots();
   const { start, end } = getDateRange();
@@ -649,16 +664,25 @@ export default function TimelinePlanningPage() {
                                   draggable
                                   onDragStart={() => handleDragStart(item)}
                                   onClick={() => handleItemClick(item)}
-                                  className="bg-white border border-slate-200 rounded-lg p-1.5 cursor-move hover:shadow-lg hover:scale-[1.02] hover:border-blue-400 transition-all duration-200 group"
+                                  className="bg-white border border-slate-200 rounded-lg p-1.5 cursor-move hover:shadow-lg hover:scale-[1.02] hover:border-blue-400 transition-all duration-200 group relative"
                                 >
                                   {viewMode === 'week' ? (
                                     <div className="space-y-1">
                                       {item.photo && (
-                                        <img
-                                          src={item.photo}
-                                          alt={item.title}
-                                          className="w-full h-16 rounded object-cover"
-                                        />
+                                        <div className="relative">
+                                          <img
+                                            src={item.photo}
+                                            alt={item.title}
+                                            className="w-full h-16 rounded object-cover"
+                                          />
+                                          <button
+                                            onClick={(e) => handlePublishClick(item, e)}
+                                            className="absolute top-1 right-1 w-6 h-6 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+                                            title="Publier"
+                                          >
+                                            <Play className="w-3 h-3 fill-white" />
+                                          </button>
+                                        </div>
                                       )}
                                       <div className="flex items-center gap-1">
                                         {item.type === 'lot' ? (
@@ -681,11 +705,20 @@ export default function TimelinePlanningPage() {
                                   ) : (
                                     <div className="flex items-center gap-1.5">
                                       {item.photo && (
-                                        <img
-                                          src={item.photo}
-                                          alt={item.title}
-                                          className="w-10 h-10 rounded object-cover flex-shrink-0"
-                                        />
+                                        <div className="relative">
+                                          <img
+                                            src={item.photo}
+                                            alt={item.title}
+                                            className="w-10 h-10 rounded object-cover flex-shrink-0"
+                                          />
+                                          <button
+                                            onClick={(e) => handlePublishClick(item, e)}
+                                            className="absolute inset-0 bg-emerald-500/90 hover:bg-emerald-600/90 text-white rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all"
+                                            title="Publier"
+                                          >
+                                            <Play className="w-3 h-3 fill-white" />
+                                          </button>
+                                        </div>
                                       )}
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-1 mb-0.5">
@@ -842,6 +875,19 @@ export default function TimelinePlanningPage() {
         onLabelOpen={handleLabelOpen}
         formatDate={formatDate}
       />
+
+      {publishItem && (
+        <PublishFormModal
+          isOpen={publishModalOpen}
+          onClose={() => {
+            setPublishModalOpen(false);
+            setPublishItem(null);
+          }}
+          itemId={publishItem.id}
+          itemType={publishItem.type}
+          onPublished={handlePublished}
+        />
+      )}
     </div>
   );
 }
