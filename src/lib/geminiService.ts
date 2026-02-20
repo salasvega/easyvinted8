@@ -974,13 +974,20 @@ TYPES D'INSIGHTS DISPONIBLES:
 2. "incomplete" : Articles sans photos/description/infos manquantes
 3. "opportunity" : Opportunités de vente basées sur les tendances
 
-REGLES:
+REGLES CRITIQUES:
 - Maximum 5 insights, priorise ACTIONS AUTO-EXECUTABLES
 - Privilégie "ready_to_publish" si brouillons complets trouvés
 - Pour "ready_to_publish" : le message doit expliquer que l'action va passer les articles en statut "Prêt" pour être publiés et maximiser les ventes
 - Pour "ready_to_publish" : actionLabel doit être "Passer en Prêt"
 - Pour autres types : actionLabel doit être un verbe d'action ("Créer le lot", "Baisser de 10%", etc.)
-- priority: "high" pour urgent, "medium" pour important, "low" pour conseil simple`;
+- priority: "high" pour urgent, "medium" pour important, "low" pour conseil simple
+
+⚠️ REGLE IMPORTANTE POUR OPTIMISATION DE PRIX:
+- NE suggère une optimisation de prix (price_drop ou price_optimization) que SI l'écart entre le prix optimal recommandé (optimal_price) et le prix actuel (price) est SUPERIEUR à 10%
+- Calcul: écart = abs(optimal_price - price) / price * 100
+- Si écart <= 10%, NE PAS suggérer d'optimisation de prix
+- Exemple: prix actuel 20€, prix optimal 18€ → écart = 10% → NE PAS suggérer
+- Exemple: prix actuel 20€, prix optimal 16€ → écart = 20% → SUGGERER`;
 
   try {
     const response = await getAI().models.generateContent({
