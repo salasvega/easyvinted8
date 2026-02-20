@@ -422,7 +422,16 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
         }
 
         case 'bundle': {
-          if (!insight.articleIds || insight.articleIds.length < 2) break;
+          console.log('[Kelly Bundle] Starting bundle creation with articles:', insight.articleIds);
+
+          if (!insight.articleIds || insight.articleIds.length < 2) {
+            console.error('[Kelly Bundle] Not enough articles:', insight.articleIds);
+            setToast({
+              type: 'error',
+              text: 'Un lot doit contenir au moins 2 articles.'
+            });
+            break;
+          }
 
           const { data: fullArticles, error: articlesError } = await supabase
             .from('articles')
@@ -431,9 +440,15 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
             .in('id', insight.articleIds);
 
           if (articlesError || !fullArticles) {
-            console.error('Error loading articles:', articlesError);
+            console.error('[Kelly Bundle] Error loading articles:', articlesError);
+            setToast({
+              type: 'error',
+              text: 'Erreur lors du chargement des articles.'
+            });
             break;
           }
+
+          console.log('[Kelly Bundle] Loaded articles:', fullArticles);
 
           const { data: userProfile } = await supabase
             .from('user_profiles')
@@ -445,14 +460,17 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
           const discountPercentage = 15;
           const lotPrice = Math.round(totalPrice * (1 - discountPercentage / 100));
 
+          console.log('[Kelly Bundle] Generating lot analysis...');
           const analysis = await generateLotTitleAndDescription(
             fullArticles as Article[],
             userProfile?.writing_style || undefined
           );
+          console.log('[Kelly Bundle] Analysis complete:', analysis);
 
           const allPhotos = fullArticles.flatMap(article => article.photos || []);
           const coverPhoto = allPhotos[0] || null;
 
+          console.log('[Kelly Bundle] Creating lot in database...');
           const { data: newLot, error: lotError } = await supabase
             .from('lots')
             .insert({
@@ -475,25 +493,37 @@ export function KellyProactive({ onNavigateToArticle, onCreateBundle, onRefreshD
             .single();
 
           if (lotError || !newLot) {
-            console.error('Error creating lot:', lotError);
+            console.error('[Kelly Bundle] Error creating lot:', lotError);
+            setToast({
+              type: 'error',
+              text: `Erreur lors de la création du lot : ${lotError?.message || 'Erreur inconnue'}`
+            });
             break;
           }
+
+          console.log('[Kelly Bundle] Lot created:', newLot);
 
           const lotItems = insight.articleIds.map(articleId => ({
             lot_id: newLot.id,
             article_id: articleId,
           }));
 
+          console.log('[Kelly Bundle] Creating lot items:', lotItems);
           const { error: itemsError } = await supabase
             .from('lot_items')
             .insert(lotItems);
 
           if (itemsError) {
-            console.error('Error creating lot items:', itemsError);
+            console.error('[Kelly Bundle] Error creating lot items:', itemsError);
             await supabase.from('lots').delete().eq('id', newLot.id);
+            setToast({
+              type: 'error',
+              text: `Erreur lors de l'ajout des articles au lot : ${itemsError.message}`
+            });
             break;
           }
 
+          console.log('[Kelly Bundle] Bundle creation complete!');
           handleDismiss(insight);
           onRefreshData?.();
           window.dispatchEvent(new CustomEvent('kellyLotCreated', { detail: { lotId: newLot.id } }));
