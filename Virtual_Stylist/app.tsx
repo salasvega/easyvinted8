@@ -1531,7 +1531,7 @@ const App: React.FC = () => {
         {/* Header */}
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-gray-900">Mon style</h1>
-          <p className="text-sm text-gray-600 mt-1">Ajoutez ou Sélectionnez le modèle que vous souhaitez utiliser pour l'essayage de vos articles!</p>
+          <p className="text-sm text-gray-600 mt-1">Ajoutez ou Sélectionnez le modèle ou le fond que vous souhaitez utiliser pour l'essayage de vos articles!</p>
         </div>
 
         {/* Navigation */}
