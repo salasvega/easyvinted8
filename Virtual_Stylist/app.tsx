@@ -2535,9 +2535,9 @@ const App: React.FC = () => {
                               e.stopPropagation();
                               toggleDefaultLocation(loc.id!);
                             }}
-                            className={`w-10 h-10 sm:w-12 sm:h-12 ${defaultLocationId === loc.id ? 'bg-yellow-400' : 'bg-gray-600'} rounded-xl flex items-center justify-center text-white font-bold shadow-xl hover:scale-110 active:scale-95`}
+                            className={`w-10 h-10 sm:w-12 sm:h-12 ${defaultLocationId === loc.id ? 'bg-yellow-400' : 'bg-gray-600'} rounded-xl flex items-center justify-center font-bold shadow-xl hover:scale-110 active:scale-95`}
                           >
-                            <Star className={`w-5 h-5 sm:w-6 sm:h-6 ${defaultLocationId === loc.id ? 'fill-white' : ''}`} />
+                            <Star className={`w-5 h-5 sm:w-6 sm:h-6 ${defaultLocationId === loc.id ? 'fill-black text-black' : 'text-white'}`} />
                           </button>
                           <button
                             onClick={(e) => {
@@ -3218,8 +3218,8 @@ const App: React.FC = () => {
                            <Maximize2 className="w-5 h-5 md:w-6 md:h-6" />
                          </button>
                          <button onClick={(e) => { e.stopPropagation(); setAvatarImage(ava.photoBase64!); setState(p => ({ ...p, avatar: ava, step: 'backgrounds' })); }} className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl flex items-center justify-center text-black font-bold shadow-xl hover:scale-110 active:scale-95 text-base sm:text-lg">&#10140;</button>
-                         <button onClick={(e) => { e.stopPropagation(); toggleDefaultAvatar(ava.id!); }} className={`w-10 h-10 sm:w-12 sm:h-12 ${defaultAvatarId === ava.id ? 'bg-yellow-400' : 'bg-gray-600'} rounded-xl flex items-center justify-center text-white font-bold shadow-xl hover:scale-110 active:scale-95`}>
-                           <Star className={`w-5 h-5 sm:w-6 sm:h-6 ${defaultAvatarId === ava.id ? 'fill-white' : ''}`} />
+                         <button onClick={(e) => { e.stopPropagation(); toggleDefaultAvatar(ava.id!); }} className={`w-10 h-10 sm:w-12 sm:h-12 ${defaultAvatarId === ava.id ? 'bg-yellow-400' : 'bg-gray-600'} rounded-xl flex items-center justify-center font-bold shadow-xl hover:scale-110 active:scale-95`}>
+                           <Star className={`w-5 h-5 sm:w-6 sm:h-6 ${defaultAvatarId === ava.id ? 'fill-black text-black' : 'text-white'}`} />
                          </button>
                          <button onClick={(e) => { e.stopPropagation(); openAvatarEditModal(ava); }} className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white font-bold shadow-xl hover:scale-110 active:scale-95">
                            <Pencil className="w-5 h-5 sm:w-6 sm:h-6" />
