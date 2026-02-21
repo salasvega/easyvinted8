@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Play, CheckCircle2, File as FileEdit, ChevronRight, Copy, ExternalLink, AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle2, File as FileEdit, ChevronRight, Copy, ExternalLink, AlertCircle } from "lucide-react";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -456,16 +456,11 @@ export default function AgentPublisherIA() {
       )}
 
       {/* Header */}
-      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-        <div className="flex items-center gap-3">
-          <Play className="w-6 h-6 text-slate-800" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Agent de Publication IA</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              {items.length} article{items.length > 1 ? 's' : ''} et lot{items.length > 1 ? 's' : ''} à publier
-            </p>
-          </div>
-        </div>
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 lg:py-6">
+        <h1 className="text-2xl font-bold text-gray-900">Agent de Publication IA</h1>
+        <p className="text-sm text-gray-600 mt-1">
+          {items.length} article{items.length > 1 ? 's' : ''} et lot{items.length > 1 ? 's' : ''} à publier
+        </p>
       </div>
 
       <div className="flex-1 flex flex-col lg:flex-row">
