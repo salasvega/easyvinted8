@@ -2970,7 +2970,7 @@ const App: React.FC = () => {
 
         {state.step === 'gallery' && (
           <div className="animate-in fade-in duration-700">
-            <SectionHeader title="Mon Style" subtitle="Définissez le modèle qui portera vos articles :)
+            <SectionHeader title="Modèle" subtitle="Définissez le modèle qui portera vos articles :)
 " />
 
             {isLoadingGallery ? (
