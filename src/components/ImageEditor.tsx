@@ -683,7 +683,7 @@ export function ImageEditor({
                         >
                           Mon style
                         </a>
-                        {' '}pour gérer vos avatars personnalisés.
+                        {' '}pour gérer vos avatars et fonds personnalisés.
                       </p>
                     </div>
                     <button
