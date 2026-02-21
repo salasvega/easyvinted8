@@ -614,39 +614,41 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
             confidenceScore: rawResult['QUALITE']?.confidenceScore || rawResult.confidenceScore,
           };
 
-          const newTitle = result.title || prev.title;
-          const newDescription = result.description || prev.description;
-          const newBrand = result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand;
+          setFormData((prev) => {
+            const newTitle = result.title || prev.title;
+            const newDescription = result.description || prev.description;
+            const newBrand = result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand;
 
-          let newSize = result.size || prev.size;
-          if (!newSize || newSize === 'Non renseignée' || newSize === 'Non renseigné') {
-            const selectedMember = familyMembers.find(m => m.id === prev.seller_id);
-            if (selectedMember) {
-              const sizeType = determineSizeType('', newBrand, `${newTitle} ${newDescription}`);
-              const defaultSize = getSizeFromMember(selectedMember, sizeType);
-              if (defaultSize) {
-                newSize = defaultSize;
+            let newSize = result.size || prev.size;
+            if (!newSize || newSize === 'Non renseignée' || newSize === 'Non renseigné') {
+              const selectedMember = familyMembers.find(m => m.id === prev.seller_id);
+              if (selectedMember) {
+                const sizeType = determineSizeType('', newBrand, `${newTitle} ${newDescription}`);
+                const defaultSize = getSizeFromMember(selectedMember, sizeType);
+                if (defaultSize) {
+                  newSize = defaultSize;
+                }
               }
             }
-          }
 
-          setFormData((prev) => ({
-            ...prev,
-            title: newTitle,
-            description: newDescription,
-            brand: newBrand,
-            color: result.color || prev.color,
-            material: result.material || prev.material,
-            size: newSize,
-            price: result.estimatedPrice?.toString() || prev.price,
-            condition: result.condition || prev.condition,
-            season: result.season || prev.season,
-            suggested_period: result.suggestedPeriod || prev.suggested_period,
-            seo_keywords: result.seoKeywords || prev.seo_keywords,
-            hashtags: result.hashtags || prev.hashtags,
-            search_terms: result.searchTerms || prev.search_terms,
-            ai_confidence_score: result.confidenceScore || prev.ai_confidence_score,
-          }));
+            return {
+              ...prev,
+              title: newTitle,
+              description: newDescription,
+              brand: newBrand,
+              color: result.color || prev.color,
+              material: result.material || prev.material,
+              size: newSize,
+              price: result.estimatedPrice?.toString() || prev.price,
+              condition: result.condition || prev.condition,
+              season: result.season || prev.season,
+              suggested_period: result.suggestedPeriod || prev.suggested_period,
+              seo_keywords: result.seoKeywords || prev.seo_keywords,
+              hashtags: result.hashtags || prev.hashtags,
+              search_terms: result.searchTerms || prev.search_terms,
+              ai_confidence_score: result.confidenceScore || prev.ai_confidence_score,
+            };
+          });
 
           const fieldsAnalyzed = [
             result.title && 'titre',
