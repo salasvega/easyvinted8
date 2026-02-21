@@ -448,12 +448,27 @@ export default function AgentPublisherIA() {
   const photos = selectedItem ? normalizePhotoUrls(selectedItem.photos).slice(0, 5) : [];
 
   return (
-    <div id="agent-container" className="min-h-screen bg-slate-100 flex flex-col lg:flex-row">
+    <div id="agent-container" className="min-h-screen bg-slate-100 flex flex-col">
       {toast && (
         <div id="agent-toast" className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 sm:px-6 sm:py-3 rounded-xl bg-slate-900 text-white text-sm sm:text-lg font-bold shadow-2xl">
           {toast}
         </div>
       )}
+
+      {/* Header */}
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+        <div className="flex items-center gap-3">
+          <Play className="w-6 h-6 text-slate-800" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Agent de Publication IA</h1>
+            <p className="text-sm text-gray-600 mt-1">
+              {items.length} article{items.length > 1 ? 's' : ''} et lot{items.length > 1 ? 's' : ''} à publier
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col lg:flex-row">
 
       {/* Mobile Tabs */}
       <div className="lg:hidden sticky top-0 z-20 bg-white border-b flex">
@@ -725,10 +740,11 @@ export default function AgentPublisherIA() {
               </button>
             </div>
 
-            
+
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 }
