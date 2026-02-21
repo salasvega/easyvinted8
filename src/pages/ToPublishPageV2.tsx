@@ -215,7 +215,7 @@ export function ToPublishPageV2() {
               <Play className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Prêt à Publier</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Prêt à Publier</h1>
               <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-500" />
                 {filteredAndSortedItems.length} élément{filteredAndSortedItems.length > 1 ? 's' : ''} prêt{filteredAndSortedItems.length > 1 ? 's' : ''} à publier
