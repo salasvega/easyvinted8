@@ -624,7 +624,6 @@ export default function AgentPublisherIA() {
                     : "bg-slate-100 text-slate-400 cursor-not-allowed"
                 } ${currentStep === 1 ? "ring-2 lg:ring-4 ring-slate-300" : ""}`}
               >
-                <Play className="w-4 h-4 lg:w-6 lg:h-6" />
                 STEP 1: START RUN
               </button>
 
