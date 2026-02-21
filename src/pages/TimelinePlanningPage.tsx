@@ -1,13 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Calendar, ChevronLeft, ChevronRight, Filter, Clock, Package, Tag, Play } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Filter, Package, Tag, Play } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useFamilyMembers } from '../hooks/useFamilyMembers';
 import { supabase } from '../lib/supabase';
-import { Article, ArticleStatus } from '../types/article';
+import { Article } from '../types/article';
 import { Lot } from '../types/lot';
-import { FamilyMember } from '../services/settings';
-import { AdminDetailDrawer } from '../components/admin/AdminDetailDrawer';
 import { PublishFormModal } from '../components/PublishFormModal';
 
 type ViewMode = 'week' | 'month' | 'year';
@@ -26,7 +23,6 @@ type TimelineItem = {
 
 export default function TimelinePlanningPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const { data: familyMembers = [] } = useFamilyMembers(user?.id);
 
   const [viewMode, setViewMode] = useState<ViewMode>('week');
@@ -34,10 +30,7 @@ export default function TimelinePlanningPage() {
   const [items, setItems] = useState<TimelineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [draggedItem, setDraggedItem] = useState<TimelineItem | null>(null);
-  const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null);
   const [selectedSellers, setSelectedSellers] = useState<string[]>([]);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [fullItemDetails, setFullItemDetails] = useState<any>(null);
   const [publishModalOpen, setPublishModalOpen] = useState(false);
   const [publishItem, setPublishItem] = useState<{ id: string; type: 'article' | 'lot' } | null>(null);
 
@@ -287,163 +280,11 @@ export default function TimelinePlanningPage() {
   };
 
   const handleItemClick = (item: TimelineItem) => {
-    // Afficher seulement la modale inline
-    setSelectedItem(item);
+    // Ouvrir directement la modale de publication
+    setPublishItem({ id: item.id, type: item.type });
+    setPublishModalOpen(true);
   };
 
-  const handlePublishNow = () => {
-    if (!selectedItem) return;
-
-    // Rediriger vers la page de structure pour publication
-    if (selectedItem.type === 'article') {
-      navigate(`/articles/${selectedItem.id}/structure`);
-    } else {
-      navigate(`/lots/${selectedItem.id}/structure`);
-    }
-  };
-
-  const handleViewDetails = async () => {
-    if (!selectedItem) return;
-
-    // Charger les détails complets pour le drawer
-    try {
-      if (selectedItem.type === 'article') {
-        const { data } = await supabase
-          .from('articles')
-          .select('*')
-          .eq('id', selectedItem.id)
-          .single();
-
-        if (data) {
-          const seller = allSellers.find(s => s.id === data.seller_id);
-          setFullItemDetails({
-            ...data,
-            type: 'article',
-            seller_name: seller?.name || 'Inconnu'
-          });
-        }
-      } else {
-        const { data } = await supabase
-          .from('lots')
-          .select('*')
-          .eq('id', selectedItem.id)
-          .single();
-
-        if (data) {
-          const seller = allSellers.find(s => s.id === data.seller_id);
-
-          // Charger les articles du lot
-          const { data: lotArticles } = await supabase
-            .from('articles')
-            .select('id, title, brand, price, photos, size')
-            .eq('lot_id', selectedItem.id);
-
-          setFullItemDetails({
-            id: data.id,
-            type: 'lot',
-            title: data.name,
-            brand: data.brand,
-            price: data.price,
-            status: data.status as ArticleStatus,
-            photos: data.photos || [],
-            created_at: data.created_at,
-            season: data.season,
-            scheduled_for: data.scheduled_for,
-            seller_id: data.seller_id,
-            seller_name: seller?.name || 'Inconnu',
-            published_at: data.published_at,
-            sold_at: data.sold_at,
-            sold_price: data.sold_price,
-            reference_number: data.reference_number,
-            lot_article_count: lotArticles?.length || 0,
-            description: data.description,
-            vinted_url: data.vinted_url,
-            articles: lotArticles || [],
-            original_total_price: data.original_total_price,
-            discount_percentage: data.discount_percentage,
-            seo_keywords: data.seo_keywords,
-            hashtags: data.hashtags,
-            search_terms: data.search_terms
-          });
-        }
-      }
-
-      // Fermer la modale inline et ouvrir le drawer
-      setSelectedItem(null);
-      setDrawerOpen(true);
-    } catch (error) {
-      console.error('Error loading item details:', error);
-    }
-  };
-
-  const formatDate = (date?: string) => {
-    if (!date) return 'Non défini';
-    return new Intl.DateTimeFormat('fr-FR', {
-      dateStyle: 'full',
-      timeStyle: 'short'
-    }).format(new Date(date));
-  };
-
-  const handleEdit = () => {
-    if (!fullItemDetails) return;
-
-    if (fullItemDetails.type === 'article') {
-      navigate(`/articles/${fullItemDetails.id}/edit-v2`);
-    } else {
-      // Pour les lots, on peut rediriger vers une page d'édition de lot si elle existe
-      navigate(`/lots/${fullItemDetails.id}/structure`);
-    }
-  };
-
-  const handleDuplicate = async () => {
-    // Implémenter la duplication si nécessaire
-    console.log('Duplicate item:', fullItemDetails);
-  };
-
-  const handleSchedule = () => {
-    // La modale de planification pourrait être ajoutée ici
-    console.log('Schedule item:', fullItemDetails);
-  };
-
-  const handleMarkSold = () => {
-    // Ouvrir la modale de vente
-    console.log('Mark as sold:', fullItemDetails);
-  };
-
-  const handleDelete = async () => {
-    if (!fullItemDetails) return;
-
-    try {
-      if (fullItemDetails.type === 'article') {
-        await supabase
-          .from('articles')
-          .delete()
-          .eq('id', fullItemDetails.id);
-      } else {
-        await supabase
-          .from('lots')
-          .delete()
-          .eq('id', fullItemDetails.id);
-      }
-
-      setDrawerOpen(false);
-      setFullItemDetails(null);
-      setSelectedItem(null);
-      await loadItems();
-    } catch (error) {
-      console.error('Error deleting item:', error);
-    }
-  };
-
-  const handleStatusChange = () => {
-    // Ouvrir la modale de changement de statut
-    console.log('Change status:', fullItemDetails);
-  };
-
-  const handleLabelOpen = () => {
-    // Ouvrir la modale d'étiquette
-    console.log('Open label modal:', fullItemDetails);
-  };
 
   const toggleSellerFilter = (sellerId: string) => {
     setSelectedSellers(prev =>
@@ -857,102 +698,6 @@ export default function TimelinePlanningPage() {
         </div>
       </div>
 
-      {selectedItem && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <h3 className="text-2xl font-bold text-slate-900">Actions rapides</h3>
-                <button
-                  onClick={() => setSelectedItem(null)}
-                  className="text-slate-400 hover:text-slate-600"
-                >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {selectedItem.photo && (
-                  <img
-                    src={selectedItem.photo}
-                    alt={selectedItem.title}
-                    className="w-full h-64 object-cover rounded-lg"
-                  />
-                )}
-
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    {selectedItem.type === 'lot' ? (
-                      <Package className="w-5 h-5 text-purple-600" />
-                    ) : (
-                      <Tag className="w-5 h-5 text-blue-600" />
-                    )}
-                    <span className="text-sm font-medium text-slate-600">
-                      {selectedItem.type === 'lot' ? 'Lot' : 'Article'}
-                    </span>
-                    {selectedItem.referenceNumber && (
-                      <span className="text-sm text-slate-500">#{selectedItem.referenceNumber}</span>
-                    )}
-                  </div>
-                  <h4 className="text-xl font-bold text-slate-900">{selectedItem.title}</h4>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-slate-600">Prix</p>
-                    <p className="text-2xl font-bold text-emerald-600">{selectedItem.price.toFixed(2)} €</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Date planifiée</p>
-                    <p className="text-lg font-semibold text-slate-900">
-                      {new Intl.DateTimeFormat('fr-FR', {
-                        dateStyle: 'full'
-                      }).format(selectedItem.scheduledFor)}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm text-slate-600">Vendeur</p>
-                  <p className="text-lg font-semibold text-slate-900">
-                    {allSellers.find(s => s.id === selectedItem.sellerId)?.name || 'Inconnu'}
-                  </p>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={handlePublishNow}
-                    className="w-full bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Clock className="w-5 h-5" />
-                    Publier maintenant
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <AdminDetailDrawer
-        item={fullItemDetails}
-        isOpen={drawerOpen}
-        onClose={() => {
-          setDrawerOpen(false);
-          setSelectedItem(null);
-        }}
-        onEdit={handleEdit}
-        onPublish={handlePublishNow}
-        onDuplicate={handleDuplicate}
-        onSchedule={handleSchedule}
-        onMarkSold={handleMarkSold}
-        onDelete={handleDelete}
-        onStatusChange={handleStatusChange}
-        onLabelOpen={handleLabelOpen}
-        formatDate={formatDate}
-      />
 
       {publishItem && (
         <PublishFormModal
