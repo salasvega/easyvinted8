@@ -2169,27 +2169,23 @@ const App: React.FC = () => {
                     </div>
 
                     {/* Bouton Générer le Modèle */}
-                    <div className="pt-4 border-t border-gray-200">
-                      <button
-                        type="submit"
-                        disabled={!state.avatar.name.trim() || state.isProcessing}
-                        className={`w-full flex items-center justify-center gap-3 px-8 py-5 rounded-xl font-bold text-lg transition-all shadow-xl ${
-                          !state.avatar.name.trim() || state.isProcessing
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-900 text-white hover:bg-gray-800'
-                        }`}
-                      >
-                        <Sparkles className="w-6 h-6" />
-                        <span className="uppercase tracking-wider">
-                          {state.isProcessing ? 'Génération en cours...' : 'Générer le Modèle'}
-                        </span>
-                      </button>
-                      {!state.avatar.name.trim() && (
-                        <p className="text-xs text-red-500 mt-2 text-center">
-                          Veuillez saisir un nom pour le modèle
-                        </p>
+                    <button
+                      type="submit"
+                      disabled={!state.avatar.name.trim() || state.isProcessing}
+                      className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold hover:from-orange-600 hover:to-orange-700 disabled:from-orange-500 disabled:to-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      {state.isProcessing ? (
+                        <>
+                          <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span className="text-base uppercase tracking-wider">Génération en cours...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-6 h-6" />
+                          <span className="text-base uppercase tracking-wider">Générer le Modèle</span>
+                        </>
                       )}
-                    </div>
+                    </button>
                   </form>
                 </SectionCard>
               </div>
