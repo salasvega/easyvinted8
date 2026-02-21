@@ -2589,11 +2589,11 @@ const App: React.FC = () => {
                           </button>
                         </div>
 
-                        {/* Badge actif - Toujours visible */}
+                        {/* Badge sélectionné - Toujours visible */}
                         {defaultLocationId === loc.id && (
-                          <div className="absolute top-4 right-4 bg-yellow-400 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xl flex items-center gap-2 z-20 border-2 border-yellow-500 animate-pulse">
-                            <Star className="w-4 h-4 fill-black" />
-                            Actif
+                          <div className="absolute top-4 right-4 bg-yellow-400 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xl flex items-center gap-2 z-20 border-2 border-yellow-500 animate-pulse">
+                            <Star className="w-4 h-4 fill-white" />
+                            Sélectionné
                           </div>
                         )}
 
@@ -3255,9 +3255,9 @@ const App: React.FC = () => {
                          </button>
                       </div>
                       {defaultAvatarId === ava.id && (
-                        <div className="absolute top-4 right-4 bg-yellow-400 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xl flex items-center gap-2 z-20 border-2 border-yellow-500 animate-pulse">
-                          <Star className="w-4 h-4 fill-black" />
-                          Actif
+                        <div className="absolute top-4 right-4 bg-yellow-400 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xl flex items-center gap-2 z-20 border-2 border-yellow-500 animate-pulse">
+                          <Star className="w-4 h-4 fill-white" />
+                          Sélectionné
                         </div>
                       )}
                       {ava.generationPrompt && (
