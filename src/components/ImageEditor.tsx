@@ -681,7 +681,7 @@ export function ImageEditor({
                             window.location.href = '/virtual-stylist';
                           }}
                         >
-                          Mes modèles
+                          Mon style
                         </a>
                         {' '}pour gérer vos avatars personnalisés.
                       </p>
