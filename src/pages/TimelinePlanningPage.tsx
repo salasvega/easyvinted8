@@ -330,7 +330,7 @@ export default function TimelinePlanningPage() {
               <div className="min-w-0 flex-1">
                 <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2 sm:gap-3">
                   <Calendar className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600 flex-shrink-0" />
-                  <span className="truncate">Planning</span>
+                  <span className="truncate">Timeline Planning</span>
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-600 mt-0.5 sm:mt-1 hidden sm:block">
                   Organisez vos publications par drag & drop
