@@ -619,9 +619,11 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
             const newDescription = result.description || prev.description;
             const newBrand = result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand;
 
-            // Toujours privilégier la taille du vendeur si disponible
+            // Logique de taille : toujours privilégier la taille du vendeur si disponible
+            // Rationale: l'article appartient au vendeur, donc on utilise SA taille réelle
             let newSize = result.size || prev.size;
             const selectedMember = familyMembers.find(m => m.id === prev.seller_id);
+
             if (selectedMember) {
               const sizeType = determineSizeType('', newBrand, `${newTitle} ${newDescription}`);
               const defaultSize = getSizeFromMember(selectedMember, sizeType);
