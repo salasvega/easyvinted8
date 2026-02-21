@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { CheckCircle2, File as FileEdit, ChevronRight, Copy, ExternalLink, AlertCircle } from "lucide-react";
+import { AgentPublisherSkeleton } from "../components/ui/AgentPublisherSkeleton";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -446,6 +447,10 @@ export default function AgentPublisherIA() {
   }
 
   const photos = selectedItem ? normalizePhotoUrls(selectedItem.photos).slice(0, 5) : [];
+
+  if (loading && items.length === 0) {
+    return <AgentPublisherSkeleton />;
+  }
 
   return (
     <div id="agent-container" className="min-h-screen bg-slate-100 flex flex-col">
