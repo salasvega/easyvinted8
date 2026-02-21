@@ -3046,7 +3046,7 @@ const App: React.FC = () => {
                   >
                     {/* Filtre Genre */}
                     <div className="mb-6">
-                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Genre</h4>
+                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-white mb-3">Genre</h4>
                       <div className="flex flex-wrap gap-2 sm:gap-3">
                         <button
                           onClick={() => setAvatarFilters(prev => ({ ...prev, gender: 'all' }))}
@@ -3083,7 +3083,7 @@ const App: React.FC = () => {
 
                     {/* Filtre Couleur de cheveux */}
                     <div className="mb-6">
-                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Couleur de cheveux</h4>
+                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-white mb-3">Couleur de cheveux</h4>
                       <div className="flex flex-wrap gap-2 sm:gap-3">
                         <button
                           onClick={() => setAvatarFilters(prev => ({ ...prev, hairColor: 'all' }))}
@@ -3150,7 +3150,7 @@ const App: React.FC = () => {
 
                     {/* Filtre Âge */}
                     <div className="mb-6">
-                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-gray-700 mb-3">Groupe d'âge</h4>
+                      <h4 className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-white mb-3">Groupe d'âge</h4>
                       <div className="flex flex-wrap gap-2 sm:gap-3">
                         <button
                           onClick={() => setAvatarFilters(prev => ({ ...prev, ageGroup: 'all' }))}
