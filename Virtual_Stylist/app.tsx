@@ -2173,7 +2173,11 @@ const App: React.FC = () => {
                       <button
                         type="submit"
                         disabled={!state.avatar.name.trim() || state.isProcessing}
-                        className="w-full flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-bold hover:from-orange-600 hover:to-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                        style={{
+                          background: 'linear-gradient(to right, rgb(249 115 22), rgb(234 88 12))',
+                          opacity: (!state.avatar.name.trim() || state.isProcessing) ? 0.5 : 1
+                        }}
+                        className="w-full flex items-center justify-center gap-3 px-8 py-4 text-white rounded-xl font-bold hover:opacity-90 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                       >
                         {state.isProcessing ? (
                           <>
