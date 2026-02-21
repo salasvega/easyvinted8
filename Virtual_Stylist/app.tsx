@@ -2509,8 +2509,14 @@ const App: React.FC = () => {
                     <div key={loc.id} className="group space-y-3 sm:space-y-4">
                       <div
                         onClick={() => setState(p => ({ ...p, location: loc }))}
-                        className={`studio-card relative aspect-[3/4] rounded-2xl overflow-hidden border border-gray-100 shadow-lg cursor-pointer transition-all duration-500 ${state.location?.id === loc.id ? 'ring-4 ring-black ring-offset-4 scale-[0.97] shadow-2xl' : 'grayscale hover:grayscale-0 hover:scale-[1.02]'}`}>
-                        <img src={loc.photoBase64} className={`w-full h-full object-cover transition-all duration-700 ${state.location?.id === loc.id ? '' : 'grayscale group-hover:grayscale-0'}`} alt={loc.name} />
+                        className={`studio-card relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-500 ${
+                          state.location?.id === loc.id
+                            ? 'ring-4 ring-black ring-offset-4 scale-[0.97] shadow-2xl border-4 border-black'
+                            : defaultLocationId === loc.id
+                              ? 'ring-4 ring-yellow-400 ring-offset-2 border-4 border-yellow-400 shadow-yellow-400/50 shadow-2xl'
+                              : 'grayscale hover:grayscale-0 hover:scale-[1.02] border border-gray-100'
+                        }`}>
+                        <img src={loc.photoBase64} className={`w-full h-full object-cover transition-all duration-700 ${state.location?.id === loc.id || defaultLocationId === loc.id ? '' : 'grayscale group-hover:grayscale-0'}`} alt={loc.name} />
 
                         {/* Overlay avec actions */}
                         <div className={`absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center gap-2 sm:gap-3 ${state.location?.id === loc.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
@@ -2559,10 +2565,10 @@ const App: React.FC = () => {
                           </button>
                         </div>
 
-                        {/* Badge par défaut */}
+                        {/* Badge par défaut - Toujours visible */}
                         {defaultLocationId === loc.id && (
-                          <div className="absolute top-4 right-4 bg-yellow-400 text-black px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-wider shadow-xl animate-in zoom-in-95 flex items-center gap-1.5">
-                            <Star className="w-3 h-3 fill-black" />
+                          <div className="absolute top-4 right-4 bg-yellow-400 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xl flex items-center gap-2 z-20 border-2 border-yellow-500 animate-pulse">
+                            <Star className="w-4 h-4 fill-black" />
                             Par défaut
                           </div>
                         )}
@@ -3211,8 +3217,14 @@ const App: React.FC = () => {
                 <div key={ava.id} className="group space-y-3 sm:space-y-4">
                    <div
                       onClick={() => { setAvatarImage(ava.photoBase64!); setState(p => ({ ...p, avatar: ava })); }}
-                      className={`studio-card relative aspect-[3/4] rounded-2xl overflow-hidden border border-gray-100 shadow-lg cursor-pointer transition-all duration-500 ${state.avatar?.id === ava.id ? 'ring-4 ring-black ring-offset-4 scale-[0.97] shadow-2xl' : 'grayscale hover:grayscale-0 hover:scale-[1.02]'}`}>
-                      <img src={ava.photoBase64} className={`w-full h-full object-cover transition-all duration-700 ${state.avatar?.id === ava.id ? '' : 'grayscale group-hover:grayscale-0'}`} alt={ava.name} />
+                      className={`studio-card relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-500 ${
+                        state.avatar?.id === ava.id
+                          ? 'ring-4 ring-black ring-offset-4 scale-[0.97] shadow-2xl border-4 border-black'
+                          : defaultAvatarId === ava.id
+                            ? 'ring-4 ring-yellow-400 ring-offset-2 border-4 border-yellow-400 shadow-yellow-400/50 shadow-2xl'
+                            : 'grayscale hover:grayscale-0 hover:scale-[1.02] border border-gray-100'
+                      }`}>
+                      <img src={ava.photoBase64} className={`w-full h-full object-cover transition-all duration-700 ${state.avatar?.id === ava.id || defaultAvatarId === ava.id ? '' : 'grayscale group-hover:grayscale-0'}`} alt={ava.name} />
                       <div className={`absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center gap-2 sm:gap-3 ${state.avatar?.id === ava.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                          <button onClick={(e) => { e.stopPropagation(); setEnlargedImage({ url: ava.photoBase64!, name: ava.name }); }} className="hidden md:flex w-10 h-10 md:w-12 md:h-12 bg-purple-600 rounded-xl items-center justify-center text-white font-bold shadow-xl hover:scale-110 active:scale-95" title="Agrandir">
                            <Maximize2 className="w-5 h-5 md:w-6 md:h-6" />
@@ -3229,8 +3241,8 @@ const App: React.FC = () => {
                          </button>
                       </div>
                       {defaultAvatarId === ava.id && (
-                        <div className="absolute top-4 right-4 bg-yellow-400 text-black px-3 py-1.5 rounded-xl text-[8px] font-black uppercase tracking-wider shadow-xl animate-in zoom-in-95 flex items-center gap-1.5">
-                          <Star className="w-3 h-3 fill-black" />
+                        <div className="absolute top-4 right-4 bg-yellow-400 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xl flex items-center gap-2 z-20 border-2 border-yellow-500 animate-pulse">
+                          <Star className="w-4 h-4 fill-black" />
                           Par défaut
                         </div>
                       )}
