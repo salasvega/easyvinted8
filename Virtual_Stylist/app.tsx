@@ -2259,7 +2259,7 @@ const App: React.FC = () => {
 
             {/* Galerie des scènes */}
             <div className="mb-12 sm:mb-16 lg:mb-20">
-              <FieldLabel label="Galerie de fonds" info={savedLocations.length > 0 ? `${savedLocations.length} fond(s) disponible(s)` : "Aucun fond sauvegardé"} />
+              
 
               {isLoadingGallery ? (
                 <SceneLoader />
