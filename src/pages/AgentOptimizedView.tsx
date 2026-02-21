@@ -552,7 +552,7 @@ export default function AgentOptimizedView() {
                   <h1 id="agent-item-title" className="text-2xl font-bold text-slate-800 mt-3">
                     {selectedItem.title}
                   </h1>
-                  <p id="agent-item-price" className="text-3xl font-bold text-emerald-600 mt-2">
+                  <p id="agent-item-price" className="text-2xl font-bold text-emerald-600 mt-2">
                     {selectedItem.price} EUR
                   </p>
                 </div>
@@ -563,7 +563,7 @@ export default function AgentOptimizedView() {
             </div>
 
             <div id="agent-workflow-steps" className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-lg font-bold text-slate-800 mb-4">Workflow Progress</h2>
+              <h2 className="text-base font-semibold text-slate-800 mb-4">Workflow Progress</h2>
               <div className="flex items-center justify-between">
                 {WORKFLOW_STEPS.map((step, idx) => (
                   <div key={step.step} className="flex items-center">
@@ -738,7 +738,7 @@ export default function AgentOptimizedView() {
             </div>
 
             <div id="agent-data-preview" className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-lg font-bold text-slate-800 mb-4">Data Preview</h2>
+              <h2 className="text-base font-semibold text-slate-800 mb-4">Data Preview</h2>
 
               <div className="space-y-4">
                 <div>
@@ -830,7 +830,7 @@ export default function AgentOptimizedView() {
             </div>
 
             <div id="agent-error-panel" className="bg-white rounded-2xl p-6 shadow-sm border">
-              <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <h2 className="text-base font-semibold text-slate-800 mb-4 flex items-center gap-2">
                 <AlertCircle className="w-5 h-5 text-red-500" />
                 Report Error
               </h2>

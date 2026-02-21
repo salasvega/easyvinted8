@@ -368,7 +368,7 @@ export function PublicationMonitorPage() {
         {filteredArticles.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center">
             <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Aucun article</h3>
+            <h3 className="text-base font-semibold text-gray-900 mb-2">Aucun article</h3>
             <p className="text-slate-500">
               {filter === 'all'
                 ? 'Aucune publication en cours ou terminée'
@@ -511,7 +511,7 @@ export function PublicationMonitorPage() {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-start justify-between">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{selectedArticle.title}</h2>
+                  <h2 className="text-base font-semibold text-gray-900">{selectedArticle.title}</h2>
                   <p className="text-sm text-gray-500 mt-1">
                     Référence: {selectedArticle.reference_number || selectedArticle.id}
                   </p>

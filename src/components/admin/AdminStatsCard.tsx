@@ -85,7 +85,7 @@ export function AdminStatsCard({
           <p className={`text-xs font-semibold uppercase tracking-wider mb-1 ${colors.label}`}>
             {label}
           </p>
-          <p className={`text-3xl sm:text-4xl font-bold tracking-tight ${colors.value}`}>
+          <p className={`text-3xl sm:text-2xl font-semibold tracking-tight ${colors.value}`}>
             {value}
           </p>
           {trend && (

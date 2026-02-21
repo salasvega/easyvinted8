@@ -76,7 +76,7 @@ export function Modal({
           <div className="flex items-start justify-between">
             {children ? (
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+                <h3 className="text-base font-semibold text-gray-900">{title}</h3>
               </div>
             ) : (
               <div className="flex items-start gap-4 flex-1">
@@ -84,7 +84,7 @@ export function Modal({
                   {ICON_MAP[type]}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">{title}</h3>
                   <p className="text-sm text-gray-600 leading-relaxed">{message}</p>
                 </div>
               </div>

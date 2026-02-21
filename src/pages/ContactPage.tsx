@@ -65,7 +65,7 @@ export function ContactPage() {
             <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Mail className="w-6 h-6 text-emerald-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Email</h3>
+            <h3 className="text-base font-semibold text-slate-900 mb-2">Email</h3>
             <a href="mailto:contact@easyvinted.com" className="text-emerald-600 hover:text-emerald-700 transition-colors">
               contact@easyvinted.com
             </a>
@@ -75,7 +75,7 @@ export function ContactPage() {
             <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mx-auto mb-4">
               <MessageSquare className="w-6 h-6 text-blue-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Support</h3>
+            <h3 className="text-base font-semibold text-slate-900 mb-2">Support</h3>
             <p className="text-slate-600 text-sm">
               Réponse sous 24-48h
             </p>
@@ -85,7 +85,7 @@ export function ContactPage() {
             <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Send className="w-6 h-6 text-violet-600" />
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Rapide</h3>
+            <h3 className="text-base font-semibold text-slate-900 mb-2">Rapide</h3>
             <p className="text-slate-600 text-sm">
               Formulaire instantané
             </p>

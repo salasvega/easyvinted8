@@ -114,7 +114,7 @@ export function LotSoldModal({ isOpen, onClose, onConfirm, lot, initialData }: L
                 <DollarSign className="w-6 h-6 text-green-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                <h3 className="text-base font-semibold text-gray-900 mb-1">
                   {initialData ? 'Modifier la vente' : 'Enregistrer une vente'}
                 </h3>
                 <p className="text-sm text-gray-600">{lot.name}</p>

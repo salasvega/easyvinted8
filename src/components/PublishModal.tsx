@@ -48,7 +48,7 @@ export function PublishModal({
                 <Rocket className="w-6 h-6 text-emerald-600" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                <h3 className="text-base font-semibold text-gray-900 mb-1">
                   {isScheduled ? 'Programmer la publication' : 'Publier maintenant'}
                 </h3>
                 <p className="text-sm text-gray-600">

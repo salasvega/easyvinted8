@@ -60,7 +60,7 @@ export default function CompletionStep({ onComplete, userName, avatarId, locatio
         </svg>
       </div>
 
-      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4 px-4">
+      <h2 className="text-2xl sm:text-3xl md:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4 px-4">
         Bienvenue sur EasyVinted, {userName} !
       </h2>
 

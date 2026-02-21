@@ -1607,7 +1607,7 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
                 <Package className="w-5 h-5 text-white" />
               </div>
               <div className="min-w-0">
-                <h2 className="text-lg font-semibold text-slate-900 truncate">{existingLotId ? 'Modifier le lot' : 'Créer un lot'}</h2>
+                <h2 className="text-base font-semibold text-slate-900 truncate">{existingLotId ? 'Modifier le lot' : 'Créer un lot'}</h2>
                 {lotData.selectedArticles.length > 0 && (
                   <div className="text-xs text-slate-500 truncate">
                     {lotData.selectedArticles.length} article(s) • {totalPrice.toFixed(2)}€

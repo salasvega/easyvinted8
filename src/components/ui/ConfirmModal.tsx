@@ -51,7 +51,7 @@ export function ConfirmModal({
                 <AlertCircle className={`w-6 h-6 ${iconColor}`} />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+                <h3 className="text-base font-semibold text-gray-900 mb-2">{title}</h3>
                 <p className="text-sm text-gray-600 leading-relaxed">{message}</p>
               </div>
             </div>

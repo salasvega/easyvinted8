@@ -134,7 +134,7 @@ export function ProfilePage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Mon profil</h1>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Informations personnelles</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Informations personnelles</h2>
 
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div>
@@ -176,7 +176,7 @@ export function ProfilePage() {
 
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Modifier le mot de passe</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Modifier le mot de passe</h2>
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>

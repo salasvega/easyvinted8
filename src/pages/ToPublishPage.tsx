@@ -200,7 +200,7 @@ export function ToPublishPage() {
             <label className="text-sm font-semibold text-gray-700">
               Afficher les articles planifiés jusqu'à
             </label>
-            <span className="text-lg font-bold text-teal-600">
+            <span className="text-base font-semibold text-teal-600">
               {daysFilter === 1 ? 'demain' : `+${daysFilter} jours`}
             </span>
           </div>
@@ -227,7 +227,7 @@ export function ToPublishPage() {
             <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
               <Play className="w-8 h-8 text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-base font-semibold text-gray-900 mb-2">
               Aucun article à publier
             </h3>
             <p className="text-gray-600 mb-6">

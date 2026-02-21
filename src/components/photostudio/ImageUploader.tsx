@@ -131,7 +131,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected })
             <Upload size={32} />
           </div>
 
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Upload Product Photo</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-2">Upload Product Photo</h3>
           <p className="text-gray-500 text-sm mb-6 max-w-xs">
             Drag and drop your image here, or choose an option below
           </p>

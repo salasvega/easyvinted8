@@ -61,7 +61,7 @@ export function VirtualTryOn({ imageBase64, mimeType, onImageGenerated }: Virtua
           <div className="w-14 h-14 bg-gradient-to-br from-rose-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
             <User className="w-7 h-7 text-white" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900">Essayage Virtuel IA</h3>
+          <h3 className="text-base font-semibold text-gray-900">Essayage Virtuel IA</h3>
           <p className="text-sm text-gray-600 mt-1">
             Visualisez ce vetement porte par un mannequin
           </p>

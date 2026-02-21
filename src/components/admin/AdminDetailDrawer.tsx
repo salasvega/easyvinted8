@@ -570,7 +570,7 @@ export function AdminDetailDrawer({
 
             <div className="p-5 space-y-5">
               <div className={`${!isClosing ? 'drawer-content-item' : 'drawer-content-item-exit'}`} style={{ '--item-index': 1 } as React.CSSProperties}>
-                <h3 className="text-xl font-bold text-slate-900 mb-1">{item.title}</h3>
+                <h3 className="text-base font-semibold text-slate-900 mb-1">{item.title}</h3>
                 <p className="text-sm font-medium text-slate-600">
                   {item.brand || 'Sans marque'}
                   {item.size && ` • ${item.size}`}
@@ -763,14 +763,14 @@ export function AdminDetailDrawer({
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
                       <p className="text-[10px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">Prix du lot</p>
-                      <p className="text-lg font-bold text-emerald-600">{item.price.toFixed(2)} €</p>
+                      <p className="text-base font-semibold text-emerald-600">{item.price.toFixed(2)} €</p>
                     </div>
                     {item.discount_percentage !== undefined && (
                       <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                         <p className="text-[10px] uppercase tracking-wide text-slate-500 font-semibold mb-1">Remise</p>
                         <div className="flex items-center gap-1.5">
                           <TrendingDown className="w-4 h-4 text-rose-500" />
-                          <p className="text-lg font-bold text-slate-900">{item.discount_percentage}%</p>
+                          <p className="text-base font-semibold text-slate-900">{item.discount_percentage}%</p>
                         </div>
                       </div>
                     )}
@@ -908,7 +908,7 @@ export function AdminDetailDrawer({
                 {item.type === 'article' && (
                   <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
                     <p className="text-[10px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">Prix</p>
-                    <p className="text-lg font-bold text-emerald-600">{item.price.toFixed(2)}€</p>
+                    <p className="text-base font-semibold text-emerald-600">{item.price.toFixed(2)}€</p>
                   </div>
                 )}
                 {item.seller_name && (
@@ -1176,7 +1176,7 @@ export function AdminDetailDrawer({
 
                 <div className="p-5 space-y-5">
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900 mb-1">{selectedArticle.title}</h3>
+                    <h3 className="text-base font-semibold text-slate-900 mb-1">{selectedArticle.title}</h3>
                     <p className="text-sm font-medium text-slate-600">
                       {selectedArticle.brand || 'Sans marque'}
                       {selectedArticle.size && ` • ${selectedArticle.size}`}
@@ -1197,7 +1197,7 @@ export function AdminDetailDrawer({
                   <div className="grid grid-cols-2 gap-3">
                     <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
                       <p className="text-[10px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">Prix</p>
-                      <p className="text-lg font-bold text-emerald-600">{selectedArticle.price.toFixed(2)}€</p>
+                      <p className="text-base font-semibold text-emerald-600">{selectedArticle.price.toFixed(2)}€</p>
                     </div>
                     {selectedArticle.status && (
                       <div className={`p-3 rounded-xl border ${STATUS_COLORS[selectedArticle.status].bg} ${STATUS_COLORS[selectedArticle.status].border}`}>

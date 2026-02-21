@@ -68,7 +68,7 @@ export default function AvatarCreationLoader({ message }: Props) {
               </div>
 
               <div className="text-center space-y-2">
-                <p className="text-lg font-bold text-emerald-900 animate-fade-in">
+                <p className="text-base font-semibold text-emerald-900 animate-fade-in">
                   {message || LOADING_MESSAGES[messageIndex]}
                 </p>
                 <p className="text-sm text-emerald-600">

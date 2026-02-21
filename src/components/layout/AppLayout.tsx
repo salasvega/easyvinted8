@@ -218,7 +218,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               {/* Logo = retour au dashboard */}
               <Link to="/mon_dressing" className="flex items-center gap-2 logo-animation ripple-effect">
                 <ShoppingBag className="w-6 h-6 text-emerald-600 transition-transform" />
-                <span className="text-xl font-bold text-gray-900">
+                <span className="text-base font-semibold text-gray-900">
                   <span className="text-emerald-600">Easy</span>Vinted
                 </span>
               </Link>

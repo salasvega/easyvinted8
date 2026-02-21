@@ -183,7 +183,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
       <div className="bg-blue-50/50 rounded-xl p-6 border border-blue-100 mb-6">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+          <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
             <Wand2 className="text-blue-600" size={20} />
             AI Magic Editor
           </h3>

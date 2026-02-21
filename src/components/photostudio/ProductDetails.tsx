@@ -80,7 +80,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ products, loading, onSa
       {/* Action Bar */}
       <div className="flex justify-between items-center sticky top-0 bg-gray-50/95 backdrop-blur-sm z-20 py-2 border-b border-gray-200/50">
         <div>
-          <h2 className="text-lg font-bold text-gray-900">Analyse du produit</h2>
+          <h2 className="text-base font-semibold text-gray-900">Analyse du produit</h2>
           <p className="text-xs text-gray-500">Trouvé {products.length} article{products.length !== 1 ? 's' : ''}</p>
         </div>
         

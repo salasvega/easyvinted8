@@ -741,7 +741,7 @@ export function MonDressingPage() {
                 </div>
                 <div className="text-xs font-medium text-gray-600 truncate">Total</div>
               </div>
-              <div className="text-xl font-bold text-gray-900 truncate">{stats.total}</div>
+              <div className="text-base font-semibold text-gray-900 truncate">{stats.total}</div>
             </div>
 
             <div
@@ -754,7 +754,7 @@ export function MonDressingPage() {
                 </div>
                 <div className="text-xs font-medium text-slate-600 truncate">Brouillons</div>
               </div>
-              <div className="text-xl font-bold text-slate-700 truncate">{stats.drafts}</div>
+              <div className="text-base font-semibold text-slate-700 truncate">{stats.drafts}</div>
             </div>
 
             <div
@@ -767,7 +767,7 @@ export function MonDressingPage() {
                 </div>
                 <div className="text-xs font-medium text-blue-600 truncate">Prêt</div>
               </div>
-              <div className="text-xl font-bold text-blue-700 truncate">{stats.ready}</div>
+              <div className="text-base font-semibold text-blue-700 truncate">{stats.ready}</div>
             </div>
 
             <div
@@ -780,7 +780,7 @@ export function MonDressingPage() {
                 </div>
                 <div className="text-xs font-medium text-orange-600 truncate">Planifié</div>
               </div>
-              <div className="text-xl font-bold text-orange-700 truncate">{stats.scheduled}</div>
+              <div className="text-base font-semibold text-orange-700 truncate">{stats.scheduled}</div>
             </div>
 
             <div
@@ -793,7 +793,7 @@ export function MonDressingPage() {
                 </div>
                 <div className="text-xs font-medium text-violet-600 truncate">Publié</div>
               </div>
-              <div className="text-xl font-bold text-violet-700 truncate">{stats.published}</div>
+              <div className="text-base font-semibold text-violet-700 truncate">{stats.published}</div>
             </div>
 
             <div
@@ -806,7 +806,7 @@ export function MonDressingPage() {
                 </div>
                 <div className="text-xs font-medium text-teal-600 truncate">Vendus</div>
               </div>
-              <div className="text-xl font-bold text-teal-700 truncate">{stats.sold}</div>
+              <div className="text-base font-semibold text-teal-700 truncate">{stats.sold}</div>
             </div>
 
             <div
@@ -818,7 +818,7 @@ export function MonDressingPage() {
                 </div>
                 <div className="text-xs font-medium text-cyan-600 truncate">Conversion</div>
               </div>
-              <div className="text-xl font-bold text-cyan-700 truncate">{stats.conversionRate.toFixed(1)}%</div>
+              <div className="text-base font-semibold text-cyan-700 truncate">{stats.conversionRate.toFixed(1)}%</div>
             </div>
 
             <div
@@ -831,7 +831,7 @@ export function MonDressingPage() {
                 </div>
                 <div className="text-xs font-medium text-emerald-600 truncate">Bénéfices</div>
               </div>
-              <div className="text-xl font-bold text-emerald-700 truncate">{stats.netProfit.toFixed(2)}€</div>
+              <div className="text-base font-semibold text-emerald-700 truncate">{stats.netProfit.toFixed(2)}€</div>
             </div>
           </div>
         </div>
@@ -945,7 +945,7 @@ export function MonDressingPage() {
         {filteredItems.length === 0 ? (
           <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center">
             <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">Aucun element trouvé</h3>
+            <h3 className="text-base font-semibold text-slate-900 mb-2">Aucun element trouvé</h3>
             <p className="text-slate-500 mb-6">Essayez de modifier vos filtres ou creez un nouvel article</p>
             <button
               onClick={() => setArticleFormDrawer({ isOpen: true, articleId: undefined })}

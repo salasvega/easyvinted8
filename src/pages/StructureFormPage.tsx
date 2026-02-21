@@ -203,7 +203,7 @@ export function StructureFormPage() {
             <ShoppingBag className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-gray-900">
               Formulaire de publication Vinted
             </h1>
             <p className="text-gray-600">

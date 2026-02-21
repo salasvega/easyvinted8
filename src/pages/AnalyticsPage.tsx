@@ -1114,7 +1114,7 @@ export function AnalyticsPage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <Zap className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                <h3 className="text-lg font-bold text-gray-900">Flux de vente</h3>
+                <h3 className="text-base font-semibold text-gray-900">Flux de vente</h3>
               </div>
               <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">Vue complète du parcours de vos articles et lots.</p>
             </div>
@@ -1210,7 +1210,7 @@ export function AnalyticsPage() {
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-gray-700 flex-shrink-0" />
               <div className="min-w-0">
-                <h2 className="text-lg font-bold text-gray-900 truncate">Vendeurs</h2>
+                <h2 className="text-base font-semibold text-gray-900 truncate">Vendeurs</h2>
                 <p className="text-xs sm:text-sm text-gray-600 truncate">Classement + performance</p>
               </div>
             </div>
@@ -1339,7 +1339,7 @@ export function AnalyticsPage() {
         <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl ring-1 ring-purple-200 shadow-sm p-4 sm:p-5 overflow-hidden">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0" />
-            <h3 className="text-lg font-bold text-gray-900">Analyse IA</h3>
+            <h3 className="text-base font-semibold text-gray-900">Analyse IA</h3>
           </div>
           <div className="mt-4 space-y-2.5">
             {insights.map((t, i) => (

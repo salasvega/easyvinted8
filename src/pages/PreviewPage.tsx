@@ -409,7 +409,7 @@ export function PreviewPage() {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
           <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-slate-900 mb-2">Article non trouve</h2>
+          <h2 className="text-base font-semibold text-slate-900 mb-2">Article non trouve</h2>
           <p className="text-sm text-slate-500">
             Impossible de charger cette annonce. Elle a peut-etre ete supprimée.
           </p>
@@ -597,7 +597,7 @@ export function PreviewPage() {
             <div className="space-y-5">
               {/* 1. Title + Brand + Reference */}
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-1">{article.title}</h3>
+                <h3 className="text-base font-semibold text-slate-900 mb-1">{article.title}</h3>
                 <p className="text-sm font-medium text-slate-600">{article.brand || 'Sans marque'}</p>
                 {article.reference_number && (
                   <div className="flex items-center gap-2 mt-2">
@@ -671,7 +671,7 @@ export function PreviewPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
                   <p className="text-[10px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">Prix</p>
-                  <p className="text-lg font-bold text-emerald-600">{article.price.toFixed(2)} €</p>
+                  <p className="text-base font-semibold text-emerald-600">{article.price.toFixed(2)} €</p>
                 </div>
                 {sellerName && (
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">

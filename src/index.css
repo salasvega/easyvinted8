@@ -2,6 +2,68 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply font-sans antialiased;
+  }
+
+  /* Typography Standards - Virtual Stylist Style */
+  h1 {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+  h2 {
+    @apply text-xl font-bold text-gray-900;
+  }
+
+  h3 {
+    @apply text-base font-semibold text-gray-900;
+  }
+
+  h4 {
+    @apply text-sm font-semibold text-gray-900;
+  }
+
+  p {
+    @apply text-sm text-gray-700;
+  }
+
+  small {
+    @apply text-xs text-gray-600;
+  }
+}
+
+@layer components {
+  /* Text Utility Classes */
+  .text-title {
+    @apply text-2xl font-bold text-gray-900;
+  }
+
+  .text-subtitle {
+    @apply text-xl font-bold text-gray-900;
+  }
+
+  .text-section-title {
+    @apply text-base font-semibold text-gray-900;
+  }
+
+  .text-label {
+    @apply text-sm font-medium text-gray-700;
+  }
+
+  .text-body {
+    @apply text-sm text-gray-700;
+  }
+
+  .text-caption {
+    @apply text-xs text-gray-600;
+  }
+
+  .text-description {
+    @apply text-sm text-gray-600;
+  }
+}
+
 html {
   overflow-y: scroll;
   scrollbar-gutter: stable;

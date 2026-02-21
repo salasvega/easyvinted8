@@ -47,7 +47,7 @@ export function ProductCard({ product, onEdit, onDelete, onMarkAsSold }: Product
 
         <div className="flex items-center justify-between mb-3">
           <div>
-            <span className="text-xl font-bold text-gray-900">
+            <span className="text-base font-semibold text-gray-900">
               {product.status === 'sold' && product.sale_price ? product.sale_price : product.price}€
             </span>
             <span className="text-sm text-gray-500 ml-2">

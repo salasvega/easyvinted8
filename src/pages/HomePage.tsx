@@ -347,7 +347,7 @@ export function HomePage() {
           
 
             {/* Main title */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 tracking-tight leading-[1.1]">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-6 tracking-tight leading-[1.1]">
               Vendez plus vite sur{" "}
               <span className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 bg-clip-text text-transparent">
                 Vinted
@@ -356,7 +356,7 @@ export function HomePage() {
               avec l&apos;IA
             </h1>
 
-            <p className="text-xl sm:text-2xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed font-light">
+            <p className="text-lg sm:text-xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
               Créez vos annonces en quelques secondes, optimisez vos prix et publiez au moment parfait.
               Automatisez ce qui prend du temps, gardez le contrôle.
             </p>
@@ -415,7 +415,7 @@ export function HomePage() {
               { value: "24/7", label: "Disponibilité IA" },
             ].map((stat, idx) => (
               <div key={idx} className="text-center">
-                <div className="text-4xl font-bold text-slate-900 mb-2">{stat.value}</div>
+                <div className="text-2xl font-bold text-slate-900 mb-2">{stat.value}</div>
                 <div className="text-sm text-slate-600 font-medium">{stat.label}</div>
               </div>
             ))}
@@ -428,10 +428,10 @@ export function HomePage() {
         <div className="max-w-7xl mx-auto">
           {/* Section header */}
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">
               Tout ce dont vous avez besoin
             </h2>
-            <p className="text-xl text-slate-600">
+            <p className="text-base text-slate-600">
               Une suite complète d&apos;outils pour automatiser et optimiser vos ventes sur Vinted
             </p>
           </div>
@@ -442,8 +442,8 @@ export function HomePage() {
               <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center mb-5 shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
                 <Sparkles className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Génération IA automatique</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-base font-semibold text-slate-900 mb-3">Génération IA automatique</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
                 L&apos;IA analyse vos photos et génère automatiquement un titre accrocheur, une description détaillée,
                 et le prix optimal.
               </p>
@@ -453,8 +453,8 @@ export function HomePage() {
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-5 shadow-lg shadow-blue-500/20 group-hover:scale-110 transition-transform">
                 <Calendar className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Planification intelligente</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-base font-semibold text-slate-900 mb-3">Planification intelligente</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
                 Publiez vos annonces aux meilleurs moments selon la saison, le type de produit et les périodes de forte activité.
               </p>
             </div>
@@ -463,8 +463,8 @@ export function HomePage() {
               <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center mb-5 shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
                 <Camera className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Photo Studio IA</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-base font-semibold text-slate-900 mb-3">Photo Studio IA</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
                 Éditez vos photos professionnellement avec l&apos;IA : suppression d&apos;arrière-plan, amélioration automatique,
                 et suggestions de mise en scène.
               </p>
@@ -474,8 +474,8 @@ export function HomePage() {
               <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center mb-5 shadow-lg shadow-teal-500/20 group-hover:scale-110 transition-transform">
                 <TrendingUp className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Optimisation des prix</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-base font-semibold text-slate-900 mb-3">Optimisation des prix</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
                 Recommandations de prix basées sur le marché, la demande et l&apos;état de vos articles pour maximiser vos ventes.
               </p>
             </div>
@@ -485,8 +485,8 @@ export function HomePage() {
               <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl flex items-center justify-center mb-5 shadow-lg shadow-rose-500/20 group-hover:scale-110 transition-transform">
                 <BarChart3 className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Analytics détaillées</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-base font-semibold text-slate-900 mb-3">Analytics détaillées</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
                 Suivez vos performances, analysez vos ventes et obtenez des insights pour améliorer votre stratégie de vente.
               </p>
             </div>
@@ -495,8 +495,8 @@ export function HomePage() {
               <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-violet-600 rounded-xl flex items-center justify-center mb-5 shadow-lg shadow-violet-500/20 group-hover:scale-110 transition-transform">
                 <Shield className="w-6 h-6 text-white" aria-hidden="true" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">100% sécurisé</h3>
-              <p className="text-slate-600 leading-relaxed">
+              <h3 className="text-base font-semibold text-slate-900 mb-3">100% sécurisé</h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
                 Vos données sont protégées et cryptées. Nous ne stockons jamais vos identifiants Vinted et respectons votre vie privée.
               </p>
             </div>
@@ -508,8 +508,8 @@ export function HomePage() {
       <section className="py-24 px-6 lg:px-8 bg-slate-900 text-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold mb-4">Comment ça marche ?</h2>
-            <p className="text-xl text-slate-400">Créez vos annonces en 3 étapes simples</p>
+            <h2 className="text-2xl font-bold mb-4">Comment ça marche ?</h2>
+            <p className="text-base text-slate-400">Créez vos annonces en 3 étapes simples</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -539,8 +539,8 @@ export function HomePage() {
                   <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-xl shadow-emerald-500/20">
                     <item.icon className="w-8 h-8 text-white" aria-hidden="true" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
-                  <p className="text-slate-400 leading-relaxed">{item.description}</p>
+                  <h3 className="text-base font-semibold mb-3">{item.title}</h3>
+                  <p className="text-sm text-slate-400 leading-relaxed">{item.description}</p>
                 </div>
                 {idx < 2 && (
                   <div className="hidden md:block absolute top-1/3 -right-4 w-8 h-0.5 bg-gradient-to-r from-emerald-500/50 to-transparent" />
@@ -555,8 +555,8 @@ export function HomePage() {
       <section className="py-24 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-4">Ils adorent EasyVinted</h2>
-            <p className="text-xl text-slate-600">Découvrez ce que nos utilisateurs disent de nous</p>
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">Ils adorent EasyVinted</h2>
+            <p className="text-base text-slate-600">Découvrez ce que nos utilisateurs disent de nous</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
@@ -608,8 +608,8 @@ export function HomePage() {
       {/* CTA Section */}
       <section className="py-24 px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6">Prêt à transformer vos ventes ?</h2>
-          <p className="text-xl text-slate-300 mb-10">
+          <h2 className="text-2xl font-bold text-white mb-6">Prêt à transformer vos ventes ?</h2>
+          <p className="text-base text-slate-300 mb-10">
             Rejoignez des centaines de vendeurs qui automatisent leurs ventes avec l&apos;IA
           </p>
 
@@ -634,19 +634,19 @@ export function HomePage() {
                 </div>
 
                 {/* ✅ Easy en vert émeraude */}
-                <span className="text-xl font-bold">
+                <span className="text-base font-semibold">
                   <span className="text-emerald-600">Easy</span>
                   <span className="text-slate-900">Vinted</span>
                 </span>
               </div>
 
-              <p className="text-slate-600 mb-4 max-w-md">
+              <p className="text-sm text-slate-600 mb-4 max-w-md">
                 L&apos;assistant IA qui automatise vos ventes sur Vinted. Créez, optimisez et publiez vos annonces en quelques secondes.
               </p>
             </div>
 
             <div>
-              <h4 className="font-semibold text-slate-900 mb-4">Produit</h4>
+              <h4 className="text-sm font-semibold text-slate-900 mb-4">Produit</h4>
               <ul className="space-y-2">
                 <li>
                   <Link to="/mon_dressing" className="text-slate-600 hover:text-emerald-700 transition-colors">

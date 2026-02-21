@@ -775,7 +775,7 @@ export function ArticleFormPageV2() {
             <div className="space-y-5">
               {/* Title */}
               <div>
-                <h3 className="text-xl font-bold text-slate-900 mb-1">
+                <h3 className="text-base font-semibold text-slate-900 mb-1">
                   <input
                     type="text"
                     value={formData.title}
@@ -902,7 +902,7 @@ export function ArticleFormPageV2() {
                       className="w-full text-lg font-bold text-emerald-600 bg-transparent border-0 focus:ring-0 p-0"
                       placeholder="0.00"
                     />
-                    <span className="text-lg font-bold text-emerald-600">€</span>
+                    <span className="text-base font-semibold text-emerald-600">€</span>
                   </div>
                 </div>
 

@@ -46,7 +46,7 @@ export function LabelModal({ isOpen, onClose, article, sellerName, lotArticles }
         </h3>
         <div className="inline-block border-2 border-gray-900 px-4 py-2 rounded">
           <span className="text-sm font-medium text-gray-900">Réf: </span>
-          <span className="text-lg font-bold text-gray-900">{article.reference_number}</span>
+          <span className="text-base font-semibold text-gray-900">{article.reference_number}</span>
         </div>
       </div>
 
@@ -55,7 +55,7 @@ export function LabelModal({ isOpen, onClose, article, sellerName, lotArticles }
           <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Article{isLot ? 's' : ''}</p>
           {isLot ? (
             <>
-              <p className="text-lg font-bold text-gray-900 mb-2">Lot ({lotArticles.length} article{lotArticles.length > 1 ? 's' : ''})</p>
+              <p className="text-base font-semibold text-gray-900 mb-2">Lot ({lotArticles.length} article{lotArticles.length > 1 ? 's' : ''})</p>
               <ul className="list-disc list-inside space-y-1 ml-2">
                 {lotArticles.map((lotArticle, idx) => (
                   <li key={idx} className="text-sm text-gray-900">{lotArticle.title}</li>
@@ -63,7 +63,7 @@ export function LabelModal({ isOpen, onClose, article, sellerName, lotArticles }
               </ul>
             </>
           ) : (
-            <p className="text-lg font-bold text-gray-900">{article.title}</p>
+            <p className="text-base font-semibold text-gray-900">{article.title}</p>
           )}
         </div>
 
@@ -107,7 +107,7 @@ export function LabelModal({ isOpen, onClose, article, sellerName, lotArticles }
       <div className="fixed inset-0 bg-black bg-opacity-50 z-[75] flex items-center justify-center p-4 no-print">
         <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
           <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900">Étiquette de colis</h2>
+            <h2 className="text-base font-semibold text-gray-900">Étiquette de colis</h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 transition-colors"

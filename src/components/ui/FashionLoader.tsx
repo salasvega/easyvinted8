@@ -125,7 +125,7 @@ export function FashionLoader({ context = 'general', className = '', compact = f
             </div>
 
             <div className="text-center space-y-2">
-              <p className="text-lg font-bold text-emerald-900 animate-fade-in">
+              <p className="text-base font-semibold text-emerald-900 animate-fade-in">
                 {messages[messageIndex]}
               </p>
               <p className="text-sm text-emerald-600">

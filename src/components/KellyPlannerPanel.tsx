@@ -628,7 +628,7 @@ export function KellyPlannerPanel() {
                       Suggestions de planification
                     </h3>
                   </div>
-                  <div className="text-3xl font-semibold text-blue-700 mb-1">
+                  <div className="text-2xl font-semibold text-blue-700 mb-1">
                     {pendingSuggestions.length}
                   </div>
                   <p className="text-xs text-blue-700 mb-4">
@@ -793,7 +793,7 @@ export function KellyPlannerPanel() {
                       Annonces programmées
                     </h3>
                   </div>
-                  <div className="text-3xl font-semibold text-emerald-700 mb-1">
+                  <div className="text-2xl font-semibold text-emerald-700 mb-1">
                     {totalScheduled}
                   </div>
                   <p className="text-xs text-emerald-700 mb-4">

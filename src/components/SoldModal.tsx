@@ -22,7 +22,7 @@ export function SoldModal({ product, onConfirm, onClose }: SoldModalProps) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[80]">
       <div className="bg-white rounded-lg max-w-md w-full">
         <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Marquer comme vendu</h2>
+          <h2 className="text-base font-semibold text-gray-900">Marquer comme vendu</h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-full transition-colors"
