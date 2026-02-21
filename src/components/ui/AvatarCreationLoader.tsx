@@ -1,160 +1,133 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Sparkles } from 'lucide-react';
 
 interface Props {
   message?: string;
 }
 
-export default function AvatarCreationLoader({ message = "Création de votre modèle" }: Props) {
-  const [dots, setDots] = useState('');
+const LOADING_MESSAGES = [
+  "Création de votre mannequin...",
+  "Ajustement des proportions...",
+  "Calibrage du style vestimentaire...",
+  "Analyse de la silhouette...",
+  "Finalisation du rendu...",
+];
+
+export default function AvatarCreationLoader({ message }: Props) {
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [scanPosition, setScanPosition] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setDots(prev => prev.length >= 3 ? '' : prev + '.');
-    }, 500);
-    return () => clearInterval(interval);
+    const messageInterval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % LOADING_MESSAGES.length);
+    }, 2000);
+
+    return () => clearInterval(messageInterval);
+  }, []);
+
+  useEffect(() => {
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev < 30) {
+          return prev + 2;
+        } else if (prev < 95) {
+          return prev + 0.3;
+        }
+        return prev;
+      });
+    }, 100);
+
+    return () => clearInterval(progressInterval);
+  }, []);
+
+  useEffect(() => {
+    const scanInterval = setInterval(() => {
+      setScanPosition((prev) => (prev >= 100 ? 0 : prev + 2));
+    }, 50);
+
+    return () => clearInterval(scanInterval);
   }, []);
 
   return (
     <div className="fixed inset-0 bg-white/95 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="max-w-lg w-full px-6">
-        <div className="relative mb-12">
-          {/* Cercles animés multiples */}
-          <div className="relative w-32 h-32 mx-auto">
-            {/* Cercle extérieur lent */}
-            <div className="absolute inset-0 border-4 border-gray-200 rounded-full animate-spin-slow"
-                 style={{
-                   borderTopColor: '#1f2937',
-                   animation: 'spin 3s linear infinite'
-                 }}>
-            </div>
-
-            {/* Cercle moyen */}
-            <div className="absolute inset-3 border-4 border-gray-100 rounded-full animate-spin-medium"
-                 style={{
-                   borderRightColor: '#4b5563',
-                   animation: 'spin 2s linear infinite reverse'
-                 }}>
-            </div>
-
-            {/* Cercle intérieur rapide */}
-            <div className="absolute inset-6 border-4 border-gray-50 rounded-full animate-spin"
-                 style={{
-                   borderBottomColor: '#6b7280',
-                   animation: 'spin 1.5s linear infinite'
-                 }}>
-            </div>
-
-            {/* Points décoratifs animés */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="w-3 h-3 bg-gray-800 rounded-full animate-pulse-scale"></div>
-            </div>
-            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
-              <div className="w-3 h-3 bg-gray-700 rounded-full animate-pulse-scale" style={{ animationDelay: '0.5s' }}></div>
-            </div>
-            <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="w-3 h-3 bg-gray-600 rounded-full animate-pulse-scale" style={{ animationDelay: '1s' }}></div>
-            </div>
-            <div className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2">
-              <div className="w-3 h-3 bg-gray-500 rounded-full animate-pulse-scale" style={{ animationDelay: '1.5s' }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Texte de chargement avec points animés */}
-        <div className="text-center mb-8">
-          <p className="text-xl font-semibold text-gray-900 mb-2">
-            {message}
-            <span className="inline-block w-8 text-left">{dots}</span>
-          </p>
-          <p className="text-sm text-gray-600">
-            Préparation de votre Avatar en cours...
-          </p>
-        </div>
-
-        {/* Cartes fantômes en grille */}
-        <div className="grid grid-cols-3 gap-4">
-          {[0, 1, 2].map((index) => (
+      <div className="flex flex-col items-center justify-center">
+        <div className="relative w-full max-w-md">
+          <div className="relative bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-8 shadow-lg border border-emerald-100 overflow-hidden">
             <div
-              key={index}
-              className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden relative animate-skeleton"
-              style={{ animationDelay: `${index * 0.2}s` }}
-            >
-              {/* Effet de shimmer */}
-              <div
-                className="absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/40 to-transparent"
-                style={{ animationDelay: `${index * 0.2}s` }}
-              ></div>
+              className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-60 transition-all duration-75 ease-linear"
+              style={{ transform: `translateX(${scanPosition - 50}%)` }}
+            />
 
-              {/* Icône fantôme */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 bg-gray-300/50 rounded-full"></div>
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative">
+                <div className="absolute inset-0 bg-emerald-400 rounded-full blur-xl opacity-30 animate-pulse" />
+                <div className="relative bg-gradient-to-br from-emerald-600 to-green-600 rounded-full p-4 shadow-lg">
+                  <Sparkles className="w-8 h-8 text-white animate-pulse" />
+                </div>
+              </div>
+
+              <div className="text-center space-y-2">
+                <p className="text-lg font-bold text-emerald-900 animate-fade-in">
+                  {message || LOADING_MESSAGES[messageIndex]}
+                </p>
+                <p className="text-sm text-emerald-600">
+                  Magie de l'IA en cours...
+                </p>
+              </div>
+
+              <div className="w-full space-y-2">
+                <div className="relative h-3 bg-emerald-100 rounded-full overflow-hidden shadow-inner">
+                  <div
+                    className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 rounded-full transition-all duration-300 ease-out shadow-lg"
+                    style={{ width: `${Math.min(progress, 100)}%` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer" />
+                  </div>
+                </div>
+                <p className="text-xs text-center text-emerald-500 font-medium">
+                  {Math.round(Math.min(progress, 100))}%
+                </p>
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Message informatif */}
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full">
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-              <div className="w-1.5 h-1.5 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-1.5 h-1.5 bg-gray-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-            </div>
-            <span className="text-xs font-medium text-gray-700">
-              Cela ne prendra qu'un instant
-            </span>
+            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
+          </div>
+
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
           </div>
         </div>
 
         <style>{`
-          @keyframes pulse-scale {
-            0%, 100% {
-              transform: scale(1);
-              opacity: 1;
-            }
-            50% {
-              transform: scale(1.5);
-              opacity: 0.5;
-            }
-          }
-
-          @keyframes skeleton {
-            0%, 100% {
-              opacity: 1;
-            }
-            50% {
-              opacity: 0.5;
-            }
-          }
-
           @keyframes shimmer {
             0% {
               transform: translateX(-100%);
             }
             100% {
-              transform: translateX(100%);
+              transform: translateX(200%);
             }
           }
 
-          .animate-pulse-scale {
-            animation: pulse-scale 2s ease-in-out infinite;
-          }
-
-          .animate-skeleton {
-            animation: skeleton 1.5s ease-in-out infinite;
-          }
-
           .animate-shimmer {
-            animation: shimmer 2s ease-in-out infinite;
+            animation: shimmer 2s infinite;
           }
 
-          .animate-spin-slow {
-            animation: spin 3s linear infinite;
+          @keyframes fade-in {
+            0% {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0);
+            }
           }
 
-          .animate-spin-medium {
-            animation: spin 2s linear infinite reverse;
+          .animate-fade-in {
+            animation: fade-in 0.5s ease-out;
           }
         `}</style>
       </div>
