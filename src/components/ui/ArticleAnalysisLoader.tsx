@@ -72,38 +72,38 @@ export function ArticleAnalysisLoader({ stage = 'analyzing' }: Props) {
   }, []);
 
   return (
-    <div className="absolute inset-0 bg-gradient-to-br from-blue-50/95 via-white/95 to-cyan-50/95 backdrop-blur-md flex items-center justify-center z-[100]">
+    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/95 via-white/95 to-green-50/95 backdrop-blur-md flex items-center justify-center z-[100]">
       <div className="max-w-lg w-full px-6">
         <div className="relative mb-12">
           {/* Cercles animés multiples */}
           <div className="relative w-32 h-32 mx-auto">
             {/* Cercle extérieur lent */}
-            <div className="absolute inset-0 border-4 border-blue-100 rounded-full"
+            <div className="absolute inset-0 border-4 border-emerald-100 rounded-full"
                  style={{
-                   borderTopColor: '#3b82f6',
+                   borderTopColor: '#10b981',
                    animation: 'spin 3s linear infinite'
                  }}>
             </div>
 
             {/* Cercle moyen */}
-            <div className="absolute inset-3 border-4 border-cyan-50 rounded-full"
+            <div className="absolute inset-3 border-4 border-green-50 rounded-full"
                  style={{
-                   borderRightColor: '#06b6d4',
+                   borderRightColor: '#059669',
                    animation: 'spin 2s linear infinite reverse'
                  }}>
             </div>
 
             {/* Cercle intérieur rapide */}
-            <div className="absolute inset-6 border-4 border-blue-50 rounded-full"
+            <div className="absolute inset-6 border-4 border-emerald-50 rounded-full"
                  style={{
-                   borderBottomColor: '#0ea5e9',
+                   borderBottomColor: '#34d399',
                    animation: 'spin 1.5s linear infinite'
                  }}>
             </div>
 
             {/* Icône centrale */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30"
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30"
                    style={{ animation: 'pulse 2s ease-in-out infinite' }}>
                 <Icon className="w-8 h-8 text-white" />
               </div>
@@ -111,24 +111,24 @@ export function ArticleAnalysisLoader({ stage = 'analyzing' }: Props) {
 
             {/* Points décoratifs animés */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="w-3 h-3 bg-blue-600 rounded-full" style={{
+              <div className="w-3 h-3 bg-emerald-600 rounded-full" style={{
                 animation: 'pulse-scale 2s ease-in-out infinite'
               }}></div>
             </div>
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2">
-              <div className="w-3 h-3 bg-cyan-600 rounded-full" style={{
+              <div className="w-3 h-3 bg-green-600 rounded-full" style={{
                 animation: 'pulse-scale 2s ease-in-out infinite',
                 animationDelay: '0.5s'
               }}></div>
             </div>
             <div className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full" style={{
+              <div className="w-3 h-3 bg-emerald-500 rounded-full" style={{
                 animation: 'pulse-scale 2s ease-in-out infinite',
                 animationDelay: '1s'
               }}></div>
             </div>
             <div className="absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2">
-              <div className="w-3 h-3 bg-cyan-500 rounded-full" style={{
+              <div className="w-3 h-3 bg-green-500 rounded-full" style={{
                 animation: 'pulse-scale 2s ease-in-out infinite',
                 animationDelay: '1.5s'
               }}></div>
@@ -138,7 +138,7 @@ export function ArticleAnalysisLoader({ stage = 'analyzing' }: Props) {
 
         {/* Texte de chargement avec points animés */}
         <div className="text-center mb-8">
-          <p className="text-[9px] sm:text-[10px] font-black tracking-[0.3em] sm:tracking-[0.5em] uppercase text-blue-600 mb-2">
+          <p className="text-[9px] sm:text-[10px] font-black tracking-[0.3em] sm:tracking-[0.5em] uppercase text-emerald-600 mb-2">
             Kelly AI Assistant
           </p>
           <p className="text-xl font-semibold text-gray-900 mb-2">
@@ -154,7 +154,7 @@ export function ArticleAnalysisLoader({ stage = 'analyzing' }: Props) {
         <div className="mb-8">
           <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-300 ease-out"
+              className="h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full transition-all duration-300 ease-out"
               style={{ width: `${progress}%` }}
             >
               <div className="h-full bg-gradient-to-r from-white/0 via-white/30 to-white/0 animate-shimmer"></div>
@@ -166,7 +166,7 @@ export function ArticleAnalysisLoader({ stage = 'analyzing' }: Props) {
         {/* Message contextuel avec transition */}
         <div className="mb-8 h-6 flex items-center justify-center">
           <div
-            className="text-sm font-medium text-blue-700 transition-all duration-500"
+            className="text-sm font-medium text-emerald-700 transition-all duration-500"
             key={currentMessageIndex}
             style={{
               animation: 'fadeInUp 0.5s ease-out'
@@ -186,13 +186,13 @@ export function ArticleAnalysisLoader({ stage = 'analyzing' }: Props) {
           ].map((item, index) => (
             <div
               key={index}
-              className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border border-blue-100 shadow-sm"
+              className="flex flex-col items-center gap-2 p-3 bg-white rounded-lg border border-emerald-100 shadow-sm"
               style={{
                 animation: 'skeleton 1.5s ease-in-out infinite',
                 animationDelay: item.delay
               }}
             >
-              <item.icon className="w-6 h-6 text-blue-500" />
+              <item.icon className="w-6 h-6 text-emerald-500" />
               <span className="text-xs text-gray-600 font-medium">{item.label}</span>
             </div>
           ))}
@@ -200,13 +200,13 @@ export function ArticleAnalysisLoader({ stage = 'analyzing' }: Props) {
 
         {/* Message informatif */}
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full border border-blue-100">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-full border border-emerald-100">
             <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              <div className="w-1.5 h-1.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+              <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+              <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
             </div>
-            <span className="text-xs font-medium text-blue-700">
+            <span className="text-xs font-medium text-emerald-700">
               Analyse en cours, merci de patienter
             </span>
           </div>

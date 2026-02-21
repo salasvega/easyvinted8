@@ -87,18 +87,18 @@ export function FashionLoader({ context = 'general', className = '', compact = f
     return (
       <div className={`flex items-center gap-3 ${className}`}>
         <div className="relative">
-          <div className="absolute inset-0 bg-purple-400 rounded-full blur-md opacity-30 animate-pulse" />
-          <div className="relative bg-gradient-to-br from-purple-600 to-pink-600 rounded-full p-2 shadow-lg">
+          <div className="absolute inset-0 bg-emerald-400 rounded-full blur-md opacity-30 animate-pulse" />
+          <div className="relative bg-gradient-to-br from-emerald-600 to-green-600 rounded-full p-2 shadow-lg">
             <Sparkles className="w-4 h-4 text-white animate-pulse" />
           </div>
         </div>
         <div className="flex-1">
-          <p className="text-sm font-bold text-purple-900 animate-fade-in">
+          <p className="text-sm font-bold text-emerald-900 animate-fade-in">
             {messages[messageIndex]}
           </p>
-          <div className="mt-1 h-1.5 bg-purple-100 rounded-full overflow-hidden">
+          <div className="mt-1 h-1.5 bg-emerald-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-full transition-all duration-300"
+              className="h-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 rounded-full transition-all duration-300"
               style={{ width: `${Math.min(progress, 100)}%` }}
             />
           </div>
@@ -110,39 +110,39 @@ export function FashionLoader({ context = 'general', className = '', compact = f
   return (
     <div className={`flex flex-col items-center justify-center ${className}`}>
       <div className="relative w-full max-w-md">
-        <div className="relative bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 shadow-lg border border-purple-100 overflow-hidden">
+        <div className="relative bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl p-8 shadow-lg border border-emerald-100 overflow-hidden">
           <div
-            className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-60 transition-all duration-75 ease-linear"
+            className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-60 transition-all duration-75 ease-linear"
             style={{ transform: `translateX(${scanPosition - 50}%)` }}
           />
 
           <div className="flex flex-col items-center gap-6">
             <div className="relative">
-              <div className="absolute inset-0 bg-purple-400 rounded-full blur-xl opacity-30 animate-pulse" />
-              <div className="relative bg-gradient-to-br from-purple-600 to-pink-600 rounded-full p-4 shadow-lg">
+              <div className="absolute inset-0 bg-emerald-400 rounded-full blur-xl opacity-30 animate-pulse" />
+              <div className="relative bg-gradient-to-br from-emerald-600 to-green-600 rounded-full p-4 shadow-lg">
                 <Sparkles className="w-8 h-8 text-white animate-pulse" />
               </div>
             </div>
 
             <div className="text-center space-y-2">
-              <p className="text-lg font-bold text-purple-900 animate-fade-in">
+              <p className="text-lg font-bold text-emerald-900 animate-fade-in">
                 {messages[messageIndex]}
               </p>
-              <p className="text-sm text-purple-600">
+              <p className="text-sm text-emerald-600">
                 Magie de l'IA en cours...
               </p>
             </div>
 
             <div className="w-full space-y-2">
-              <div className="relative h-3 bg-purple-100 rounded-full overflow-hidden shadow-inner">
+              <div className="relative h-3 bg-emerald-100 rounded-full overflow-hidden shadow-inner">
                 <div
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-600 rounded-full transition-all duration-300 ease-out shadow-lg"
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 rounded-full transition-all duration-300 ease-out shadow-lg"
                   style={{ width: `${Math.min(progress, 100)}%` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 animate-shimmer" />
                 </div>
               </div>
-              <p className="text-xs text-center text-purple-500 font-medium">
+              <p className="text-xs text-center text-emerald-500 font-medium">
                 {Math.round(Math.min(progress, 100))}%
               </p>
             </div>
@@ -152,9 +152,9 @@ export function FashionLoader({ context = 'general', className = '', compact = f
         </div>
 
         <div className="mt-4 flex items-center justify-center gap-2">
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
       </div>
 
