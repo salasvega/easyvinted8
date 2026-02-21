@@ -619,15 +619,14 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
             const newDescription = result.description || prev.description;
             const newBrand = result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand;
 
+            // Toujours privilégier la taille du vendeur si disponible
             let newSize = result.size || prev.size;
-            if (!newSize || newSize === 'Non renseignée' || newSize === 'Non renseigné') {
-              const selectedMember = familyMembers.find(m => m.id === prev.seller_id);
-              if (selectedMember) {
-                const sizeType = determineSizeType('', newBrand, `${newTitle} ${newDescription}`);
-                const defaultSize = getSizeFromMember(selectedMember, sizeType);
-                if (defaultSize) {
-                  newSize = defaultSize;
-                }
+            const selectedMember = familyMembers.find(m => m.id === prev.seller_id);
+            if (selectedMember) {
+              const sizeType = determineSizeType('', newBrand, `${newTitle} ${newDescription}`);
+              const defaultSize = getSizeFromMember(selectedMember, sizeType);
+              if (defaultSize) {
+                newSize = defaultSize;
               }
             }
 
