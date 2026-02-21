@@ -2123,14 +2123,24 @@ const App: React.FC = () => {
 
                     {/* Style de Rendu */}
                     <div>
-                      <FieldLabel label="Style de Rendu - Direction Artistique" info="Définit l'apparence finale du modèle" />
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      <FieldLabel label="Style de Rendu (optionnel)" info="Définit l'apparence finale du modèle. Laissez sans sélection pour un style par défaut." />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setState(p => ({ ...p, renderStyle: null }))}
+                          className={`px-5 py-3 rounded-xl font-medium transition-all ${
+                            state.renderStyle === null
+                              ? 'bg-slate-900 text-white shadow-lg scale-[1.02]'
+                              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                          }`}>
+                          Aucun
+                        </button>
                         <button
                           type="button"
                           onClick={() => setState(p => ({ ...p, renderStyle: 'casual' }))}
-                          className={`px-5 py-2.5 rounded-xl font-medium transition-all ${
+                          className={`px-5 py-3 rounded-xl font-medium transition-all ${
                             state.renderStyle === 'casual'
-                              ? 'bg-slate-900 text-white shadow-lg'
+                              ? 'bg-slate-900 text-white shadow-lg scale-[1.02]'
                               : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
                           }`}>
                           Casual
@@ -2138,9 +2148,9 @@ const App: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setState(p => ({ ...p, renderStyle: 'studio' }))}
-                          className={`px-5 py-2.5 rounded-xl font-medium transition-all ${
+                          className={`px-5 py-3 rounded-xl font-medium transition-all ${
                             state.renderStyle === 'studio'
-                              ? 'bg-slate-900 text-white shadow-lg'
+                              ? 'bg-slate-900 text-white shadow-lg scale-[1.02]'
                               : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
                           }`}>
                           Studio
@@ -2148,9 +2158,9 @@ const App: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setState(p => ({ ...p, renderStyle: '3d_hyperrealistic' }))}
-                          className={`px-5 py-2.5 rounded-xl font-medium transition-all ${
+                          className={`px-5 py-3 rounded-xl font-medium transition-all ${
                             state.renderStyle === '3d_hyperrealistic'
-                              ? 'bg-slate-900 text-white shadow-lg'
+                              ? 'bg-slate-900 text-white shadow-lg scale-[1.02]'
                               : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
                           }`}>
                           3D Hyperréaliste
