@@ -209,50 +209,13 @@ export function ToPublishPageV2() {
   return (
     <div className="max-w-[1600px] mx-auto">
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Prêt à Publier</h1>
             <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-emerald-500" />
               {filteredAndSortedItems.length} élément{filteredAndSortedItems.length > 1 ? 's' : ''} prêt{filteredAndSortedItems.length > 1 ? 's' : ''} à publier
             </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-200 p-1 shadow-sm">
-              <button
-                onClick={() => setTypeFilter('all')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  typeFilter === 'all'
-                    ? 'bg-gray-900 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                Tous
-              </button>
-              <button
-                onClick={() => setTypeFilter('article')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
-                  typeFilter === 'article'
-                    ? 'bg-teal-500 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Articles
-              </button>
-              <button
-                onClick={() => setTypeFilter('lot')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
-                  typeFilter === 'lot'
-                    ? 'bg-purple-500 text-white shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-              >
-                <Package className="w-4 h-4" />
-                Lots
-              </button>
-            </div>
           </div>
         </div>
 
