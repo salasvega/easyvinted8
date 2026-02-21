@@ -323,58 +323,51 @@ export default function TimelinePlanningPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-[1800px] mx-auto p-3 sm:p-4 md:p-6">
-        <div className="mb-4 sm:mb-6">
-          <div className="flex flex-col gap-3 sm:gap-4">
-            <div className="flex items-center justify-between">
-              <div className="min-w-0 flex-1">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2 sm:gap-3">
-                  <Calendar className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600 flex-shrink-0" />
-                  <span className="truncate">Timeline Planning</span>
-                </h1>
-                <p className="text-xs sm:text-sm text-slate-600 mt-0.5 sm:mt-1 hidden sm:block">
-                  Organisez vos publications par drag & drop
-                </p>
-              </div>
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Timeline Planning</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Organisez vos publications par drag & drop
+              </p>
             </div>
 
-            <div className="flex items-center justify-center">
-              <div className="inline-flex items-center bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                <button
-                  onClick={() => setViewMode('week')}
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors ${
-                    viewMode === 'week'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  Semaine
-                </button>
-                <button
-                  onClick={() => setViewMode('month')}
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors ${
-                    viewMode === 'month'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  Mois
-                </button>
-                <button
-                  onClick={() => setViewMode('year')}
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors ${
-                    viewMode === 'year'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  Année
-                </button>
-              </div>
+            <div className="inline-flex items-center bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+              <button
+                onClick={() => setViewMode('week')}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors ${
+                  viewMode === 'week'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Semaine
+              </button>
+              <button
+                onClick={() => setViewMode('month')}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors ${
+                  viewMode === 'month'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Mois
+              </button>
+              <button
+                onClick={() => setViewMode('year')}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium transition-colors ${
+                  viewMode === 'year'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Année
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between bg-white rounded-lg shadow-sm border border-slate-200 p-2 sm:p-4 mt-3 sm:mt-4">
+          <div className="flex items-center justify-between bg-white rounded-lg shadow-sm border border-slate-200 p-2 sm:p-4">
             <button
               onClick={() => navigatePeriod('prev')}
               className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
@@ -407,7 +400,7 @@ export default function TimelinePlanningPage() {
             </button>
           </div>
 
-          <div className="mt-3 sm:mt-4 bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4">
+          <div className="mt-4 bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4">
             <div className="flex items-center gap-2 mb-3">
               <div className="p-1.5 sm:p-2 bg-blue-50 rounded-lg flex-shrink-0">
                 <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
@@ -666,7 +659,7 @@ export default function TimelinePlanningPage() {
           </div>
         </div>
 
-        <div className="mt-3 sm:mt-6 bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-4">
+        <div className="mt-6 bg-white rounded-lg shadow-sm border border-slate-200 p-3 sm:p-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
             <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
               <div className="flex items-center gap-1.5 sm:gap-2">
