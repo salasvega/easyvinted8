@@ -89,7 +89,7 @@ const LocationSkeletonCard: React.FC<{ delay: number }> = ({ delay }) => (
 
 const SectionHeader: React.FC<{ title: string; subtitle: string; step?: number }> = ({ title, subtitle, step }) => (
   <div className="mb-6 px-4">
-    <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+    <h2 className="text-xl font-bold text-gray-900 tracking-tight">{title}</h2>
     <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
   </div>
 );
@@ -1530,7 +1530,7 @@ const App: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 pt-3 pb-16">
         {/* Header */}
         <div className="mb-4">
-          <h1 className="text-2xl font-bold text-gray-900">Studio Virtuel</h1>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 tracking-tight">Studio Virtuel</h1>
           <p className="text-sm text-gray-600 mt-1">Créez des montages photo professionnels pour vos articles</p>
         </div>
 
@@ -2582,7 +2582,7 @@ const App: React.FC = () => {
             <div className="max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-20">
               <div className="bg-gray-50 text-gray-900 p-8 sm:p-10 lg:p-12 rounded-3xl space-y-8 sm:space-y-10 shadow-lg border border-gray-200">
                 <div className="space-y-4">
-                  <h3 className="font-serif text-3xl sm:text-4xl lg:text-5xl italic font-light">Fond sur mesure</h3>
+                  <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">Fond sur mesure</h3>
                   <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-600">Nommez et décrivez le Fond que vous souhaitez créer</p>
                 </div>
                 <div className="space-y-6">
@@ -2924,7 +2924,7 @@ const App: React.FC = () => {
 
                 <div className="lg:col-span-5 space-y-8 sm:space-y-12 lg:space-y-16">
                     <div className="text-left">
-                        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-serif text-gray-900 mb-4 sm:mb-6 tracking-tighter italic">L'Éditorial Final</h2>
+                        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 tracking-tight">L'Éditorial Final</h2>
                         <div className="h-px w-16 sm:w-20 bg-black mb-6 sm:mb-8 opacity-20"></div>
                         <p className="text-gray-500 text-xs sm:text-sm leading-relaxed font-light">
                             Le Shooting photo est réalisé. Le mannequin <span className="font-bold text-black">{state.avatar.name}</span> a été intégré dans l'environnement séléctionné <span className="font-bold text-black">{state.location?.name}</span> avec un style {state.renderStyle === 'studio' ? 'studio professionnel' : state.renderStyle === 'casual' ? 'décontractée et naturelle' : state.renderStyle === '3d_hyperrealistic' ? 'hyperréaliste multi-vues' : 'naturelle urbaine'}.
@@ -3456,7 +3456,7 @@ const App: React.FC = () => {
             <div className="relative flex-shrink-0 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-lg sm:text-xl lg:text-2xl font-serif italic text-gray-900 mb-1">
+                  <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1 tracking-tight">
                     Éditer le fond
                   </h2>
                   <p className="text-[10px] sm:text-xs uppercase tracking-widest font-black text-gray-400">
