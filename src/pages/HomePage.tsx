@@ -19,7 +19,7 @@ import {
   Bot,
   Activity,
   Users,
-  Shirt,
+  UserCircle2,
   ChevronDown,
   Package,
   Settings,
@@ -209,7 +209,7 @@ export function HomePage() {
                             }`}
                             style={{ animationDelay: showUserMenu && pagesExpanded ? "170ms" : "0ms" }}
                           >
-                            <Shirt className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            <UserCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
                             Mes modèles
                           </Link>
                         </div>

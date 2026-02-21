@@ -13,7 +13,7 @@ import {
   Bot,
   Activity,
   Check,
-  Shirt,
+  UserCircle2,
   Calendar,
   Play,
 } from "lucide-react";
@@ -396,7 +396,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                           }`}
                           style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "210ms" : "0ms" }}
                         >
-                          <Shirt className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          <UserCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
                           Mes modèles
                         </Link>
                       </div>
