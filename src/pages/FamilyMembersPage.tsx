@@ -490,7 +490,7 @@ export function FamilyMembersPage() {
 
   if (loading) {
     return (
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-6 pt-3 pb-16">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-200 border-t-emerald-600 mx-auto mb-4"></div>
@@ -502,20 +502,16 @@ export function FamilyMembersPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Nos vendeurs</h1>
-            <p className="text-sm text-gray-600 mt-1">Gérez les vendeurs de votre compte</p>
-          </div>
-        </div>
-        <Button type="button" onClick={() => openModal()} className="w-full sm:w-auto">
+    <div className="max-w-7xl mx-auto px-6 pt-3 pb-16">
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">Nos vendeurs</h1>
+        <p className="text-sm text-gray-600 mt-1">Gérez les vendeurs de votre compte</p>
+      </div>
+
+      <div className="flex justify-end mb-6">
+        <Button type="button" onClick={() => openModal()}>
           <Plus className="w-5 h-5" />
-          <span className="sm:inline">Ajouter</span>
+          Ajouter
         </Button>
       </div>
 
