@@ -88,32 +88,26 @@ const LocationSkeletonCard: React.FC<{ delay: number }> = ({ delay }) => (
 );
 
 const SectionHeader: React.FC<{ title: string; subtitle: string; step?: number }> = ({ title, subtitle, step }) => (
-  <div className="mb-8 sm:mb-12 text-center relative px-4">
-    {step && (
-      <span className="hidden sm:block absolute -top-8 sm:-top-12 left-1/2 -translate-x-1/2 text-[40px] sm:text-[60px] font-serif opacity-[0.03] select-none">
-        0{step}
-      </span>
-    )}
-    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-gray-900 mb-2 sm:mb-3 tracking-tighter italic">{title}</h2>
-    <div className="h-px w-8 sm:w-12 bg-black mx-auto mb-3 sm:mb-4 opacity-20"></div>
-    <p className="text-sm sm:text-base font-black uppercase tracking-wider text-gray-900 max-w-2xl mx-auto">{subtitle}</p>
+  <div className="mb-6 px-4">
+    <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+    <p className="text-sm text-gray-600 mt-1">{subtitle}</p>
   </div>
 );
 
 const FieldLabel: React.FC<{ label: string; info?: string }> = ({ label, info }) => (
-  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-1 sm:gap-0 mb-4 px-1">
-    <label className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider sm:tracking-widest text-gray-700">{label}</label>
-    {info && <span className="text-[9px] sm:text-[10px] text-gray-400 italic">{info}</span>}
+  <div className="flex flex-col gap-1 mb-3">
+    <label className="text-sm font-medium text-gray-700">{label}</label>
+    {info && <span className="text-xs text-gray-500">{info}</span>}
   </div>
 );
 
 const SectionCard: React.FC<{ title: string; subtitle?: string; children: React.ReactNode; delay?: number }> = ({ title, subtitle, children, delay = 0 }) => (
-  <div className={`bg-white rounded-3xl border border-gray-100 shadow-lg overflow-hidden hover-lift animate-in slide-in-from-bottom-4 duration-700`} style={{ animationDelay: `${delay}ms` }}>
-    <div className="bg-gradient-to-r from-gray-50 to-white px-6 sm:px-8 py-5 sm:py-6 border-b border-gray-100">
-      <h3 className="text-sm sm:text-base font-black uppercase tracking-wider text-gray-900">{title}</h3>
-      {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
+  <div className={`bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden animate-in fade-in duration-500`} style={{ animationDelay: `${delay}ms` }}>
+    <div className="bg-white px-6 py-4 border-b border-gray-100">
+      <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+      {subtitle && <p className="text-sm text-gray-600 mt-1">{subtitle}</p>}
     </div>
-    <div className="p-6 sm:p-8 lg:p-10">
+    <div className="p-6">
       {children}
     </div>
   </div>
@@ -1530,106 +1524,110 @@ const App: React.FC = () => {
   `.trim();
 
   return (
-    <div className="virtual-stylist min-h-screen bg-[#FDFDFD] text-gray-900 selection:bg-black selection:text-white">
+    <div className="virtual-stylist min-h-screen bg-gray-50 text-gray-900">
       {state.isProcessing && <StudioLoader message={state.loadingMessage || "Création en cours"} />}
 
-      <main className="pt-8 sm:pt-12 pb-12 sm:pb-16 px-4 sm:px-6 max-w-7xl mx-auto">
-        {/* Navigation minimale intégrée */}
-        <div className="max-w-7xl mx-auto mb-8 sm:mb-12 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+      <div className="max-w-7xl mx-auto px-6 pt-3 pb-16">
+        {/* Header */}
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Studio Virtuel</h1>
+          <p className="text-sm text-gray-600 mt-1">Créez des montages photo professionnels pour vos articles</p>
+        </div>
+
+        {/* Navigation */}
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setState(p => ({ ...p, step: 'setup' }))}
-              className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                 state.step === 'setup'
-                  ? 'bg-slate-900 text-white shadow-lg'
-                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
               }`}
             >
               Nouveau Modèle
             </button>
             <button
               onClick={() => setState(p => ({ ...p, step: 'gallery' }))}
-              className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                 state.step === 'gallery'
-                  ? 'bg-slate-900 text-white shadow-lg'
-                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
               }`}
             >
               Modèles
             </button>
             <button
               onClick={() => setState(p => ({ ...p, step: 'backgrounds' }))}
-              className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                 state.step === 'backgrounds'
-                  ? 'bg-slate-900 text-white shadow-lg'
-                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
               }`}
             >
               Fonds
             </button>
             <button
               onClick={() => setState(p => ({ ...p, step: 'garment' }))}
-              className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                 state.step === 'garment'
-                  ? 'bg-slate-900 text-white shadow-lg'
-                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
               }`}
             >
               Essayage
             </button>
             <button
               onClick={() => setState(p => ({ ...p, step: 'photos' }))}
-              className={`px-3 sm:px-5 py-2.5 rounded-xl font-medium transition-all text-sm whitespace-nowrap ${
+              className={`px-4 py-2 rounded-lg font-medium transition-all text-sm ${
                 state.step === 'photos'
-                  ? 'bg-slate-900 text-white shadow-lg'
-                  : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
               }`}
             >
               Mes Photos
             </button>
           </div>
 
-          {/* Indicateur du vendeur actif - Version discrète */}
+          {/* Indicateur du vendeur actif */}
           {defaultSellerName && (
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg group hover:bg-slate-100 transition-colors">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-              <div className="text-xs text-slate-600">
-                <span className="font-medium">{defaultSellerName}</span>
-              </div>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg">
+              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+              <span className="text-sm text-gray-700 font-medium">{defaultSellerName}</span>
             </div>
           )}
         </div>
 
         {state.error && (
-          <div className="max-w-2xl mx-auto mb-8 sm:mb-12 p-4 sm:p-5 bg-red-50/50 border border-red-100 rounded-2xl text-red-600 text-[11px] sm:text-xs flex items-center gap-3 sm:gap-4 animate-in slide-in-from-top-4">
-            <span className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-red-100 flex items-center justify-center font-bold text-sm sm:text-base flex-shrink-0">!</span>
-            <span className="flex-1 whitespace-pre-line">{state.error}</span>
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm flex items-start gap-3">
+            <span className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center font-bold text-xs flex-shrink-0">!</span>
+            <span className="flex-1">{state.error}</span>
           </div>
         )}
 
         {state.step === 'setup' && (
-          <div className="max-w-6xl mx-auto px-4 animate-in fade-in duration-1000">
+          <div>
             <SectionHeader title="Création du Modèle" subtitle="Choisissez la méthode qui vous convient le mieux" />
 
             {/* Sélection de la méthode de création */}
-            <div className="mb-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto">
+            <div className="mb-8 grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Méthode 1: Configuration manuelle */}
               <button
                 onClick={() => changeCreationMethod(creationMethod === 'manual' ? null : 'manual')}
-                className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 text-left overflow-hidden ${
+                className={`p-5 rounded-xl border transition-all text-left ${
                   creationMethod === 'manual'
-                    ? 'border-orange-500 bg-orange-50 shadow-lg scale-105'
-                    : 'border-gray-200 bg-white hover:border-orange-300 hover:shadow-md hover:scale-[1.02]'
+                    ? 'border-gray-900 bg-gray-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
                 <div className="flex flex-col items-center text-center gap-3">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${
-                    creationMethod === 'manual' ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-600 group-hover:bg-orange-500 group-hover:text-white'
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    creationMethod === 'manual' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                   }`}>
-                    <Pencil className="w-7 h-7" />
+                    <Pencil className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-base mb-1">Configuration Manuelle</h3>
+                    <h3 className="font-semibold text-sm mb-1">Configuration Manuelle</h3>
                     <p className="text-xs text-gray-600">Contrôle total sur chaque détail</p>
                   </div>
                 </div>
@@ -1638,21 +1636,21 @@ const App: React.FC = () => {
               {/* Méthode 2: Import depuis galerie */}
               <button
                 onClick={() => changeCreationMethod(creationMethod === 'gallery' ? null : 'gallery')}
-                className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 text-left overflow-hidden ${
+                className={`p-5 rounded-xl border transition-all text-left ${
                   creationMethod === 'gallery'
-                    ? 'border-green-500 bg-green-50 shadow-lg scale-105'
-                    : 'border-gray-200 bg-white hover:border-green-300 hover:shadow-md hover:scale-[1.02]'
+                    ? 'border-gray-900 bg-gray-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
                 <div className="flex flex-col items-center text-center gap-3">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${
-                    creationMethod === 'gallery' ? 'bg-green-500 text-white' : 'bg-green-100 text-green-600 group-hover:bg-green-500 group-hover:text-white'
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    creationMethod === 'gallery' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                   }`}>
-                    <Upload className="w-7 h-7" />
+                    <Upload className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-base mb-1">Import Photo</h3>
-                    <p className="text-xs text-gray-600">Utilisez une photo existante directement</p>
+                    <h3 className="font-semibold text-sm mb-1">Import Photo</h3>
+                    <p className="text-xs text-gray-600">Utilisez une photo existante</p>
                   </div>
                 </div>
               </button>
@@ -1660,21 +1658,21 @@ const App: React.FC = () => {
               {/* Méthode 3: Génération par texte */}
               <button
                 onClick={() => changeCreationMethod(creationMethod === 'text' ? null : 'text')}
-                className={`group relative p-6 rounded-2xl border-2 transition-all duration-300 text-left overflow-hidden ${
+                className={`p-5 rounded-xl border transition-all text-left ${
                   creationMethod === 'text'
-                    ? 'border-blue-500 bg-blue-50 shadow-lg scale-105'
-                    : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-md hover:scale-[1.02]'
+                    ? 'border-gray-900 bg-gray-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
                 <div className="flex flex-col items-center text-center gap-3">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${
-                    creationMethod === 'text' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-600 group-hover:bg-blue-500 group-hover:text-white'
+                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
+                    creationMethod === 'text' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
                   }`}>
-                    <Sparkles className="w-7 h-7" />
+                    <Sparkles className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-base mb-1">Génération par Texte</h3>
-                    <p className="text-xs text-gray-600">Décrivez votre modèle, l'IA s'occupe du reste</p>
+                    <h3 className="font-semibold text-sm mb-1">Génération par Texte</h3>
+                    <p className="text-xs text-gray-600">Décrivez votre modèle à l'IA</p>
                   </div>
                 </div>
               </button>
@@ -1693,7 +1691,7 @@ const App: React.FC = () => {
                         value={textGenerationName}
                         onChange={(e) => setTextGenerationName(e.target.value)}
                         placeholder="Ex: Sophie, Mannequin Hiver, etc."
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
                       />
                     </div>
 
@@ -1704,7 +1702,7 @@ const App: React.FC = () => {
                         value={textGenerationDescription}
                         onChange={(e) => setTextGenerationDescription(e.target.value)}
                         placeholder="Ex: Femme d'environ 25 ans, cheveux longs châtains, yeux verts, sourire naturel, style décontracté..."
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-none text-sm"
                         rows={4}
                       />
                       <p className="text-xs text-gray-500 mt-2">
@@ -1795,7 +1793,7 @@ const App: React.FC = () => {
                         placeholder="Ex: Mannequin Sarah - Collection Été"
                         value={state.avatar.name}
                         onChange={e => updateAvatar({ name: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-lg"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
                       />
                     </div>
 
@@ -1851,7 +1849,7 @@ const App: React.FC = () => {
                         className={`w-full flex items-center justify-center gap-3 px-8 py-5 rounded-xl font-bold text-lg transition-all shadow-xl ${
                           !state.avatar.name.trim() || state.isProcessing
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-black text-white hover:bg-gray-900 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]'
+                            : 'bg-gray-900 text-white hover:bg-gray-800'
                         }`}
                       >
                         <Sparkles className="w-6 h-6" />
@@ -1883,7 +1881,7 @@ const App: React.FC = () => {
                         placeholder="Ex: Mannequin Sarah - Collection Été"
                         value={state.avatar.name}
                         onChange={e => updateAvatar({ name: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent text-lg"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent text-sm"
                       />
                     </div>
 
@@ -2118,7 +2116,7 @@ const App: React.FC = () => {
                         value={state.avatar.additionalFeatures}
                         onChange={e => updateAvatar({ additionalFeatures: e.target.value })}
                         placeholder="Ex: Lunettes de vue noires, taches de rousseur, barbe de 3 jours, look minimaliste..."
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-orange-400 focus:border-transparent resize-none"
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent resize-none text-sm"
                         rows={3}
                       />
                     </div>
@@ -2168,7 +2166,7 @@ const App: React.FC = () => {
                         className={`w-full flex items-center justify-center gap-3 px-8 py-5 rounded-xl font-bold text-lg transition-all shadow-xl ${
                           !state.avatar.name.trim() || state.isProcessing
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-black text-white hover:bg-gray-900 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]'
+                            : 'bg-gray-900 text-white hover:bg-gray-800'
                         }`}
                       >
                         <Sparkles className="w-6 h-6" />
@@ -3270,7 +3268,7 @@ const App: React.FC = () => {
             )}
           </div>
         )}
-      </main>
+      </div>
 
       {showDressingPicker && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowDressingPicker(false)}>
@@ -3369,7 +3367,7 @@ const App: React.FC = () => {
                 disabled={!avatarImportData.name.trim()}
                 className={`w-full py-3 rounded-xl font-bold transition-all ${
                   avatarImportData.name.trim()
-                    ? 'bg-black text-white hover:bg-gray-900'
+                    ? 'bg-gray-900 text-white hover:bg-gray-800'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               >
@@ -3421,7 +3419,7 @@ const App: React.FC = () => {
                 disabled={!locationImportData.name.trim()}
                 className={`w-full py-3 rounded-xl font-bold transition-all ${
                   locationImportData.name.trim()
-                    ? 'bg-black text-white hover:bg-gray-900'
+                    ? 'bg-gray-900 text-white hover:bg-gray-800'
                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 }`}
               >
