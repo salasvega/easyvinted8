@@ -210,7 +210,7 @@ export function HomePage() {
                             style={{ animationDelay: showUserMenu && pagesExpanded ? "170ms" : "0ms" }}
                           >
                             <UserCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            Mes modèles
+                            Mon style
                           </Link>
                         </div>
                       </div>
