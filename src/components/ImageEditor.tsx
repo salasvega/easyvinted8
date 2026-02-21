@@ -669,10 +669,10 @@ export function ImageEditor({
                        Vous êtes trop moche ou fatigué de poser? 1. Choisissez un Avatar, 2. Sélectionnez l'article, 3. Cliquez sur l’option “Porté” et laissez l'Avatar poser pour vous! 😎 
                         <br />
                         <br />
-                        <span className="text-blue-700 font-medium">💡 Besoin d’ajouter ou modifier un avatar ?
+                        <span className="text-blue-700 font-medium">💡 Besoin d’ajouter ou modifier un avatar (modèle)?
 </span>
                         <br />
-                        Rendez-vous dans la{' '}
+                        Rendez-vous dans la section{' '}
                         <a
                           href="/virtual-stylist"
                           className="text-blue-600 hover:text-blue-800 font-semibold underline underline-offset-2 transition-colors"
@@ -681,7 +681,7 @@ export function ImageEditor({
                             window.location.href = '/virtual-stylist';
                           }}
                         >
-                          Cabine d'essayage
+                          Mes modèles
                         </a>
                         {' '}pour gérer vos avatars personnalisés.
                       </p>
