@@ -304,6 +304,23 @@ const App: React.FC = () => {
       setDefaultAvatarId(defaults.defaultAvatarId);
       setDefaultLocationId(defaults.defaultLocationId);
       setDefaultSellerName(defaults.defaultSellerName || null);
+
+      // Auto-sélectionner l'avatar par défaut au démarrage
+      if (defaults.defaultAvatarId) {
+        const defaultAvatar = avas.find(a => a.id === defaults.defaultAvatarId);
+        if (defaultAvatar && defaultAvatar.photoBase64) {
+          setAvatarImage(defaultAvatar.photoBase64);
+          setState(p => ({ ...p, avatar: defaultAvatar }));
+        }
+      }
+
+      // Auto-sélectionner la location par défaut au démarrage
+      if (defaults.defaultLocationId) {
+        const defaultLocation = locs.find(l => l.id === defaults.defaultLocationId);
+        if (defaultLocation) {
+          setState(p => ({ ...p, location: defaultLocation }));
+        }
+      }
     } catch (err: any) { setState(p => ({ ...p, error: "Erreur Lookbook : " + err.message })); }
     finally { setIsLoadingGallery(false); }
   };
@@ -397,6 +414,15 @@ const App: React.FC = () => {
       const newDefaultId = defaultAvatarId === avatarId ? null : avatarId;
       await setDefaultAvatar(newDefaultId);
       setDefaultAvatarId(newDefaultId);
+
+      // Sélectionner automatiquement l'avatar quand on le définit comme défaut
+      if (newDefaultId) {
+        const avatar = savedAvatars.find(a => a.id === avatarId);
+        if (avatar && avatar.photoBase64) {
+          setAvatarImage(avatar.photoBase64);
+          setState(p => ({ ...p, avatar }));
+        }
+      }
     } catch (err: any) {
       setState(p => ({ ...p, error: "Erreur lors de la définition de l'avatar par défaut : " + err.message }));
     }
@@ -407,6 +433,14 @@ const App: React.FC = () => {
       const newDefaultId = defaultLocationId === locationId ? null : locationId;
       await setDefaultLocation(newDefaultId);
       setDefaultLocationId(newDefaultId);
+
+      // Sélectionner automatiquement la location quand on la définit comme défaut
+      if (newDefaultId) {
+        const location = savedLocations.find(l => l.id === locationId);
+        if (location) {
+          setState(p => ({ ...p, location }));
+        }
+      }
     } catch (err: any) {
       setState(p => ({ ...p, error: "Erreur lors de la définition de la location par défaut : " + err.message }));
     }
@@ -2508,18 +2542,16 @@ const App: React.FC = () => {
                   {getFilteredLocations().map(loc => (
                     <div key={loc.id} className="group space-y-3 sm:space-y-4">
                       <div
-                        onClick={() => setState(p => ({ ...p, location: loc }))}
+                        onClick={() => toggleDefaultLocation(loc.id!)}
                         className={`studio-card relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-500 ${
-                          state.location?.id === loc.id
-                            ? 'ring-4 ring-black ring-offset-4 scale-[0.97] shadow-2xl border-4 border-black'
-                            : defaultLocationId === loc.id
-                              ? 'ring-4 ring-yellow-400 ring-offset-2 border-4 border-yellow-400 shadow-yellow-400/50 shadow-2xl'
-                              : 'grayscale hover:grayscale-0 hover:scale-[1.02] border border-gray-100'
+                          defaultLocationId === loc.id
+                            ? 'ring-4 ring-yellow-400 ring-offset-4 scale-[0.97] shadow-2xl border-4 border-yellow-400 shadow-yellow-400/50'
+                            : 'grayscale hover:grayscale-0 hover:scale-[1.02] border border-gray-100'
                         }`}>
-                        <img src={loc.photoBase64} className={`w-full h-full object-cover transition-all duration-700 ${state.location?.id === loc.id || defaultLocationId === loc.id ? '' : 'grayscale group-hover:grayscale-0'}`} alt={loc.name} />
+                        <img src={loc.photoBase64} className={`w-full h-full object-cover transition-all duration-700 ${defaultLocationId === loc.id ? '' : 'grayscale group-hover:grayscale-0'}`} alt={loc.name} />
 
                         {/* Overlay avec actions */}
-                        <div className={`absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center gap-2 sm:gap-3 ${state.location?.id === loc.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                        <div className={`absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center gap-2 sm:gap-3 ${defaultLocationId === loc.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                           <button
                             onClick={(e) => { e.stopPropagation(); setEnlargedImage({ url: loc.photoBase64!, name: loc.name }); }}
                             className="hidden md:flex w-10 h-10 md:w-12 md:h-12 bg-purple-600 rounded-xl items-center justify-center text-white font-bold shadow-xl hover:scale-110 active:scale-95"
@@ -2530,18 +2562,10 @@ const App: React.FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setState(p => ({ ...p, location: loc, step: 'garment' }));
-                            }}
-                            className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl flex items-center justify-center text-black font-bold shadow-xl hover:scale-110 active:scale-95 text-base sm:text-lg"
-                          >
-                            &#10140;
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
                               toggleDefaultLocation(loc.id!);
                             }}
                             className={`w-10 h-10 sm:w-12 sm:h-12 ${defaultLocationId === loc.id ? 'bg-yellow-400' : 'bg-gray-600'} rounded-xl flex items-center justify-center font-bold shadow-xl hover:scale-110 active:scale-95`}
+                            title={defaultLocationId === loc.id ? 'Retirer comme fond par défaut' : 'Définir comme fond par défaut'}
                           >
                             <Star className={`w-5 h-5 sm:w-6 sm:h-6 ${defaultLocationId === loc.id ? 'fill-white text-white' : 'text-white'}`} />
                           </button>
@@ -2565,18 +2589,11 @@ const App: React.FC = () => {
                           </button>
                         </div>
 
-                        {/* Badge par défaut - Toujours visible */}
+                        {/* Badge actif - Toujours visible */}
                         {defaultLocationId === loc.id && (
                           <div className="absolute top-4 right-4 bg-yellow-400 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xl flex items-center gap-2 z-20 border-2 border-yellow-500 animate-pulse">
                             <Star className="w-4 h-4 fill-black" />
-                            Par défaut
-                          </div>
-                        )}
-
-                        {/* Badge de sélection */}
-                        {state.location?.id === loc.id && (
-                          <div className="absolute top-4 left-4 bg-black text-white px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-wider shadow-xl animate-in zoom-in-95">
-                            Sélectionné
+                            Actif
                           </div>
                         )}
 
@@ -2692,7 +2709,7 @@ const App: React.FC = () => {
 
                 {!state.location && (
                   <p className="text-center text-[9px] sm:text-[10px] text-gray-400 italic">
-                    Veuillez sélectionner ou créer un fond pour continuer
+                    Veuillez définir un fond par défaut (étoile) ou créer un nouveau fond pour continuer
                   </p>
                 )}
               </div>
@@ -3216,21 +3233,18 @@ const App: React.FC = () => {
               {getFilteredAvatars().map(ava => (
                 <div key={ava.id} className="group space-y-3 sm:space-y-4">
                    <div
-                      onClick={() => { setAvatarImage(ava.photoBase64!); setState(p => ({ ...p, avatar: ava })); }}
+                      onClick={() => { toggleDefaultAvatar(ava.id!); }}
                       className={`studio-card relative aspect-[3/4] rounded-2xl overflow-hidden shadow-lg cursor-pointer transition-all duration-500 ${
-                        state.avatar?.id === ava.id
-                          ? 'ring-4 ring-black ring-offset-4 scale-[0.97] shadow-2xl border-4 border-black'
-                          : defaultAvatarId === ava.id
-                            ? 'ring-4 ring-yellow-400 ring-offset-2 border-4 border-yellow-400 shadow-yellow-400/50 shadow-2xl'
-                            : 'grayscale hover:grayscale-0 hover:scale-[1.02] border border-gray-100'
+                        defaultAvatarId === ava.id
+                          ? 'ring-4 ring-yellow-400 ring-offset-4 scale-[0.97] shadow-2xl border-4 border-yellow-400 shadow-yellow-400/50'
+                          : 'grayscale hover:grayscale-0 hover:scale-[1.02] border border-gray-100'
                       }`}>
-                      <img src={ava.photoBase64} className={`w-full h-full object-cover transition-all duration-700 ${state.avatar?.id === ava.id || defaultAvatarId === ava.id ? '' : 'grayscale group-hover:grayscale-0'}`} alt={ava.name} />
-                      <div className={`absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center gap-2 sm:gap-3 ${state.avatar?.id === ava.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                      <img src={ava.photoBase64} className={`w-full h-full object-cover transition-all duration-700 ${defaultAvatarId === ava.id ? '' : 'grayscale group-hover:grayscale-0'}`} alt={ava.name} />
+                      <div className={`absolute inset-0 bg-black/40 transition-opacity flex items-center justify-center gap-2 sm:gap-3 ${defaultAvatarId === ava.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                          <button onClick={(e) => { e.stopPropagation(); setEnlargedImage({ url: ava.photoBase64!, name: ava.name }); }} className="hidden md:flex w-10 h-10 md:w-12 md:h-12 bg-purple-600 rounded-xl items-center justify-center text-white font-bold shadow-xl hover:scale-110 active:scale-95" title="Agrandir">
                            <Maximize2 className="w-5 h-5 md:w-6 md:h-6" />
                          </button>
-                         <button onClick={(e) => { e.stopPropagation(); setAvatarImage(ava.photoBase64!); setState(p => ({ ...p, avatar: ava, step: 'backgrounds' })); }} className="w-10 h-10 sm:w-12 sm:h-12 bg-white rounded-xl flex items-center justify-center text-black font-bold shadow-xl hover:scale-110 active:scale-95 text-base sm:text-lg">&#10140;</button>
-                         <button onClick={(e) => { e.stopPropagation(); toggleDefaultAvatar(ava.id!); }} className={`w-10 h-10 sm:w-12 sm:h-12 ${defaultAvatarId === ava.id ? 'bg-yellow-400' : 'bg-gray-600'} rounded-xl flex items-center justify-center font-bold shadow-xl hover:scale-110 active:scale-95`}>
+                         <button onClick={(e) => { e.stopPropagation(); toggleDefaultAvatar(ava.id!); }} className={`w-10 h-10 sm:w-12 sm:h-12 ${defaultAvatarId === ava.id ? 'bg-yellow-400' : 'bg-gray-600'} rounded-xl flex items-center justify-center font-bold shadow-xl hover:scale-110 active:scale-95`} title={defaultAvatarId === ava.id ? 'Retirer comme modèle par défaut' : 'Définir comme modèle par défaut'}>
                            <Star className={`w-5 h-5 sm:w-6 sm:h-6 ${defaultAvatarId === ava.id ? 'fill-white text-white' : 'text-white'}`} />
                          </button>
                          <button onClick={(e) => { e.stopPropagation(); openAvatarEditModal(ava); }} className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white font-bold shadow-xl hover:scale-110 active:scale-95">
@@ -3243,12 +3257,7 @@ const App: React.FC = () => {
                       {defaultAvatarId === ava.id && (
                         <div className="absolute top-4 right-4 bg-yellow-400 text-black px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-2xl flex items-center gap-2 z-20 border-2 border-yellow-500 animate-pulse">
                           <Star className="w-4 h-4 fill-black" />
-                          Par défaut
-                        </div>
-                      )}
-                      {state.avatar?.id === ava.id && (
-                        <div className="absolute top-4 left-4 bg-black text-white px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-wider shadow-xl animate-in zoom-in-95">
-                          Sélectionné
+                          Actif
                         </div>
                       )}
                       {ava.generationPrompt && (
@@ -3299,7 +3308,7 @@ const App: React.FC = () => {
 
                 {!state.avatar && (
                   <p className="text-center text-[9px] sm:text-[10px] text-gray-400 italic">
-                    Veuillez sélectionner un modèle pour continuer
+                    Veuillez définir un modèle par défaut (étoile) ou créer un nouveau modèle pour continuer
                   </p>
                 )}
               </div>
