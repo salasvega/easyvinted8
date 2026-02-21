@@ -193,7 +193,7 @@ export function ToPublishPage() {
         <div className="flex items-center gap-3 mb-4">
           <Play className="w-6 h-6 text-emerald-600" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">À Publier</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Prêt à Publier!</h1>
             <p className="text-sm text-gray-600 mt-1">
               {items.length} article{items.length > 1 ? 's' : ''} et lot{items.length > 1 ? 's' : ''} prêt{items.length > 1 ? 's' : ''} à publier
             </p>
