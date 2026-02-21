@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, Sparkles } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 interface CollapsibleFilterSectionProps {
   title: string;
@@ -103,15 +103,6 @@ export const CollapsibleFilterSection: React.FC<CollapsibleFilterSectionProps> =
             <span className="text-xs text-gray-600 animate-in fade-in duration-300">
               Masquer
             </span>
-          )}
-
-          {isHovered && (
-            <Sparkles
-              className={`
-                w-4 h-4 ${styles.icon} absolute -left-8
-                animate-pulse
-              `}
-            />
           )}
 
           <ChevronDown
