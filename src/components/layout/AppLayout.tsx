@@ -385,7 +385,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                           style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "170ms" : "0ms" }}
                         >
                           <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          À Publier
+                          À Publier!
                         </Link>
 
                         <Link
