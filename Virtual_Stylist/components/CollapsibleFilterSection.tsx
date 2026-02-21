@@ -37,8 +37,8 @@ export const CollapsibleFilterSection: React.FC<CollapsibleFilterSectionProps> =
       border: 'border-amber-200',
       headerBg: 'bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400',
       headerHover: 'hover:from-amber-300 hover:via-amber-200 hover:to-amber-300',
-      textColor: 'text-gray-900',
-      iconColor: 'text-gray-700',
+      textColor: 'text-white',
+      iconColor: 'text-white/90',
       accentColor: 'bg-amber-500',
       glowColor: 'shadow-amber-400/20'
     },
