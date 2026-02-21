@@ -2661,7 +2661,7 @@ const App: React.FC = () => {
 
         {state.step === 'garment' && (
           <div className="max-w-7xl mx-auto animate-in fade-in zoom-in-95 duration-1000">
-            <SectionHeader title="L'Essayage" subtitle="Selectionnez votre modèle, un fond de photo et l'article de votre choix et laissez la magie réaliser l'essayage pour vous :)" />
+            <SectionHeader title="Testez les competences et le style de votre avatar" subtitle="Selectionnez votre modèle, un fond de photo et l'article de votre choix et laissez la magie réaliser l'essayage pour vous :)" />
 
             {/* Prévisualisation de la composition complète */}
             <div className="mb-12 sm:mb-16">
