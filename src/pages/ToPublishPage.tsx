@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Calendar, Package, ShoppingBag, ArrowLeft } from 'lucide-react';
+import { Play, Calendar, Package, ShoppingBag } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { PublishFormModal } from '../components/PublishFormModal';
 import { supabase } from '../lib/supabase';
@@ -188,31 +188,20 @@ export function ToPublishPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto">
       <div className="mb-6">
-        <Button
-          variant="secondary"
-          onClick={() => navigate(-1)}
-          className="mb-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour
-        </Button>
-
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center">
-            <Play className="w-6 h-6" />
-          </div>
+          <Play className="w-6 h-6 text-emerald-600" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">À Publier</h1>
-            <p className="text-gray-600">
+            <h1 className="text-2xl font-bold text-gray-900">À Publier</h1>
+            <p className="text-sm text-gray-600 mt-1">
               {items.length} article{items.length > 1 ? 's' : ''} et lot{items.length > 1 ? 's' : ''} prêt{items.length > 1 ? 's' : ''} à publier
             </p>
           </div>
         </div>
 
         {/* Filter Slider */}
-        <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
           <div className="flex items-center justify-between mb-3">
             <label className="text-sm font-semibold text-gray-700">
               Afficher les articles planifiés jusqu'à
@@ -238,23 +227,24 @@ export function ToPublishPage() {
         </div>
       </div>
 
-      {items.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-            <Play className="w-8 h-8 text-gray-400" />
+      <div className="mt-6">
+        {items.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+              <Play className="w-8 h-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Aucun article à publier
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Créez des articles ou ajustez le filtre de dates pour voir plus d'articles planifiés.
+            </p>
+            <Button onClick={() => navigate('/article_form')}>
+              Créer un article
+            </Button>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Aucun article à publier
-          </h3>
-          <p className="text-gray-600 mb-6">
-            Créez des articles ou ajustez le filtre de dates pour voir plus d'articles planifiés.
-          </p>
-          <Button onClick={() => navigate('/article_form')}>
-            Créer un article
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {items.map((item) => (
             <div
               key={`${item.type}-${item.id}`}
@@ -321,8 +311,9 @@ export function ToPublishPage() {
               </div>
             </div>
           ))}
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* Publish Modal */}
       {showPublishModal && selectedItemId && selectedItemType && (
