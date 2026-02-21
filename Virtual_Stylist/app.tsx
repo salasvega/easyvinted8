@@ -2723,7 +2723,7 @@ const App: React.FC = () => {
 
             {/* Prévisualisation de la composition complète */}
             <div className="mb-12 sm:mb-16">
-              <FieldLabel label="Votre Composition"  />
+              <FieldLabel label="Votre Shooting photo"  />
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 p-4 sm:p-6 bg-gray-50 rounded-2xl border border-gray-200">
                 {/* Modèle */}
                 <div className="space-y-3">
