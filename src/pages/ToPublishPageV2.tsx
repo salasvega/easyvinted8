@@ -210,17 +210,12 @@ export function ToPublishPageV2() {
     <div className="max-w-[1600px] mx-auto">
       <div className="mb-8">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <Play className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Prêt à Publier</h1>
-              <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-500" />
-                {filteredAndSortedItems.length} élément{filteredAndSortedItems.length > 1 ? 's' : ''} prêt{filteredAndSortedItems.length > 1 ? 's' : ''} à publier
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Prêt à Publier</h1>
+            <p className="text-sm text-gray-600 mt-1 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-emerald-500" />
+              {filteredAndSortedItems.length} élément{filteredAndSortedItems.length > 1 ? 's' : ''} prêt{filteredAndSortedItems.length > 1 ? 's' : ''} à publier
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
