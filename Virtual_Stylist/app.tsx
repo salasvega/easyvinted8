@@ -1614,15 +1614,15 @@ const App: React.FC = () => {
               {/* Méthode 1: Configuration manuelle */}
               <button
                 onClick={() => changeCreationMethod(creationMethod === 'manual' ? null : 'manual')}
-                className={`p-5 rounded-xl border transition-all text-left ${
+                className={`p-5 rounded-xl border-2 transition-all text-left ${
                   creationMethod === 'manual'
-                    ? 'border-gray-900 bg-gray-50 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                    ? 'border-orange-500 bg-orange-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-orange-300 hover:shadow-sm'
                 }`}
               >
                 <div className="flex flex-col items-center text-center gap-3">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    creationMethod === 'manual' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
+                    creationMethod === 'manual' ? 'bg-orange-100 text-orange-600' : 'bg-orange-50 text-orange-500'
                   }`}>
                     <Pencil className="w-6 h-6" />
                   </div>
@@ -1636,15 +1636,15 @@ const App: React.FC = () => {
               {/* Méthode 2: Import depuis galerie */}
               <button
                 onClick={() => changeCreationMethod(creationMethod === 'gallery' ? null : 'gallery')}
-                className={`p-5 rounded-xl border transition-all text-left ${
+                className={`p-5 rounded-xl border-2 transition-all text-left ${
                   creationMethod === 'gallery'
-                    ? 'border-gray-900 bg-gray-50 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                    ? 'border-green-500 bg-green-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-green-300 hover:shadow-sm'
                 }`}
               >
                 <div className="flex flex-col items-center text-center gap-3">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    creationMethod === 'gallery' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
+                    creationMethod === 'gallery' ? 'bg-green-100 text-green-600' : 'bg-green-50 text-green-500'
                   }`}>
                     <Upload className="w-6 h-6" />
                   </div>
@@ -1658,15 +1658,15 @@ const App: React.FC = () => {
               {/* Méthode 3: Génération par texte */}
               <button
                 onClick={() => changeCreationMethod(creationMethod === 'text' ? null : 'text')}
-                className={`p-5 rounded-xl border transition-all text-left ${
+                className={`p-5 rounded-xl border-2 transition-all text-left ${
                   creationMethod === 'text'
-                    ? 'border-gray-900 bg-gray-50 shadow-sm'
-                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                    ? 'border-blue-500 bg-blue-50 shadow-sm'
+                    : 'border-gray-200 bg-white hover:border-blue-300 hover:shadow-sm'
                 }`}
               >
                 <div className="flex flex-col items-center text-center gap-3">
-                  <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                    creationMethod === 'text' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'
+                  <div className={`w-14 h-14 rounded-full flex items-center justify-center ${
+                    creationMethod === 'text' ? 'bg-blue-100 text-blue-600' : 'bg-blue-50 text-blue-500'
                   }`}>
                     <Sparkles className="w-6 h-6" />
                   </div>
