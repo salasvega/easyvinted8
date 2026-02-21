@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Calendar, Package, ShoppingBag } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { PublishFormModal } from '../components/PublishFormModal';
+import { ToPublishPageSkeleton } from '../components/ui/ToPublishPageSkeleton';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Article } from '../types/article';
@@ -177,14 +178,7 @@ export function ToPublishPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Chargement...</p>
-        </div>
-      </div>
-    );
+    return <ToPublishPageSkeleton />;
   }
 
   return (
