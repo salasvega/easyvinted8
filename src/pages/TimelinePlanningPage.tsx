@@ -408,28 +408,11 @@ export default function TimelinePlanningPage() {
           </div>
 
           <div className="mt-3 sm:mt-4 bg-white rounded-xl shadow-sm border border-slate-200 p-3 sm:p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2 mb-3">
-              <div className="flex items-center gap-2 flex-1">
-                <div className="p-1.5 sm:p-2 bg-blue-50 rounded-lg flex-shrink-0">
-                  <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-sm sm:text-base text-slate-900 truncate">Filtrer par vendeur</h3>
-                  <p className="text-[10px] sm:text-xs text-slate-500 truncate">
-                    {selectedSellers.length === allSellers.length
-                      ? `${allSellers.length} vendeur${allSellers.length > 1 ? 's' : ''}`
-                      : `${selectedSellers.length} vendeur${selectedSellers.length > 1 ? 's' : ''} sélectionné${selectedSellers.length > 1 ? 's' : ''}`}
-                  </p>
-                </div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-1.5 sm:p-2 bg-blue-50 rounded-lg flex-shrink-0">
+                <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
               </div>
-              {selectedSellers.length < allSellers.length && (
-                <button
-                  onClick={() => setSelectedSellers(allSellers.map(s => s.id))}
-                  className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-2 sm:px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto flex-shrink-0"
-                >
-                  Tout sélectionner
-                </button>
-              )}
+              <h3 className="font-semibold text-sm sm:text-base text-slate-900">Filtrer par vendeur</h3>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               {allSellers.map(seller => {
