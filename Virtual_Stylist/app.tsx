@@ -2617,7 +2617,7 @@ const App: React.FC = () => {
             <div className="max-w-4xl mx-auto mb-12 sm:mb-16 lg:mb-20">
               <div className="bg-gray-50 text-gray-900 p-8 sm:p-10 lg:p-12 rounded-3xl space-y-8 sm:space-y-10 shadow-lg border border-gray-200">
                 <div className="space-y-4">
-                  <h3 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">Fond sur mesure</h3>
+                  <h3 className="text-xl font-bold tracking-tight">Fond sur mesure</h3>
                   <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.2em] text-gray-600">Nommez et décrivez le Fond que vous souhaitez créer</p>
                 </div>
                 <div className="space-y-6">
