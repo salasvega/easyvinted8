@@ -2970,7 +2970,7 @@ const App: React.FC = () => {
 
         {state.step === 'gallery' && (
           <div className="animate-in fade-in duration-700">
-            <SectionHeader title="Mon Style" subtitle="Ajoutez ou Sélectionnez le modèle et le fond que vous souhaitez utiliser pour l'essayage de vos articles!
+            <SectionHeader title="Mon Style" subtitle="Ajoutez ou Sélectionnez le modèle que vous souhaitez utiliser pour l'essayage de vos articles!
 " />
 
             {isLoadingGallery ? (
