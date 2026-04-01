@@ -794,16 +794,6 @@ export default function AgentPublisherIA() {
                   </button>
                 </div>
               </div>
-
-              <button
-                id="agent-btn-next"
-                onClick={handleNextItem}
-                disabled={selectedIndex >= items.length - 1}
-                className="w-full py-3 lg:py-4 rounded-xl text-base lg:text-lg font-medium bg-slate-50 text-slate-600 hover:bg-slate-100 disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                NEXT ITEM
-                <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5" />
-              </button>
             </div>
 
             <div id="agent-error-panel" className="bg-white rounded-xl lg:rounded-2xl p-4 lg:p-6 shadow-sm border">
