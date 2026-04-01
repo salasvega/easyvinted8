@@ -192,17 +192,17 @@ export default function AgentPublisherIA() {
         lotsScheduled,
         lotsProcessing
       ] = await Promise.all([
-        // Articles with status 'ready' and not on_hold
-        supabase.from("articles").select(articlesSelect).eq("status", "ready").neq("on_hold", true).order("created_at", { ascending: true }),
-        // Articles with status 'scheduled', scheduled_for <= today, and not on_hold
-        supabase.from("articles").select(articlesSelect).eq("status", "scheduled").lte("scheduled_for", todayIso).neq("on_hold", true).order("created_at", { ascending: true }),
-        // Articles with status 'processing' and not on_hold
-        supabase.from("articles").select(articlesSelect).eq("status", "processing").neq("on_hold", true).order("created_at", { ascending: true }),
-        // Lots with status 'ready' (no date condition)
+        // Articles with status 'ready' (includes on_hold items)
+        supabase.from("articles").select(articlesSelect).eq("status", "ready").order("created_at", { ascending: true }),
+        // Articles with status 'scheduled', scheduled_for <= today (includes on_hold items)
+        supabase.from("articles").select(articlesSelect).eq("status", "scheduled").lte("scheduled_for", todayIso).order("created_at", { ascending: true }),
+        // Articles with status 'processing' (includes on_hold items)
+        supabase.from("articles").select(articlesSelect).eq("status", "processing").order("created_at", { ascending: true }),
+        // Lots with status 'ready' (includes on_hold items)
         supabase.from("lots").select(lotsSelect).eq("status", "ready").order("created_at", { ascending: true }),
-        // Lots with status 'scheduled' and scheduled_for <= today
+        // Lots with status 'scheduled' and scheduled_for <= today (includes on_hold items)
         supabase.from("lots").select(lotsSelect).eq("status", "scheduled").lte("scheduled_for", todayIso).order("created_at", { ascending: true }),
-        // Lots with status 'processing' (no date condition)
+        // Lots with status 'processing' (includes on_hold items)
         supabase.from("lots").select(lotsSelect).eq("status", "processing").order("created_at", { ascending: true })
       ]);
 
