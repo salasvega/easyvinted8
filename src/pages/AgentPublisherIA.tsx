@@ -795,27 +795,6 @@ export default function AgentPublisherIA() {
                 </div>
               </div>
             </div>
-
-            <div id="agent-error-panel" className="bg-white rounded-xl lg:rounded-2xl p-4 lg:p-6 shadow-sm border">
-              <h2 className="text-base lg:text-lg font-bold text-slate-800 mb-3 lg:mb-4 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 lg:w-5 lg:h-5 text-red-500" />
-                Report Error
-              </h2>
-              <button
-                id="agent-btn-mark-error"
-                onClick={async () => {
-                  const table = selectedItem.itemType === "article" ? "articles" : "lots";
-                  await supabase.from(table).update({ status: "error" }).eq("id", selectedItem.id);
-                  showToast("MARKED AS ERROR");
-                  await fetchItems();
-                }}
-                className="w-full py-3 lg:py-4 rounded-xl bg-red-50 text-red-600 font-medium hover:bg-red-100 transition-colors text-sm lg:text-base"
-              >
-                MARK AS ERROR
-              </button>
-            </div>
-
-
           </div>
         )}
       </main>
