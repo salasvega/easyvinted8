@@ -23,6 +23,7 @@ type ArticleRow = {
   created_at: string;
   vinted_url: string | null;
   sale_notes: string | null;
+  seo_keywords: string[] | null;
 };
 
 type LotRow = {
@@ -40,6 +41,7 @@ type LotRow = {
   created_at: string;
   vinted_url: string | null;
   sale_notes: string | null;
+  seo_keywords: string[] | null;
 };
 
 type ItemType = "article" | "lot";
@@ -170,8 +172,8 @@ export default function AgentPublisherIA() {
   async function fetchItems() {
     setLoading(true);
     try {
-      const articlesSelect = "id,user_id,title,description,price,brand,size,condition,color,material,status,photos,sale_notes,created_at,vinted_url,scheduled_for";
-      const lotsSelect = "id,user_id,name,description,category_id,season,price,original_total_price,discount_percentage,photos,status,sale_notes,created_at,vinted_url,scheduled_for";
+      const articlesSelect = "id,user_id,title,description,price,brand,size,condition,color,material,status,photos,sale_notes,created_at,vinted_url,scheduled_for,seo_keywords";
+      const lotsSelect = "id,user_id,name,description,category_id,season,price,original_total_price,discount_percentage,photos,status,sale_notes,created_at,vinted_url,scheduled_for,seo_keywords";
 
       // Get today's date at end of day (23:59:59)
       const today = new Date();
@@ -342,13 +344,27 @@ export default function AgentPublisherIA() {
     const rawData = selectedItem.rawData;
     const photos = normalizePhotoUrls(selectedItem.photos);
 
+    // Get SEO keywords from raw data
+    const seoKeywords = selectedItem.itemType === "article"
+      ? (rawData as ArticleRow).seo_keywords
+      : (rawData as LotRow).seo_keywords;
+
+    // Build description with SEO keywords (same format as PublishFormModal)
+    let descriptionWithSeo = selectedItem.description || "";
+    if (seoKeywords && seoKeywords.length > 0) {
+      const seoSuffix = seoKeywords.join(' • ');
+      descriptionWithSeo = descriptionWithSeo
+        + (descriptionWithSeo && !descriptionWithSeo.endsWith('\n') ? '\n\n' : '')
+        + seoSuffix;
+    }
+
     let articleData: Record<string, unknown> = {
       article_id: selectedItem.id,
       status: selectedItem.status,
       type: selectedItem.itemType,
       core_fields: {
         title: selectedItem.title,
-        description: selectedItem.description,
+        description: descriptionWithSeo,
         price: {
           amount: selectedItem.price,
           currency: "EUR"
