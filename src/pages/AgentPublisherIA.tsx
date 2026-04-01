@@ -537,11 +537,13 @@ export default function AgentPublisherIA() {
       )}
 
       {/* Header */}
-      <div className="max-w-7xl mx-auto w-full px-6 pt-3">
-        <h1 className="text-2xl font-bold text-gray-900">Agent de Publication IA</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          {items.length} article{items.length > 1 ? 's' : ''} et lot{items.length > 1 ? 's' : ''} à publier
-        </p>
+      <div className="bg-gray-50 border-b border-gray-200">
+        <div className="max-w-7xl mx-auto w-full px-6 pt-3 pb-4">
+          <h1 className="text-2xl font-bold text-gray-900">Agent de Publication IA</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            {items.length} article{items.length > 1 ? 's' : ''} et lot{items.length > 1 ? 's' : ''} à publier
+          </p>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col lg:flex-row">
