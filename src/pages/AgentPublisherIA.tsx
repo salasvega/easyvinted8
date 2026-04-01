@@ -529,7 +529,7 @@ export default function AgentPublisherIA() {
   }
 
   return (
-    <div id="agent-container" className="min-h-screen bg-slate-100 flex flex-col">
+    <div id="agent-container" className="min-h-screen bg-white flex flex-col">
       {toast && (
         <div id="agent-toast" className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 sm:px-6 sm:py-3 rounded-xl bg-slate-900 text-white text-sm sm:text-lg font-bold shadow-2xl">
           {toast}
