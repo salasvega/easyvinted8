@@ -159,6 +159,8 @@ export default function AgentPublisherIA() {
   const [showPhotos, setShowPhotos] = useState(false);
   const [mobileView, setMobileView] = useState<"queue" | "workflow">("workflow");
   const [statusChangeIndicator, setStatusChangeIndicator] = useState<"draft" | "published" | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const toastTimer = useRef<number | null>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
 
@@ -472,6 +474,54 @@ export default function AgentPublisherIA() {
     setStatusChangeIndicator(null);
   }
 
+  function handleDragStart(e: React.DragEvent<HTMLButtonElement>, index: number) {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDragOver(e: React.DragEvent<HTMLButtonElement>, index: number) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverIndex(index);
+  }
+
+  function handleDragLeave() {
+    setDragOverIndex(null);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLButtonElement>, dropIndex: number) {
+    e.preventDefault();
+
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newItems = [...items];
+    const [draggedItem] = newItems.splice(draggedIndex, 1);
+    newItems.splice(dropIndex, 0, draggedItem);
+
+    setItems(newItems);
+
+    if (selectedIndex === draggedIndex) {
+      setSelectedIndex(dropIndex);
+    } else if (draggedIndex < selectedIndex && dropIndex >= selectedIndex) {
+      setSelectedIndex(selectedIndex - 1);
+    } else if (draggedIndex > selectedIndex && dropIndex <= selectedIndex) {
+      setSelectedIndex(selectedIndex + 1);
+    }
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    showToast("ORDER UPDATED");
+  }
+
+  function handleDragEnd() {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }
+
   const photos = selectedItem ? normalizePhotoUrls(selectedItem.photos).slice(0, 5) : [];
 
   if (loading && items.length === 0) {
@@ -557,18 +607,28 @@ export default function AgentPublisherIA() {
                 id={`agent-item-${idx}`}
                 data-item-id={item.id}
                 data-item-status={item.status}
+                draggable
+                onDragStart={(e) => handleDragStart(e, idx)}
+                onDragOver={(e) => handleDragOver(e, idx)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, idx)}
+                onDragEnd={handleDragEnd}
                 onClick={() => {
                   selectItem(idx);
                   setMobileView("workflow");
                 }}
-                className={`w-full text-left p-3 lg:p-4 border-b transition-colors ${
+                className={`w-full text-left p-3 lg:p-4 border-b transition-all cursor-move ${
                   idx === selectedIndex
                     ? "bg-slate-800 text-white"
+                    : draggedIndex === idx
+                    ? "opacity-40 bg-slate-100"
+                    : dragOverIndex === idx
+                    ? "bg-blue-50 border-t-2 border-blue-500"
                     : "hover:bg-slate-50"
                 }`}
               >
                 <div className="flex items-center gap-2 lg:gap-3">
-                  <span className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-xs lg:text-sm font-bold ${
+                  <span className={`w-6 h-6 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-xs lg:text-sm font-bold flex-shrink-0 ${
                     idx === selectedIndex ? "bg-white text-slate-800" : "bg-slate-200 text-slate-700"
                   }`}>
                     {idx + 1}
@@ -586,7 +646,7 @@ export default function AgentPublisherIA() {
                       </span>
                     </div>
                   </div>
-                  {idx === selectedIndex && <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5" />}
+                  {idx === selectedIndex && <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />}
                 </div>
               </button>
             ))
