@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Package, FileText, CheckCircle2, Clock, Send, DollarSign, Eye, Clipboard as ClipboardEdit, Upload, Flower2, Sun, Leaf, Snowflake, CloudSun, ChevronLeft, ChevronRight, Loader, AlertCircle, Play, Pause } from 'lucide-react';
+import { Package, FileText, CheckCircle2, Clock, Send, DollarSign, Eye, ClipboardEdit, Upload, Flower2, Sun, Leaf, Snowflake, CloudSun, ChevronLeft, ChevronRight, Loader, AlertCircle, Play } from 'lucide-react';
 import { ArticleStatus, Season } from '../../types/article';
 import { LazyImage } from '../ui/LazyImage';
 
@@ -24,7 +24,6 @@ interface AdminItem {
   reference_number?: string;
   lot_article_count?: number;
   isInLot?: boolean;
-  on_hold?: boolean;
 }
 
 interface AdminItemCardProps {
@@ -122,11 +121,7 @@ const AdminItemCardComponent = ({
   return (
     <div
       onClick={onView}
-      className={`group bg-white rounded-2xl border overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer ${
-        item.on_hold
-          ? 'opacity-50 border-orange-300 hover:border-orange-400'
-          : 'border-slate-200 hover:border-slate-300'
-      }`}
+      className="group bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:border-slate-300 transition-all duration-300 cursor-pointer"
     >
       <div className="relative aspect-square bg-slate-100">
         {photos.length > 0 ? (
@@ -189,12 +184,6 @@ const AdminItemCardComponent = ({
               </span>
             )}
           </div>
-          {item.on_hold && (
-            <span className="inline-flex items-center gap-1 px-2 py-1 text-[10px] font-semibold rounded-lg bg-orange-500 text-white border border-orange-600 shadow-lg">
-              <Pause className="w-3 h-3" />
-              En pause
-            </span>
-          )}
           {item.type === 'article' && item.isInLot && (
             <span className="px-2 py-1 text-[10px] font-semibold rounded-lg bg-orange-100 text-orange-700 border border-orange-200">
               Dans un lot
@@ -318,7 +307,6 @@ export const AdminItemCard = memo(AdminItemCardComponent, (prevProps, nextProps)
     prevProps.item.id === nextProps.item.id &&
     prevProps.item.status === nextProps.item.status &&
     prevProps.item.photos === nextProps.item.photos &&
-    prevProps.item.on_hold === nextProps.item.on_hold &&
     prevProps.currentPhotoIndex === nextProps.currentPhotoIndex
   );
 });

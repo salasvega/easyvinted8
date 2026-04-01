@@ -1,4 +1,4 @@
-import { X, Trash2, Calendar, User, Sun, CheckCircle, Clock, Send, Copy, Pause, Play } from 'lucide-react';
+import { X, Trash2, Calendar, User, Sun, CheckCircle, Clock, Send, Copy } from 'lucide-react';
 import { ArticleStatus, Season } from '../../types/article';
 import { useState } from 'react';
 
@@ -11,8 +11,6 @@ interface BulkActionsBarProps {
   onBulkSeasonChange: (season: Season) => void;
   onBulkSchedule: () => void;
   onBulkDuplicate: () => void;
-  onBulkPause: () => void;
-  onBulkResume: () => void;
   familyMembers: Array<{ id: string; name: string }>;
 }
 
@@ -40,8 +38,6 @@ export function BulkActionsBar({
   onBulkSeasonChange,
   onBulkSchedule,
   onBulkDuplicate,
-  onBulkPause,
-  onBulkResume,
   familyMembers,
 }: BulkActionsBarProps) {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
@@ -160,22 +156,6 @@ export function BulkActionsBar({
             >
               <Calendar className="w-4 h-4" />
               Planifier
-            </button>
-
-            <button
-              onClick={onBulkPause}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors text-sm font-medium"
-            >
-              <Pause className="w-4 h-4" />
-              Pause
-            </button>
-
-            <button
-              onClick={onBulkResume}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors text-sm font-medium"
-            >
-              <Play className="w-4 h-4" />
-              Réactiver
             </button>
 
             <button
