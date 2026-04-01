@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { CheckCircle2, File as FileEdit, ChevronRight, Copy, ExternalLink, AlertCircle } from "lucide-react";
+import { CheckCircle2, File as FileEdit, ChevronRight, Copy, ExternalLink, AlertCircle, Pause, Play } from "lucide-react";
 import { AgentPublisherSkeleton } from "../components/ui/AgentPublisherSkeleton";
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
@@ -57,6 +57,7 @@ type UnifiedItem = {
   created_at: string;
   vinted_url: string | null;
   sale_notes: string | null;
+  on_hold?: boolean;
   rawData: ArticleRow | LotRow;
 };
 
@@ -228,6 +229,7 @@ export default function AgentPublisherIA() {
         created_at: a.created_at,
         vinted_url: a.vinted_url,
         sale_notes: a.sale_notes,
+        on_hold: (a as any).on_hold || false,
         rawData: a,
       }));
 
@@ -242,6 +244,7 @@ export default function AgentPublisherIA() {
         created_at: l.created_at,
         vinted_url: l.vinted_url,
         sale_notes: l.sale_notes,
+        on_hold: (l as any).on_hold || false,
         rawData: l,
       }));
 
@@ -522,6 +525,30 @@ export default function AgentPublisherIA() {
     setDragOverIndex(null);
   }
 
+  async function handleTogglePause(item: UnifiedItem, e: React.MouseEvent) {
+    e.stopPropagation();
+
+    const table = item.itemType === "article" ? "articles" : "lots";
+    const newOnHoldState = !item.on_hold;
+
+    const { error } = await supabase
+      .from(table)
+      .update({ on_hold: newOnHoldState })
+      .eq("id", item.id);
+
+    if (error) {
+      console.error("[AGENT] Toggle pause error:", error);
+      showToast("ERROR UPDATING STATUS");
+      return;
+    }
+
+    showToast(newOnHoldState ? "ITEM PAUSED ⏸" : "ITEM RESUMED ▶");
+
+    setItems((prev) => prev.map((i) =>
+      i.id === item.id ? { ...i, on_hold: newOnHoldState } : i
+    ));
+  }
+
   const photos = selectedItem ? normalizePhotoUrls(selectedItem.photos).slice(0, 5) : [];
 
   if (loading && items.length === 0) {
@@ -624,6 +651,8 @@ export default function AgentPublisherIA() {
                     ? "opacity-40 bg-slate-100"
                     : dragOverIndex === idx
                     ? "bg-blue-50 border-t-2 border-blue-500"
+                    : item.on_hold
+                    ? "hover:bg-slate-50 opacity-60"
                     : "hover:bg-slate-50"
                 }`}
               >
@@ -644,8 +673,35 @@ export default function AgentPublisherIA() {
                       <span className={`text-xs ${idx === selectedIndex ? "text-slate-300" : "text-slate-500"}`}>
                         {item.status} | {item.itemType}
                       </span>
+                      {item.on_hold && (
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-semibold rounded ${
+                          idx === selectedIndex ? "bg-orange-500 text-white" : "bg-orange-100 text-orange-700"
+                        }`}>
+                          <Pause className="w-2.5 h-2.5" />
+                          Pause
+                        </span>
+                      )}
                     </div>
                   </div>
+                  <button
+                    onClick={(e) => handleTogglePause(item, e)}
+                    className={`p-1.5 lg:p-2 rounded-lg transition-all hover:scale-110 ${
+                      item.on_hold
+                        ? idx === selectedIndex
+                          ? "bg-green-500 hover:bg-green-600 text-white"
+                          : "bg-green-100 hover:bg-green-200 text-green-700"
+                        : idx === selectedIndex
+                        ? "bg-orange-500 hover:bg-orange-600 text-white"
+                        : "bg-orange-100 hover:bg-orange-200 text-orange-700"
+                    }`}
+                    title={item.on_hold ? "Réactiver" : "Mettre en pause"}
+                  >
+                    {item.on_hold ? (
+                      <Play className="w-3 h-3 lg:w-4 lg:h-4" fill="currentColor" />
+                    ) : (
+                      <Pause className="w-3 h-3 lg:w-4 lg:h-4" />
+                    )}
+                  </button>
                   {idx === selectedIndex && <ChevronRight className="w-4 h-4 lg:w-5 lg:h-5 flex-shrink-0" />}
                 </div>
               </button>
