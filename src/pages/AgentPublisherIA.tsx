@@ -570,7 +570,7 @@ export default function AgentPublisherIA() {
         </button>
       </div>
 
-      <aside id="agent-item-list" className={`w-full lg:w-80 bg-white lg:border-r flex flex-col ${
+      <aside id="agent-item-list" className={`w-full lg:w-96 bg-white lg:border-r flex flex-col ${
         mobileView === "queue" ? "flex" : "hidden lg:flex"
       }`}>
         <div className="p-3 lg:p-4 border-b bg-slate-50">
@@ -672,7 +672,7 @@ export default function AgentPublisherIA() {
             <p className="text-slate-500 text-base lg:text-xl">Select an item from the queue</p>
           </div>
         ) : (
-          <div className="max-w-3xl mx-auto space-y-4 lg:space-y-6">
+          <div className="max-w-2xl mx-auto space-y-4 lg:space-y-6">
             <div id="agent-workflow-steps" className="bg-white rounded-xl lg:rounded-2xl p-4 lg:p-6 shadow-sm border">
               <h2 className="text-base lg:text-lg font-bold text-slate-800 mb-3 lg:mb-4">Workflow Progress</h2>
               <div className="flex items-center justify-between">
