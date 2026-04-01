@@ -425,10 +425,12 @@ export default function AgentPublisherIA() {
     const table = selectedItem.itemType === "article" ? "articles" : "lots";
     const { error } = await supabase.from(table).update({ status: "vinted_draft" }).eq("id", selectedItem.id);
     if (!error) {
-      showToast("MARKED AS DRAFT");
       setStatusChangeIndicator("draft");
       setCurrentStep(5);
       await fetchItems();
+      setTimeout(() => {
+        setStatusChangeIndicator(null);
+      }, 2500);
     }
   }
 
@@ -438,11 +440,13 @@ export default function AgentPublisherIA() {
     const newNotes = appendNote(selectedItem.sale_notes, doneTag(sessionId));
     const { error } = await supabase.from(table).update({ status: "published", published_at: nowIso(), sale_notes: newNotes }).eq("id", selectedItem.id);
     if (!error) {
-      showToast("PUBLISHED!");
       setStatusChangeIndicator("published");
       setCurrentStep(5);
       await fetchItems();
-      setTimeout(() => handleNextItem(), 800);
+      setTimeout(() => {
+        setStatusChangeIndicator(null);
+        handleNextItem();
+      }, 2500);
     }
   }
 
@@ -731,39 +735,6 @@ export default function AgentPublisherIA() {
                 </div>
               </div>
 
-              {statusChangeIndicator && (
-                <div className={`p-6 lg:p-8 rounded-xl border-4 shadow-lg transition-all ${
-                  statusChangeIndicator === "published"
-                    ? "bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-500"
-                    : "bg-gradient-to-r from-blue-50 to-blue-100 border-blue-500"
-                }`}>
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    {statusChangeIndicator === "published" ? (
-                      <CheckCircle2 className="w-16 h-16 lg:w-20 lg:h-20 text-emerald-600 animate-bounce" />
-                    ) : (
-                      <FileEdit className="w-16 h-16 lg:w-20 lg:h-20 text-blue-600 animate-bounce" />
-                    )}
-                    <div className="text-center">
-                      <div className={`text-3xl lg:text-4xl font-black tracking-wide ${
-                        statusChangeIndicator === "published" ? "text-emerald-700" : "text-blue-700"
-                      }`}>
-                        {statusChangeIndicator === "published" ? "✓ PUBLISHED" : "✓ DRAFTED"}
-                      </div>
-                      <div className={`text-sm lg:text-base mt-2 font-semibold ${
-                        statusChangeIndicator === "published" ? "text-emerald-600" : "text-blue-600"
-                      }`}>
-                        Item removed from queue
-                      </div>
-                      <div className="text-xs lg:text-sm mt-1 text-slate-500">
-                        {statusChangeIndicator === "published"
-                          ? "Status changed to: Published"
-                          : "Status changed to: Vinted Draft"}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <button
                 id="agent-btn-next"
                 onClick={handleNextItem}
@@ -799,6 +770,47 @@ export default function AgentPublisherIA() {
         )}
       </main>
       </div>
+
+      {statusChangeIndicator && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+          <div className={`max-w-md w-full rounded-2xl shadow-2xl p-8 lg:p-12 transform transition-all ${
+            statusChangeIndicator === "published"
+              ? "bg-gradient-to-br from-emerald-50 via-white to-emerald-50"
+              : "bg-gradient-to-br from-blue-50 via-white to-blue-50"
+          }`}>
+            <div className="flex flex-col items-center justify-center gap-6">
+              {statusChangeIndicator === "published" ? (
+                <div className="relative">
+                  <CheckCircle2 className="w-24 h-24 lg:w-32 lg:h-32 text-emerald-600 animate-bounce" />
+                  <div className="absolute inset-0 w-24 h-24 lg:w-32 lg:h-32 bg-emerald-400 rounded-full opacity-20 animate-ping"></div>
+                </div>
+              ) : (
+                <div className="relative">
+                  <FileEdit className="w-24 h-24 lg:w-32 lg:h-32 text-blue-600 animate-bounce" />
+                  <div className="absolute inset-0 w-24 h-24 lg:w-32 lg:h-32 bg-blue-400 rounded-full opacity-20 animate-ping"></div>
+                </div>
+              )}
+              <div className="text-center space-y-3">
+                <div className={`text-4xl lg:text-5xl font-black tracking-tight ${
+                  statusChangeIndicator === "published" ? "text-emerald-700" : "text-blue-700"
+                }`}>
+                  {statusChangeIndicator === "published" ? "PUBLISHED!" : "DRAFTED!"}
+                </div>
+                <div className={`text-base lg:text-lg font-semibold ${
+                  statusChangeIndicator === "published" ? "text-emerald-600" : "text-blue-600"
+                }`}>
+                  Item removed from queue
+                </div>
+                <div className="text-sm text-slate-600 mt-2">
+                  {statusChangeIndicator === "published"
+                    ? "Status changed to: Published"
+                    : "Status changed to: Vinted Draft"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
