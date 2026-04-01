@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MoreVertical, Eye, SquarePen, Send, Calendar, Copy, Trash2, Tag, ExternalLink, CheckCircle, DollarSign } from 'lucide-react';
+import { MoreVertical, Eye, SquarePen, Send, Calendar, Copy, Trash2, Tag, ExternalLink, CheckCircle, DollarSign, Pause, Play } from 'lucide-react';
 import { ArticleStatus } from '../../types/article';
 
 interface QuickActionsMenuProps {
@@ -16,6 +16,8 @@ interface QuickActionsMenuProps {
   onGenerateLabel?: () => void;
   onMarkSold?: () => void;
   onChangeStatus?: (status: ArticleStatus) => void;
+  onHold?: boolean;
+  onTogglePause?: () => void;
 }
 
 export function QuickActionsMenu({
@@ -32,6 +34,8 @@ export function QuickActionsMenu({
   onGenerateLabel,
   onMarkSold,
   onChangeStatus,
+  onHold,
+  onTogglePause,
 }: QuickActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -124,6 +128,32 @@ export function QuickActionsMenu({
               <DollarSign className="w-4 h-4" />
               <span>Marquer vendu</span>
             </button>
+          )}
+
+          {onTogglePause && !isSold && (
+            <>
+              <div className="h-px bg-gray-100 my-1" />
+              <button
+                onClick={() => handleAction(onTogglePause)}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors font-medium ${
+                  onHold
+                    ? 'text-green-600 hover:bg-green-50'
+                    : 'text-orange-600 hover:bg-orange-50'
+                }`}
+              >
+                {onHold ? (
+                  <>
+                    <Play className="w-4 h-4" />
+                    <span>Réactiver</span>
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-4 h-4" />
+                    <span>Mettre en pause</span>
+                  </>
+                )}
+              </button>
+            </>
           )}
 
           <div className="h-px bg-gray-100 my-1" />

@@ -34,6 +34,7 @@ export interface Lot {
   hashtags?: string[];
   search_terms?: string[];
   ai_confidence_score?: number;
+  on_hold?: boolean;
 }
 
 export interface LotItem {

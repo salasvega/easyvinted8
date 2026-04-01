@@ -1,4 +1,4 @@
-import { Search, X, LayoutGrid, List, FileText, CheckCircle2, Clock, Send, DollarSign, Layers, Loader2, AlertCircle, Lock } from 'lucide-react';
+import { Search, X, LayoutGrid, List, FileText, CheckCircle2, Clock, Send, DollarSign, Layers, Loader2, AlertCircle, Lock, Pause } from 'lucide-react';
 import { ArticleStatus } from '../../types/article';
 
 interface FamilyMember {
@@ -18,6 +18,8 @@ interface AdminFiltersProps {
   familyMembers: FamilyMember[];
   viewMode: 'table' | 'grid';
   onViewModeChange: (mode: 'table' | 'grid') => void;
+  onHoldFilter: 'all' | 'active' | 'paused';
+  onOnHoldFilterChange: (value: 'all' | 'active' | 'paused') => void;
 }
 
 const STATUS_CONFIG: Record<ArticleStatus, { label: string; color: string; activeColor: string }> = {
@@ -62,14 +64,17 @@ export function AdminFilters({
   familyMembers,
   viewMode,
   onViewModeChange,
+  onHoldFilter,
+  onOnHoldFilterChange,
 }: AdminFiltersProps) {
-  const hasActiveFilters = statusFilter !== 'all' || typeFilter !== 'all' || sellerFilter !== 'all' || searchQuery.length > 0;
+  const hasActiveFilters = statusFilter !== 'all' || typeFilter !== 'all' || sellerFilter !== 'all' || onHoldFilter !== 'all' || searchQuery.length > 0;
 
   const clearAllFilters = () => {
     onSearchChange('');
     onStatusFilterChange('all');
     onTypeFilterChange('all');
     onSellerFilterChange('all');
+    onOnHoldFilterChange('all');
   };
 
   return (
@@ -191,6 +196,43 @@ export function AdminFilters({
             </select>
           </>
         )}
+
+        <div className="w-px h-5 bg-slate-200 hidden sm:block" />
+
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <button
+            onClick={() => onOnHoldFilterChange('all')}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+              onHoldFilter === 'all'
+                ? 'bg-slate-900 text-white border-slate-900'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+            } hover:scale-105 active:scale-95`}
+          >
+            <span>Tous les articles</span>
+          </button>
+          <button
+            onClick={() => onOnHoldFilterChange('active')}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+              onHoldFilter === 'active'
+                ? 'bg-green-600 text-white border-green-600'
+                : 'bg-green-50 text-green-600 border-green-200 hover:border-green-300'
+            } hover:scale-105 active:scale-95`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Actifs</span>
+          </button>
+          <button
+            onClick={() => onOnHoldFilterChange('paused')}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all ${
+              onHoldFilter === 'paused'
+                ? 'bg-orange-600 text-white border-orange-600'
+                : 'bg-orange-50 text-orange-600 border-orange-200 hover:border-orange-300'
+            } hover:scale-105 active:scale-95`}
+          >
+            <Pause className="w-3.5 h-3.5" />
+            <span>En pause</span>
+          </button>
+        </div>
 
         {hasActiveFilters && (
           <button

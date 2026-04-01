@@ -58,6 +58,7 @@ export function ToPublishPageV2() {
         .select('*')
         .eq('user_id', user.id)
         .in('status', ['ready', 'scheduled'])
+        .neq('on_hold', true)
         .or(`scheduled_for.is.null,scheduled_for.lte.${targetDate.toISOString()}`)
         .order('scheduled_for', { ascending: true, nullsFirst: false });
 
