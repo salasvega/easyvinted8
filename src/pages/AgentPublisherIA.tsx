@@ -158,6 +158,7 @@ export default function AgentPublisherIA() {
   const [toast, setToast] = useState<string | null>(null);
   const [showPhotos, setShowPhotos] = useState(false);
   const [mobileView, setMobileView] = useState<"queue" | "workflow">("workflow");
+  const [statusChangeIndicator, setStatusChangeIndicator] = useState<"draft" | "published" | null>(null);
   const toastTimer = useRef<number | null>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
 
@@ -425,6 +426,7 @@ export default function AgentPublisherIA() {
     const { error } = await supabase.from(table).update({ status: "vinted_draft" }).eq("id", selectedItem.id);
     if (!error) {
       showToast("MARKED AS DRAFT");
+      setStatusChangeIndicator("draft");
       setCurrentStep(5);
       await fetchItems();
     }
@@ -437,6 +439,7 @@ export default function AgentPublisherIA() {
     const { error } = await supabase.from(table).update({ status: "published", published_at: nowIso(), sale_notes: newNotes }).eq("id", selectedItem.id);
     if (!error) {
       showToast("PUBLISHED!");
+      setStatusChangeIndicator("published");
       setCurrentStep(5);
       await fetchItems();
       setTimeout(() => handleNextItem(), 800);
@@ -447,6 +450,7 @@ export default function AgentPublisherIA() {
     if (selectedIndex < items.length - 1) {
       setSelectedIndex(selectedIndex + 1);
       setCurrentStep(1);
+      setStatusChangeIndicator(null);
     }
   }
 
@@ -454,12 +458,14 @@ export default function AgentPublisherIA() {
     if (selectedIndex > 0) {
       setSelectedIndex(selectedIndex - 1);
       setCurrentStep(1);
+      setStatusChangeIndicator(null);
     }
   }
 
   function selectItem(index: number) {
     setSelectedIndex(index);
     setCurrentStep(1);
+    setStatusChangeIndicator(null);
   }
 
   const photos = selectedItem ? normalizePhotoUrls(selectedItem.photos).slice(0, 5) : [];
@@ -724,6 +730,39 @@ export default function AgentPublisherIA() {
                   </button>
                 </div>
               </div>
+
+              {statusChangeIndicator && (
+                <div className={`p-6 lg:p-8 rounded-xl border-4 shadow-lg transition-all ${
+                  statusChangeIndicator === "published"
+                    ? "bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-500"
+                    : "bg-gradient-to-r from-blue-50 to-blue-100 border-blue-500"
+                }`}>
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    {statusChangeIndicator === "published" ? (
+                      <CheckCircle2 className="w-16 h-16 lg:w-20 lg:h-20 text-emerald-600 animate-bounce" />
+                    ) : (
+                      <FileEdit className="w-16 h-16 lg:w-20 lg:h-20 text-blue-600 animate-bounce" />
+                    )}
+                    <div className="text-center">
+                      <div className={`text-3xl lg:text-4xl font-black tracking-wide ${
+                        statusChangeIndicator === "published" ? "text-emerald-700" : "text-blue-700"
+                      }`}>
+                        {statusChangeIndicator === "published" ? "✓ PUBLISHED" : "✓ DRAFTED"}
+                      </div>
+                      <div className={`text-sm lg:text-base mt-2 font-semibold ${
+                        statusChangeIndicator === "published" ? "text-emerald-600" : "text-blue-600"
+                      }`}>
+                        Item removed from queue
+                      </div>
+                      <div className="text-xs lg:text-sm mt-1 text-slate-500">
+                        {statusChangeIndicator === "published"
+                          ? "Status changed to: Published"
+                          : "Status changed to: Vinted Draft"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <button
                 id="agent-btn-next"
