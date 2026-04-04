@@ -22,6 +22,9 @@ import {
   TrendingUp,
   Zap,
   DollarSign,
+  CheckCircle2,
+  Clock,
+  Send,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Article, Season } from '../types/article';
@@ -36,6 +39,61 @@ import { Toast } from './ui/Toast';
 import { ConfirmModal } from './ui/ConfirmModal';
 import { LabelModal } from './LabelModal';
 import { LotSoldModal } from './LotSoldModal';
+import { Modal } from './ui/Modal';
+
+const STATUS_LABELS: Record<LotStatus, string> = {
+  draft: 'Brouillon',
+  ready: 'Pret',
+  reserved: 'Réservé',
+  scheduled: 'Planifie',
+  vinted_draft: 'Brouillon Vinted',
+  published: 'Publie',
+  sold: 'Vendu',
+  processing: 'En cours',
+  error: 'Erreur',
+  on_hold: 'En attente',
+};
+
+const STATUS_COLORS: Record<LotStatus, { bg: string; text: string; border: string }> = {
+  draft: { bg: 'bg-slate-100', text: 'text-slate-700', border: 'border-slate-200' },
+  ready: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200' },
+  reserved: { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-200' },
+  scheduled: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
+  vinted_draft: { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
+  published: { bg: 'bg-violet-100', text: 'text-violet-700', border: 'border-violet-200' },
+  sold: { bg: 'bg-emerald-100', text: 'text-emerald-700', border: 'border-emerald-200' },
+  processing: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-200' },
+  error: { bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200' },
+  on_hold: { bg: 'bg-yellow-100', text: 'text-yellow-700', border: 'border-yellow-200' },
+};
+
+const renderStatusIcon = (status: LotStatus) => {
+  const iconClass = 'w-4 h-4';
+  switch (status) {
+    case 'draft':
+      return <FileText className={iconClass} />;
+    case 'ready':
+      return <CheckCircle2 className={iconClass} />;
+    case 'scheduled':
+      return <Clock className={iconClass} />;
+    case 'vinted_draft':
+      return <Send className={iconClass} />;
+    case 'published':
+      return <Send className={iconClass} />;
+    case 'sold':
+      return <Check className={iconClass} />;
+    case 'processing':
+      return <Package className={iconClass} />;
+    case 'error':
+      return <AlertCircle className={iconClass} />;
+    case 'reserved':
+      return <Clock className={iconClass} />;
+    case 'on_hold':
+      return <AlertCircle className={iconClass} />;
+    default:
+      return <FileText className={iconClass} />;
+  }
+};
 
 interface LotBuilderProps {
   isOpen: boolean;
@@ -110,6 +168,7 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
   const [labelModalOpen, setLabelModalOpen] = useState(false);
   const [showShippingSimulator, setShowShippingSimulator] = useState(false);
   const [soldModalOpen, setSoldModalOpen] = useState(false);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
 
   // ========= Schedule modal (comme en mode Détail) =========
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
@@ -1451,39 +1510,16 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
           )}
 
           {/* 9) Section Statut */}
-          {existingLotId && (
+          {lotData.selectedArticles.length > 0 && (
             <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+              <p className="text-[10px] uppercase tracking-wide text-slate-600 font-semibold mb-2">Statut</p>
               <div className="mb-2">
                 <button
-                  onClick={() => {
-                    const statusOrder: LotStatus[] = ['draft', 'ready', 'scheduled', 'published', 'vinted_draft', 'sold'];
-                    const currentIndex = statusOrder.indexOf(lotData.status);
-                    const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
-                    handleUpdateStatus(nextStatus);
-                  }}
-                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border ${
-                    lotData.status === 'draft'
-                      ? 'bg-slate-100 text-slate-700 border-slate-200'
-                      : lotData.status === 'ready'
-                      ? 'bg-blue-100 text-blue-700 border-blue-200'
-                      : lotData.status === 'scheduled'
-                      ? 'bg-amber-100 text-amber-700 border-amber-200'
-                      : lotData.status === 'published'
-                      ? 'bg-violet-100 text-violet-700 border-violet-200'
-                      : 'bg-emerald-100 text-emerald-700 border-emerald-200'
-                  } hover:scale-105 transition-transform text-sm font-semibold`}
+                  onClick={() => setStatusModalOpen(true)}
+                  className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border ${STATUS_COLORS[lotData.status].bg} ${STATUS_COLORS[lotData.status].text} ${STATUS_COLORS[lotData.status].border} hover:scale-105 transition-transform text-sm font-semibold`}
                 >
-                  <span>
-                    {lotData.status === 'draft'
-                      ? 'Brouillon'
-                      : lotData.status === 'ready'
-                      ? 'Pret'
-                      : lotData.status === 'scheduled'
-                      ? 'Planifie'
-                      : lotData.status === 'published'
-                      ? 'Publie'
-                      : 'Vendu'}
-                  </span>
+                  {renderStatusIcon(lotData.status)}
+                  <span>{STATUS_LABELS[lotData.status]}</span>
                 </button>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
@@ -1872,6 +1908,89 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
           }}
         />
       )}
+
+      {/* Status Modal */}
+      <Modal
+        isOpen={statusModalOpen}
+        onClose={() => setStatusModalOpen(false)}
+        title="Changer le statut"
+      >
+        <div className="space-y-2">
+          {(['draft', 'ready', 'scheduled', 'published', 'vinted_draft', 'sold'] as LotStatus[]).map((status) => (
+            <button
+              key={status}
+              onClick={async () => {
+                try {
+                  if (status === 'sold') {
+                    setStatusModalOpen(false);
+                    setSoldModalOpen(true);
+                    return;
+                  }
+
+                  // Si le lot existe déjà, on met à jour la base de données
+                  if (existingLotId) {
+                    const updateData: any = { status };
+
+                    if (status === 'published') {
+                      const { data: currentLot } = await supabase
+                        .from('lots')
+                        .select('published_at')
+                        .eq('id', existingLotId)
+                        .maybeSingle();
+
+                      if (currentLot && !currentLot.published_at) {
+                        updateData.published_at = new Date().toISOString();
+                      }
+                    }
+
+                    const { error } = await supabase
+                      .from('lots')
+                      .update(updateData)
+                      .eq('id', existingLotId);
+
+                    if (error) throw error;
+
+                    setToast({
+                      type: 'success',
+                      text: `Statut changé en "${STATUS_LABELS[status]}"`,
+                    });
+                    onSuccess();
+                  } else {
+                    // Pour les nouveaux lots, on met juste à jour l'état local
+                    setToast({
+                      type: 'success',
+                      text: `Statut défini sur "${STATUS_LABELS[status]}"`,
+                    });
+                  }
+
+                  setLotData((prev) => ({ ...prev, status }));
+                  setStatusModalOpen(false);
+                } catch (error) {
+                  console.error('Error updating status:', error);
+                  setToast({
+                    type: 'error',
+                    text: 'Erreur lors du changement de statut',
+                  });
+                }
+              }}
+              disabled={lotData.status === status}
+              className={`w-full text-left px-4 py-3 rounded-xl border transition-all flex items-center gap-3 ${
+                lotData.status === status
+                  ? 'bg-slate-50 border-slate-200 cursor-not-allowed opacity-60'
+                  : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+              }`}
+            >
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium ${STATUS_COLORS[status].bg} ${STATUS_COLORS[status].text} ${STATUS_COLORS[status].border} border`}>
+                {renderStatusIcon(status)}
+                {STATUS_LABELS[status]}
+              </span>
+              {lotData.status === status && (
+                <span className="ml-auto text-xs text-slate-500">(Actuel)</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </Modal>
 
       {toast && <Toast message={toast.text} type={toast.type} onClose={() => setToast(null)} />}
     </>

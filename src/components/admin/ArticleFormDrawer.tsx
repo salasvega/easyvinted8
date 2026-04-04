@@ -1906,20 +1906,19 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                     </div>
 
                     {/* Status Section */}
-                    {articleId && (
-                      <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
-                        <div className="mb-2">
-                          <button
-                            onClick={() => setStatusModalOpen(true)}
-                            className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border ${statusColors.bg} ${statusColors.text} ${statusColors.border} hover:scale-105 transition-transform text-sm font-semibold`}
-                          >
-                            {renderStatusIcon(articleStatus)}
-                            <span>{STATUS_LABELS[articleStatus]}</span>
-                          </button>
-                        </div>
-                        <p className="text-xs text-slate-600 leading-relaxed">{getStatusMessage()}</p>
+                    <div className={`bg-slate-50 rounded-2xl p-4 border border-slate-200 ${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 8 } as React.CSSProperties}>
+                      <p className="text-[10px] uppercase tracking-wide text-slate-600 font-semibold mb-2">Statut</p>
+                      <div className="mb-2">
+                        <button
+                          onClick={() => setStatusModalOpen(true)}
+                          className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl border ${statusColors.bg} ${statusColors.text} ${statusColors.border} hover:scale-105 transition-transform text-sm font-semibold`}
+                        >
+                          {renderStatusIcon(articleStatus)}
+                          <span>{STATUS_LABELS[articleStatus]}</span>
+                        </button>
                       </div>
-                    )}
+                      <p className="text-xs text-slate-600 leading-relaxed">{getStatusMessage()}</p>
+                    </div>
 
                     {/* Label Section */}
                     {articleId && formData.reference_number && (
@@ -2135,34 +2134,44 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                     return;
                   }
 
-                  const updateData: any = { status };
+                  // Si l'article existe déjà, on met à jour la base de données
+                  if (articleId) {
+                    const updateData: any = { status };
 
-                  if (status === 'published') {
-                    const { data: currentArticle } = await supabase
-                      .from('articles')
-                      .select('published_at')
-                      .eq('id', articleId)
-                      .maybeSingle();
+                    if (status === 'published') {
+                      const { data: currentArticle } = await supabase
+                        .from('articles')
+                        .select('published_at')
+                        .eq('id', articleId)
+                        .maybeSingle();
 
-                    if (currentArticle && !currentArticle.published_at) {
-                      updateData.published_at = new Date().toISOString();
+                      if (currentArticle && !currentArticle.published_at) {
+                        updateData.published_at = new Date().toISOString();
+                      }
                     }
+
+                    const { error } = await supabase
+                      .from('articles')
+                      .update(updateData)
+                      .eq('id', articleId);
+
+                    if (error) throw error;
+
+                    setToast({
+                      type: 'success',
+                      text: `Statut change en "${STATUS_LABELS[status]}"`,
+                    });
+                    onSaved();
+                  } else {
+                    // Pour les nouveaux articles, on met juste à jour l'état local
+                    setToast({
+                      type: 'success',
+                      text: `Statut défini sur "${STATUS_LABELS[status]}"`,
+                    });
                   }
 
-                  const { error } = await supabase
-                    .from('articles')
-                    .update(updateData)
-                    .eq('id', articleId);
-
-                  if (error) throw error;
-
                   setArticleStatus(status);
-                  setToast({
-                    type: 'success',
-                    text: `Statut change en "${STATUS_LABELS[status]}"`,
-                  });
                   setStatusModalOpen(false);
-                  onSaved();
                 } catch (error) {
                   console.error('Error updating status:', error);
                   setToast({
