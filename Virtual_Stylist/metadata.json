@@ -1,0 +1,7 @@
+{
+  "name": "VogueAI - Virtual Stylist",
+  "description": "An AI-powered virtual dressing room where you can create a custom avatar and see how different clothes look on you using Gemini's advanced image generation.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
