@@ -19,6 +19,7 @@ const FamilyMembersPage = lazy(() => import('./pages/FamilyMembersPage').then(m 
 const MonDressingPage = lazy(() => import('./pages/MonDressingPage').then(m => ({ default: m.MonDressingPage })));
 const AgentOptimizedView = lazy(() => import('./pages/AgentOptimizedView'));
 const AgentPublisherIA = lazy(() => import('./pages/AgentPublisherIA'));
+const AgentRunnerPage = lazy(() => import('./pages/AgentRunnerPage'));
 const PublicationMonitorPage = lazy(() => import('./pages/PublicationMonitorPage').then(m => ({ default: m.PublicationMonitorPage })));
 const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
 const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
@@ -103,6 +104,7 @@ function App() {
 
                         <Route path="/admin/agent-optimized" element={<AgentOptimizedView />} />
                         <Route path="/admin/agent-publisher-ia" element={<AgentPublisherIA />} />
+                        <Route path="/admin/agent-runner" element={<AgentRunnerPage />} />
                         <Route path="/admin/publication-monitor" element={<PublicationMonitorPage />} />
                         <Route path="/articles/new-v2" element={<ArticleFormPageV2 />} />
                         <Route path="/articles/:id/edit-v2" element={<ArticleFormPageV2 />} />
