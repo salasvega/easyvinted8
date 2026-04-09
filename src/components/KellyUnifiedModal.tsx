@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   X,
   ChevronDown,
@@ -20,18 +20,24 @@ import {
   Loader2,
   ChevronRight,
   Search,
+  MessageSquare,
+  Send,
+  Copy,
+  ListTodo,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { generateProactiveInsights, ProactiveInsight, optimizeArticleSEO } from '../lib/geminiService';
 import { getPricingInsights, dismissPricingInsight, applyPricingSuggestion, PricingInsight, PricingInsightType } from '../lib/kellyPricingService';
 import { generateLotTitleAndDescription } from '../lib/lotAnalysisService';
+import { parseUserInstruction, describeCommand, commandToClaudeCodeString } from '../lib/chatbotService';
+import { enqueueTask, loadRecentTasks, updateTaskStatus } from '../lib/taskQueueService';
+import type { ChatMessage, TaskQueueRow, ParsedCommand, TaskStatus } from '../types/taskQueue';
 import { Article } from '../types/article';
 import { Lot } from '../types/lot';
 import { LazyImage } from './ui/LazyImage';
 import { Toast } from './ui/Toast';
 import { ScheduleModal } from './ScheduleModal';
-import { AdminDetailDrawer } from './admin/AdminDetailDrawer';
 import { useNavigate } from 'react-router-dom';
 
 interface KellyUnifiedModalProps {
@@ -42,7 +48,15 @@ interface KellyUnifiedModalProps {
   onInsightsCountChange?: (count: number) => void;
 }
 
-type SectionType = 'insights' | 'pricing' | 'planner';
+type MainTab = 'coach' | 'commands';
+type CoachSection = 'insights' | 'pricing' | 'planner';
+type CommandsSubTab = 'chat' | 'queue';
+
+interface FamilyMemberCmd {
+  id: string;
+  name: string;
+  user_id: string;
+}
 
 interface Suggestion {
   id: string;
@@ -56,6 +70,67 @@ interface Suggestion {
   lot?: Lot;
 }
 
+function resolveSellerByName(
+  name: string | null,
+  members: FamilyMemberCmd[]
+): { id: string | null; name: string } {
+  if (!name) return { id: null, name: '' };
+  const lower = name.toLowerCase();
+  const match = members.find(m => m.name.toLowerCase().includes(lower));
+  return match ? { id: match.id, name: match.name } : { id: null, name };
+}
+
+function StatusBadge({ status }: { status: TaskStatus }) {
+  const config: Record<TaskStatus, { icon: React.ReactNode; label: string; className: string }> = {
+    pending: {
+      icon: <Clock className="w-3 h-3" />,
+      label: 'En attente',
+      className: 'bg-amber-100 text-amber-700 border-amber-200',
+    },
+    running: {
+      icon: <Loader2 className="w-3 h-3 animate-spin" />,
+      label: 'En cours',
+      className: 'bg-blue-100 text-blue-700 border-blue-200',
+    },
+    done: {
+      icon: <CheckCircle2 className="w-3 h-3" />,
+      label: 'Terminé',
+      className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    },
+    error: {
+      icon: <AlertCircle className="w-3 h-3" />,
+      label: 'Erreur',
+      className: 'bg-red-100 text-red-700 border-red-200',
+    },
+  };
+  const { icon, label, className } = config[status];
+  return (
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${className}`}>
+      {icon}
+      {label}
+    </span>
+  );
+}
+
+function CommandTypeLabel({ type }: { type: string }) {
+  const labels: Record<string, string> = {
+    finalise_and_draft: 'Finaliser → Brouillon',
+    finalise_and_publish: 'Finaliser → En ligne',
+    finalise_only: 'Finaliser fiche',
+    publish_next_draft: 'Publier prochain',
+    publish_next_live: 'Mettre en ligne',
+    list_articles: 'Lister articles',
+    publish_all_ready_draft: 'Tout publier (brouillon)',
+    publish_all_ready_live: 'Tout mettre en ligne',
+    change_status: 'Changer statut',
+  };
+  return (
+    <span className="text-xs font-medium text-emerald-700">
+      {labels[type] ?? type}
+    </span>
+  );
+}
+
 const INSIGHT_CONFIG: Record<string, { icon: typeof TrendingDown; color: string; bg: string; border: string }> = {
   ready_to_publish: { icon: Sparkles, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   ready_to_list: { icon: Sparkles, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
@@ -65,7 +140,7 @@ const INSIGHT_CONFIG: Record<string, { icon: typeof TrendingDown; color: string;
   incomplete: { icon: AlertCircle, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
   opportunity: { icon: Sparkles, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' },
   bundle: { icon: Package, color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-200' },
-  seo_optimization: { icon: Search, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
+  seo_optimization: { icon: Search, color: 'text-sky-600', bg: 'bg-sky-50', border: 'border-sky-200' },
 };
 
 const PRICING_ICONS: Record<PricingInsightType, typeof TrendingUp> = {
@@ -81,7 +156,7 @@ const PRICING_COLORS: Record<PricingInsightType, string> = {
   overpriced: 'text-orange-600 bg-orange-50 border-orange-200',
   underpriced: 'text-green-600 bg-green-50 border-green-200',
   optimal_price: 'text-blue-600 bg-blue-50 border-blue-200',
-  price_test: 'text-purple-600 bg-purple-50 border-purple-200',
+  price_test: 'text-sky-600 bg-sky-50 border-sky-200',
   bundle_opportunity: 'text-teal-600 bg-teal-50 border-teal-200',
   psychological_pricing: 'text-pink-600 bg-pink-50 border-pink-200',
 };
@@ -90,7 +165,10 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [expandedSections, setExpandedSections] = useState<Set<SectionType>>(new Set(['insights']));
+  const [mainTab, setMainTab] = useState<MainTab>('coach');
+  const [expandedSections, setExpandedSections] = useState<Set<CoachSection>>(new Set(['insights']));
+  const [commandsSubTab, setCommandsSubTab] = useState<CommandsSubTab>('chat');
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
@@ -123,13 +201,49 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerItem, setDrawerItem] = useState<any>(null);
 
+  const [cmdMessages, setCmdMessages] = useState<ChatMessage[]>([
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: 'Bonjour ! Dis-moi ce que tu veux faire en langage naturel.\n\nExemple : "Publie le prochain article pour Seb" ou "Change le statut de la robe bleue en ready"',
+      timestamp: new Date().toISOString(),
+    },
+  ]);
+  const [cmdTasks, setCmdTasks] = useState<TaskQueueRow[]>([]);
+  const [cmdInput, setCmdInput] = useState('');
+  const [cmdSending, setCmdSending] = useState(false);
+  const [cmdFamilyMembers, setCmdFamilyMembers] = useState<FamilyMemberCmd[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const cmdInputRef = useRef<HTMLTextAreaElement>(null);
   const modalRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && user) {
       loadAllData();
+      supabase
+        .from('family_members')
+        .select('id, name, user_id')
+        .then(({ data }) => setCmdFamilyMembers((data ?? []) as FamilyMemberCmd[]));
     }
   }, [isOpen, user]);
+
+  useEffect(() => {
+    if (commandsSubTab === 'queue' && user) {
+      loadRecentTasks(user.id).then(setCmdTasks).catch(console.error);
+    }
+  }, [commandsSubTab, user]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [cmdMessages]);
+
+  useEffect(() => {
+    if (isOpen && mainTab === 'commands') {
+      setTimeout(() => cmdInputRef.current?.focus(), 100);
+    }
+  }, [isOpen, mainTab]);
 
   useEffect(() => {
     const handleDragMove = (e: MouseEvent) => {
@@ -299,8 +413,8 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     }
   };
 
-  const saveCachedInsights = async (insights: ProactiveInsight[]) => {
-    if (!user || insights.length === 0) return;
+  const saveCachedInsights = async (insightsToSave: ProactiveInsight[]) => {
+    if (!user || insightsToSave.length === 0) return;
 
     try {
       await supabase.from('kelly_insights').delete().eq('user_id', user.id).eq('cache_key', 'default');
@@ -308,7 +422,7 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
       const now = new Date();
       const expiresAt = new Date(now.getTime() + 30 * 60 * 1000);
 
-      const insightsToInsert = insights.map(insight => ({
+      const insightsToInsert = insightsToSave.map(insight => ({
         user_id: user.id,
         type: insight.type,
         priority: insight.priority,
@@ -449,7 +563,7 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     }
   };
 
-  const toggleSection = (section: SectionType) => {
+  const toggleSection = (section: CoachSection) => {
     setExpandedSections(prev => {
       const newSet = new Set(prev);
       if (newSet.has(section)) {
@@ -765,9 +879,110 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     setSelectedSuggestionId(null);
   };
 
+  const handleCopy = useCallback((text: string, id: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    });
+  }, []);
+
+  const refreshCmdTasks = useCallback(() => {
+    if (user) loadRecentTasks(user.id).then(setCmdTasks).catch(console.error);
+  }, [user]);
+
+  const handleCmdSend = useCallback(async () => {
+    if (!cmdInput.trim() || cmdSending || !user) return;
+    const userText = cmdInput.trim();
+    setCmdInput('');
+    setCmdSending(true);
+
+    const userMsg: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: userText,
+      timestamp: new Date().toISOString(),
+    };
+    setCmdMessages(prev => [...prev, userMsg]);
+
+    try {
+      const parsed: ParsedCommand = await parseUserInstruction(userText);
+
+      if (parsed.error || parsed.confidence < 0.5) {
+        setCmdMessages(prev => [
+          ...prev,
+          {
+            id: `err-${Date.now()}`,
+            role: 'error',
+            content: parsed.error ?? "Je n'ai pas compris cette instruction. Peux-tu reformuler ?",
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+        return;
+      }
+
+      const seller = resolveSellerByName(parsed.seller_name, cmdFamilyMembers);
+      let taskRow: TaskQueueRow;
+
+      if (
+        parsed.command_type === 'change_status' &&
+        parsed.article_title &&
+        parsed.params?.target_status
+      ) {
+        taskRow = await enqueueTask(user.id, seller.id, seller.name, parsed, userText);
+        try {
+          await supabase
+            .from('articles')
+            .update({ status: parsed.params.target_status })
+            .ilike('title', `%${parsed.article_title}%`);
+          await updateTaskStatus(taskRow.id, 'done', `Statut mis à jour → ${parsed.params.target_status}`);
+          taskRow = { ...taskRow, status: 'done' };
+        } catch {
+          await updateTaskStatus(taskRow.id, 'error', 'Erreur lors de la mise à jour du statut');
+          taskRow = { ...taskRow, status: 'error' };
+        }
+      } else {
+        taskRow = await enqueueTask(user.id, seller.id, seller.name, parsed, userText);
+      }
+
+      setCmdMessages(prev => [
+        ...prev,
+        {
+          id: `ast-${Date.now()}`,
+          role: 'assistant',
+          content: describeCommand(parsed),
+          timestamp: new Date().toISOString(),
+          taskId: taskRow.id,
+          parsed,
+        },
+      ]);
+
+      setCmdTasks(prev => [taskRow, ...prev.slice(0, 19)]);
+    } catch (err) {
+      setCmdMessages(prev => [
+        ...prev,
+        {
+          id: `err-${Date.now()}`,
+          role: 'error',
+          content: `Erreur : ${err instanceof Error ? err.message : String(err)}`,
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setCmdSending(false);
+    }
+  }, [cmdInput, cmdSending, user, cmdFamilyMembers]);
+
+  const handleCmdKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleCmdSend();
+    }
+  };
+
   const visibleInsights = insights.filter(i => !dismissed.has(i.title));
   const pendingSuggestions = suggestions.filter((s) => s.status === 'pending');
   const totalScheduled = scheduledArticles.length + scheduledLots.length;
+  const pendingCmdCount = cmdTasks.filter(t => t.status === 'pending').length;
 
   useEffect(() => {
     if (onInsightsCountChange) {
@@ -780,7 +995,6 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
 
   return (
     <>
-      {/* Backdrop avec animation stylisée */}
       <div
         className="fixed inset-0 z-[59] bg-gradient-to-br from-black/50 via-gray-900/40 to-black/50 backdrop-blur-md transition-all duration-300"
         onClick={onClose}
@@ -806,6 +1020,8 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
         }}
       >
         <div className={`bg-white ${isMobile ? 'rounded-t-2xl' : 'rounded-2xl'} shadow-2xl border border-gray-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col h-full`}>
+
+          {/* Header */}
           <div className="bg-gradient-to-r from-emerald-500 to-teal-500 px-5 py-4 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -833,19 +1049,24 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                 <div>
                   <h3 className="font-bold text-white text-base">Kelly - Votre Assistante IA</h3>
                   <p className="text-xs text-white/80">
-                    {visibleInsights.length + pricingInsights.length + pendingSuggestions.length} recommandations
+                    {mainTab === 'coach'
+                      ? `${visibleInsights.length + pricingInsights.length + pendingSuggestions.length} recommandations`
+                      : 'Commandes en langage naturel'
+                    }
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <button
-                  onClick={loadAllData}
-                  disabled={loadingInsights || loadingPricing || loadingPlanner}
-                  className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
-                  title="Actualiser tout"
-                >
-                  <RefreshCw className={`w-4 h-4 ${(loadingInsights || loadingPricing || loadingPlanner) ? 'animate-spin' : ''}`} />
-                </button>
+                {mainTab === 'coach' && (
+                  <button
+                    onClick={loadAllData}
+                    disabled={loadingInsights || loadingPricing || loadingPlanner}
+                    className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+                    title="Actualiser tout"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${(loadingInsights || loadingPricing || loadingPlanner) ? 'animate-spin' : ''}`} />
+                  </button>
+                )}
                 {!isMobile && (
                   <button
                     onMouseDown={handleDragStart}
@@ -866,376 +1087,600 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
-            <div className="divide-y divide-gray-100">
-              <SectionHeader
-                icon={Sparkles}
-                title="Conseils & Opportunités"
-                count={visibleInsights.length}
-                color="emerald"
-                isExpanded={expandedSections.has('insights')}
-                onToggle={() => toggleSection('insights')}
-                loading={loadingInsights}
-              />
-              {expandedSections.has('insights') && (
-                <div className="p-4 space-y-3 bg-gradient-to-br from-emerald-50/30 to-teal-50/30">
-                  {loadingInsights && visibleInsights.length === 0 ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-8 h-8 border-2 border-emerald-200 border-t-emerald-500 rounded-full animate-spin" />
-                        <p className="text-sm text-gray-500">Kelly analyse...</p>
-                      </div>
-                    </div>
-                  ) : visibleInsights.length === 0 ? (
-                    <div className="text-center py-8">
-                      <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
-                      <p className="text-sm text-gray-600 font-medium">Tout est parfait !</p>
-                      <p className="text-xs text-gray-500 mt-1">Aucune suggestion pour le moment</p>
-                    </div>
-                  ) : (
-                    visibleInsights.map((insight, idx) => {
-                      const config = INSIGHT_CONFIG[insight.type] || INSIGHT_CONFIG.opportunity;
-                      const Icon = config.icon;
-                      const isExecuting = executingAction === insight.title;
-
-                      return (
-                        <div
-                          key={idx}
-                          className={`p-4 rounded-xl border ${config.border} ${config.bg} hover:shadow-md transition-all`}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className={`p-2 rounded-lg bg-white/80 ${config.color} flex-shrink-0`}>
-                              <Icon className="w-4 h-4" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              {insight.articleTitles && insight.articleTitles.length > 0 && (
-                                <div className="mb-1">
-                                  <p className="text-xs text-gray-500 font-medium">
-                                    {insight.articleTitles.length === 1 ? (
-                                      <span>{insight.articleTitles[0]}</span>
-                                    ) : (
-                                      <span>{insight.articleTitles.length} articles concernés</span>
-                                    )}
-                                  </p>
-                                </div>
-                              )}
-                              <h4 className={`font-semibold text-sm ${config.color} mb-1`}>
-                                {insight.title}
-                              </h4>
-                              <p className="text-xs text-gray-600 leading-relaxed mb-3">
-                                {insight.message}
-                              </p>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => executeInsightAction(insight)}
-                                  disabled={isExecuting}
-                                  className={`flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg transition-all ${config.bg} ${config.color} border ${config.border} hover:shadow-sm disabled:opacity-50`}
-                                >
-                                  {isExecuting ? (
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                  ) : (
-                                    <>
-                                      {insight.actionLabel}
-                                      <ChevronRight className="w-3 h-3" />
-                                    </>
-                                  )}
-                                </button>
-                                <button
-                                  onClick={() => handleDismissInsight(insight)}
-                                  className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1"
-                                >
-                                  Ignorer
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+          {/* Main Tabs */}
+          <div className="flex border-b border-gray-200 flex-shrink-0 bg-gray-50">
+            <button
+              onClick={() => setMainTab('coach')}
+              className={`flex-1 py-3 text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                mainTab === 'coach'
+                  ? 'text-emerald-700 border-b-2 border-emerald-500 bg-white'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <Sparkles className="w-4 h-4" />
+              Coach IA
+              {(visibleInsights.length + pricingInsights.length + pendingSuggestions.length) > 0 && (
+                <span className="bg-emerald-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  {visibleInsights.length + pricingInsights.length + pendingSuggestions.length}
+                </span>
               )}
+            </button>
+            <button
+              onClick={() => setMainTab('commands')}
+              className={`flex-1 py-3 text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                mainTab === 'commands'
+                  ? 'text-emerald-700 border-b-2 border-emerald-500 bg-white'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+            >
+              <MessageSquare className="w-4 h-4" />
+              Commandes
+              {pendingCmdCount > 0 && (
+                <span className="bg-amber-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                  {pendingCmdCount}
+                </span>
+              )}
+            </button>
+          </div>
 
-              <SectionHeader
-                icon={Euro}
-                title="Optimisation des Prix"
-                count={pricingInsights.length}
-                color="green"
-                isExpanded={expandedSections.has('pricing')}
-                onToggle={() => toggleSection('pricing')}
-                loading={loadingPricing}
-              />
-              {expandedSections.has('pricing') && (
-                <div className="p-4 space-y-3 bg-gradient-to-br from-green-50/30 to-emerald-50/30">
-                  {loadingPricing ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-8 h-8 border-2 border-green-200 border-t-green-500 rounded-full animate-spin" />
-                        <p className="text-sm text-gray-500">Analyse des prix...</p>
+          {/* Coach Tab Content */}
+          {mainTab === 'coach' && (
+            <div className="flex-1 overflow-y-auto">
+              <div className="divide-y divide-gray-100">
+                <SectionHeader
+                  icon={Sparkles}
+                  title="Conseils & Opportunités"
+                  count={visibleInsights.length}
+                  color="emerald"
+                  isExpanded={expandedSections.has('insights')}
+                  onToggle={() => toggleSection('insights')}
+                  loading={loadingInsights}
+                />
+                {expandedSections.has('insights') && (
+                  <div className="p-4 space-y-3 bg-gradient-to-br from-emerald-50/30 to-teal-50/30">
+                    {loadingInsights && visibleInsights.length === 0 ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-8 h-8 border-2 border-emerald-200 border-t-emerald-500 rounded-full animate-spin" />
+                          <p className="text-sm text-gray-500">Kelly analyse...</p>
+                        </div>
                       </div>
-                    </div>
-                  ) : pricingInsights.length === 0 ? (
-                    <div className="text-center py-8">
-                      <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
-                      <p className="text-sm text-gray-600 font-medium">Prix optimaux !</p>
-                      <p className="text-xs text-gray-500 mt-1">Aucune opportunité détectée</p>
-                    </div>
-                  ) : (
-                    pricingInsights.map(insight => {
-                      const Icon = PRICING_ICONS[insight.type];
-                      const colorClasses = PRICING_COLORS[insight.type];
+                    ) : visibleInsights.length === 0 ? (
+                      <div className="text-center py-8">
+                        <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+                        <p className="text-sm text-gray-600 font-medium">Tout est parfait !</p>
+                        <p className="text-xs text-gray-500 mt-1">Aucune suggestion pour le moment</p>
+                      </div>
+                    ) : (
+                      visibleInsights.map((insight, idx) => {
+                        const config = INSIGHT_CONFIG[insight.type] || INSIGHT_CONFIG.opportunity;
+                        const Icon = config.icon;
+                        const isExecuting = executingAction === insight.title;
 
-                      return (
-                        <div
-                          key={insight.id}
-                          className={`rounded-xl border ${colorClasses} p-4 hover:shadow-md transition-all relative`}
-                        >
-                          <button
-                            onClick={() => handleDismissPricing(insight.id)}
-                            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-                            title="Masquer"
+                        return (
+                          <div
+                            key={idx}
+                            className={`p-4 rounded-xl border ${config.border} ${config.bg} hover:shadow-md transition-all`}
                           >
-                            <X className="w-4 h-4" />
-                          </button>
-
-                          <div className="flex items-start gap-3 pr-8">
-                            <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-sm text-gray-900 mb-1">{insight.title}</h4>
-                              <p className="text-xs text-gray-700 mb-3">{insight.message}</p>
-
-                              {insight.suggestedAction.type === 'adjust_price' && (
-                                <div className="bg-white bg-opacity-70 rounded-lg p-3 mb-3 text-xs">
-                                  <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                      <span className="text-gray-600">Actuel:</span>
-                                      <span className="font-bold text-gray-900 ml-2">
-                                        {insight.suggestedAction.currentPrice?.toFixed(2)}€
-                                      </span>
-                                    </div>
-                                    <div className="text-lg">→</div>
-                                    <div>
-                                      <span className="text-gray-600">Suggéré:</span>
-                                      <span className="font-bold text-green-600 ml-2">
-                                        {insight.suggestedAction.suggestedPrice?.toFixed(2)}€
-                                      </span>
-                                    </div>
+                            <div className="flex items-start gap-3">
+                              <div className={`p-2 rounded-lg bg-white/80 ${config.color} flex-shrink-0`}>
+                                <Icon className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                {insight.articleTitles && insight.articleTitles.length > 0 && (
+                                  <div className="mb-1">
+                                    <p className="text-xs text-gray-500 font-medium">
+                                      {insight.articleTitles.length === 1 ? (
+                                        <span>{insight.articleTitles[0]}</span>
+                                      ) : (
+                                        <span>{insight.articleTitles.length} articles concernés</span>
+                                      )}
+                                    </p>
                                   </div>
-                                </div>
-                              )}
-
-                              <div className="flex items-center gap-2">
-                                {insight.suggestedAction.type === 'adjust_price' && (
+                                )}
+                                <h4 className={`font-semibold text-sm ${config.color} mb-1`}>
+                                  {insight.title}
+                                </h4>
+                                <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                                  {insight.message}
+                                </p>
+                                <div className="flex items-center gap-2">
                                   <button
-                                    onClick={() => handleApplyPrice(insight)}
-                                    disabled={applyingPrice === insight.id}
-                                    className="bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors text-xs font-medium disabled:opacity-50 flex items-center gap-2"
+                                    onClick={() => executeInsightAction(insight)}
+                                    disabled={isExecuting}
+                                    className={`flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg transition-all ${config.bg} ${config.color} border ${config.border} hover:shadow-sm disabled:opacity-50`}
                                   >
-                                    {applyingPrice === insight.id ? (
-                                      <>
-                                        <RefreshCw className="w-3 h-3 animate-spin" />
-                                        Application...
-                                      </>
+                                    {isExecuting ? (
+                                      <Loader2 className="w-3 h-3 animate-spin" />
                                     ) : (
                                       <>
-                                        <CheckCircle2 className="w-3 h-3" />
                                         {insight.actionLabel}
+                                        <ChevronRight className="w-3 h-3" />
                                       </>
                                     )}
                                   </button>
-                                )}
-                                <button
-                                  onClick={() => handleDismissPricing(insight.id)}
-                                  className="text-gray-600 hover:text-gray-700 px-2 py-1 text-xs"
-                                >
-                                  Plus tard
-                                </button>
+                                  <button
+                                    onClick={() => handleDismissInsight(insight)}
+                                    className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1"
+                                  >
+                                    Ignorer
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+
+                <SectionHeader
+                  icon={Euro}
+                  title="Optimisation des Prix"
+                  count={pricingInsights.length}
+                  color="green"
+                  isExpanded={expandedSections.has('pricing')}
+                  onToggle={() => toggleSection('pricing')}
+                  loading={loadingPricing}
+                />
+                {expandedSections.has('pricing') && (
+                  <div className="p-4 space-y-3 bg-gradient-to-br from-green-50/30 to-emerald-50/30">
+                    {loadingPricing ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-8 h-8 border-2 border-green-200 border-t-green-500 rounded-full animate-spin" />
+                          <p className="text-sm text-gray-500">Analyse des prix...</p>
                         </div>
-                      );
-                    })
-                  )}
-                </div>
-              )}
-
-              <SectionHeader
-                icon={Calendar}
-                title="Planification"
-                count={pendingSuggestions.length}
-                secondaryCount={totalScheduled}
-                secondaryLabel="programmés"
-                color="blue"
-                isExpanded={expandedSections.has('planner')}
-                onToggle={() => toggleSection('planner')}
-                loading={loadingPlanner}
-              />
-              {expandedSections.has('planner') && (
-                <div className="p-4 bg-gradient-to-br from-blue-50/30 to-sky-50/30">
-                  {loadingPlanner ? (
-                    <div className="flex items-center justify-center py-8">
-                      <div className="flex flex-col items-center gap-2">
-                        <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
-                        <p className="text-sm text-gray-500">Analyse de planification...</p>
                       </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-blue-600" />
-                          Suggestions ({pendingSuggestions.length})
-                        </h4>
-                        {pendingSuggestions.length === 0 ? (
-                          <div className="text-center py-6 bg-white rounded-lg border border-blue-100">
-                            <Clock className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                            <p className="text-xs text-gray-600">Aucune suggestion</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            {pendingSuggestions.slice(0, 3).map((suggestion) => {
-                              const isLot = !!suggestion.lot_id;
-                              const item = suggestion.lot || suggestion.article;
-                              const itemPhoto = suggestion.lot?.cover_photo || suggestion.article?.photos?.[0];
-                              const itemTitle = suggestion.lot?.name || suggestion.article?.title || 'Élément';
-                              const itemId = suggestion.lot?.id || suggestion.article?.id;
+                    ) : pricingInsights.length === 0 ? (
+                      <div className="text-center py-8">
+                        <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                        <p className="text-sm text-gray-600 font-medium">Prix optimaux !</p>
+                        <p className="text-xs text-gray-500 mt-1">Aucune opportunité détectée</p>
+                      </div>
+                    ) : (
+                      pricingInsights.map(insight => {
+                        const Icon = PRICING_ICONS[insight.type];
+                        const colorClasses = PRICING_COLORS[insight.type];
 
-                              return (
-                                <div
-                                  key={suggestion.id}
-                                  className="bg-white rounded-lg p-3 border border-blue-100 hover:shadow-sm transition-all"
-                                >
-                                  <div className="flex items-start gap-2 mb-2">
-                                    {itemPhoto ? (
-                                      <LazyImage
-                                        src={itemPhoto}
-                                        alt={itemTitle}
-                                        className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                                        fallback={
-                                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                                            <Package className="w-5 h-5 text-slate-400" />
-                                          </div>
-                                        }
-                                      />
-                                    ) : (
-                                      <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
-                                        <Package className="w-5 h-5 text-slate-400" />
+                        return (
+                          <div
+                            key={insight.id}
+                            className={`rounded-xl border ${colorClasses} p-4 hover:shadow-md transition-all relative`}
+                          >
+                            <button
+                              onClick={() => handleDismissPricing(insight.id)}
+                              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
+                              title="Masquer"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+
+                            <div className="flex items-start gap-3 pr-8">
+                              <Icon className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-semibold text-sm text-gray-900 mb-1">{insight.title}</h4>
+                                <p className="text-xs text-gray-700 mb-3">{insight.message}</p>
+
+                                {insight.suggestedAction.type === 'adjust_price' && (
+                                  <div className="bg-white bg-opacity-70 rounded-lg p-3 mb-3 text-xs">
+                                    <div className="flex items-center justify-between gap-4">
+                                      <div>
+                                        <span className="text-gray-600">Actuel:</span>
+                                        <span className="font-bold text-gray-900 ml-2">
+                                          {insight.suggestedAction.currentPrice?.toFixed(2)}€
+                                        </span>
                                       </div>
-                                    )}
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-xs font-medium text-slate-900 truncate">{itemTitle}</p>
-                                      <p className="text-[11px] text-slate-600 line-clamp-1">{suggestion.reason}</p>
-                                      <div className="flex items-center gap-1 mt-1">
-                                        <Clock className="w-3 h-3 text-blue-600" />
-                                        <span className="text-[11px] font-medium text-blue-700">
-                                          {new Date(suggestion.suggested_date).toLocaleDateString('fr-FR', {
-                                            day: 'numeric',
-                                            month: 'short',
-                                          })}
+                                      <div className="text-lg">→</div>
+                                      <div>
+                                        <span className="text-gray-600">Suggéré:</span>
+                                        <span className="font-bold text-green-600 ml-2">
+                                          {insight.suggestedAction.suggestedPrice?.toFixed(2)}€
                                         </span>
                                       </div>
                                     </div>
                                   </div>
-                                  <div className="flex gap-1.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => rejectSuggestion(suggestion.id)}
-                                      className="flex-1 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-[10px] font-medium"
-                                    >
-                                      <X className="w-3 h-3 inline mr-1" />
-                                      Refuser
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        if (item && itemId) {
-                                          acceptSuggestion(suggestion.id, itemId, suggestion.suggested_date, isLot);
-                                        }
-                                      }}
-                                      className="flex-1 py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 text-[10px] font-semibold"
-                                    >
-                                      <Check className="w-3 h-3 inline mr-1" />
-                                      Accepter
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        if (item && itemId) {
-                                          handleOpenScheduleModal(item, suggestion.id, isLot, suggestion.suggested_date);
-                                        }
-                                      }}
-                                      className="flex-1 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 text-[10px] font-semibold"
-                                    >
-                                      <Calendar className="w-3 h-3 inline mr-1" />
-                                      Modifier
-                                    </button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          Programmés ({totalScheduled})
-                        </h4>
-                        {totalScheduled === 0 ? (
-                          <div className="text-center py-6 bg-white rounded-lg border border-emerald-100">
-                            <Calendar className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
-                            <p className="text-xs text-gray-600">Aucune publication planifiée</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            {scheduledArticles.slice(0, 3).map((article) => (
-                              <div
-                                key={`article-${article.id}`}
-                                className="flex items-center gap-3 bg-white rounded-lg p-2 border border-emerald-100"
-                              >
-                                {article.photos?.[0] ? (
-                                  <LazyImage
-                                    src={article.photos[0]}
-                                    alt={article.title}
-                                    className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
-                                    fallback={
-                                      <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center">
-                                        <Package className="w-4 h-4 text-slate-400" />
-                                      </div>
-                                    }
-                                  />
-                                ) : (
-                                  <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center">
-                                    <Package className="w-4 h-4 text-slate-400" />
-                                  </div>
                                 )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium text-slate-900 truncate">{article.title}</p>
-                                  <div className="flex items-center gap-2 mt-0.5">
-                                    <Clock className="w-3 h-3 text-emerald-600" />
-                                    <span className="text-xs text-emerald-700">
-                                      {article.scheduled_for
-                                        ? new Date(article.scheduled_for).toLocaleDateString('fr-FR', {
-                                            day: 'numeric',
-                                            month: 'short',
-                                          })
-                                        : 'Bientôt'}
-                                    </span>
-                                  </div>
+
+                                <div className="flex items-center gap-2">
+                                  {insight.suggestedAction.type === 'adjust_price' && (
+                                    <button
+                                      onClick={() => handleApplyPrice(insight)}
+                                      disabled={applyingPrice === insight.id}
+                                      className="bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors text-xs font-medium disabled:opacity-50 flex items-center gap-2"
+                                    >
+                                      {applyingPrice === insight.id ? (
+                                        <>
+                                          <RefreshCw className="w-3 h-3 animate-spin" />
+                                          Application...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <CheckCircle2 className="w-3 h-3" />
+                                          {insight.actionLabel}
+                                        </>
+                                      )}
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => handleDismissPricing(insight.id)}
+                                    className="text-gray-600 hover:text-gray-700 px-2 py-1 text-xs"
+                                  >
+                                    Plus tard
+                                  </button>
                                 </div>
                               </div>
-                            ))}
+                            </div>
                           </div>
-                        )}
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+
+                <SectionHeader
+                  icon={Calendar}
+                  title="Planification"
+                  count={pendingSuggestions.length}
+                  secondaryCount={totalScheduled}
+                  secondaryLabel="programmés"
+                  color="blue"
+                  isExpanded={expandedSections.has('planner')}
+                  onToggle={() => toggleSection('planner')}
+                  loading={loadingPlanner}
+                />
+                {expandedSections.has('planner') && (
+                  <div className="p-4 bg-gradient-to-br from-blue-50/30 to-sky-50/30">
+                    {loadingPlanner ? (
+                      <div className="flex items-center justify-center py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin" />
+                          <p className="text-sm text-gray-500">Analyse de planification...</p>
+                        </div>
                       </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-blue-600" />
+                            Suggestions ({pendingSuggestions.length})
+                          </h4>
+                          {pendingSuggestions.length === 0 ? (
+                            <div className="text-center py-6 bg-white rounded-lg border border-blue-100">
+                              <Clock className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+                              <p className="text-xs text-gray-600">Aucune suggestion</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {pendingSuggestions.slice(0, 3).map((suggestion) => {
+                                const isLot = !!suggestion.lot_id;
+                                const item = suggestion.lot || suggestion.article;
+                                const itemPhoto = suggestion.lot?.cover_photo || suggestion.article?.photos?.[0];
+                                const itemTitle = suggestion.lot?.name || suggestion.article?.title || 'Élément';
+                                const itemId = suggestion.lot?.id || suggestion.article?.id;
+
+                                return (
+                                  <div
+                                    key={suggestion.id}
+                                    className="bg-white rounded-lg p-3 border border-blue-100 hover:shadow-sm transition-all"
+                                  >
+                                    <div className="flex items-start gap-2 mb-2">
+                                      {itemPhoto ? (
+                                        <LazyImage
+                                          src={itemPhoto}
+                                          alt={itemTitle}
+                                          className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                                          fallback={
+                                            <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                                              <Package className="w-5 h-5 text-slate-400" />
+                                            </div>
+                                          }
+                                        />
+                                      ) : (
+                                        <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                                          <Package className="w-5 h-5 text-slate-400" />
+                                        </div>
+                                      )}
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-medium text-slate-900 truncate">{itemTitle}</p>
+                                        <p className="text-[11px] text-slate-600 line-clamp-1">{suggestion.reason}</p>
+                                        <div className="flex items-center gap-1 mt-1">
+                                          <Clock className="w-3 h-3 text-blue-600" />
+                                          <span className="text-[11px] font-medium text-blue-700">
+                                            {new Date(suggestion.suggested_date).toLocaleDateString('fr-FR', {
+                                              day: 'numeric',
+                                              month: 'short',
+                                            })}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => rejectSuggestion(suggestion.id)}
+                                        className="flex-1 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-[10px] font-medium"
+                                      >
+                                        <X className="w-3 h-3 inline mr-1" />
+                                        Refuser
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (item && itemId) {
+                                            acceptSuggestion(suggestion.id, itemId, suggestion.suggested_date, isLot);
+                                          }
+                                        }}
+                                        className="flex-1 py-1.5 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 text-[10px] font-semibold"
+                                      >
+                                        <Check className="w-3 h-3 inline mr-1" />
+                                        Accepter
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          if (item && itemId) {
+                                            handleOpenScheduleModal(item, suggestion.id, isLot, suggestion.suggested_date);
+                                          }
+                                        }}
+                                        className="flex-1 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 text-[10px] font-semibold"
+                                      >
+                                        <Calendar className="w-3 h-3 inline mr-1" />
+                                        Modifier
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            Programmés ({totalScheduled})
+                          </h4>
+                          {totalScheduled === 0 ? (
+                            <div className="text-center py-6 bg-white rounded-lg border border-emerald-100">
+                              <Calendar className="w-8 h-8 text-emerald-400 mx-auto mb-2" />
+                              <p className="text-xs text-gray-600">Aucune publication planifiée</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {scheduledArticles.slice(0, 3).map((article) => (
+                                <div
+                                  key={`article-${article.id}`}
+                                  className="flex items-center gap-3 bg-white rounded-lg p-2 border border-emerald-100"
+                                >
+                                  {article.photos?.[0] ? (
+                                    <LazyImage
+                                      src={article.photos[0]}
+                                      alt={article.title}
+                                      className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                                      fallback={
+                                        <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center">
+                                          <Package className="w-4 h-4 text-slate-400" />
+                                        </div>
+                                      }
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-lg bg-slate-200 flex items-center justify-center">
+                                      <Package className="w-4 h-4 text-slate-400" />
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-xs font-medium text-slate-900 truncate">{article.title}</p>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                      <Clock className="w-3 h-3 text-emerald-600" />
+                                      <span className="text-xs text-emerald-700">
+                                        {article.scheduled_for
+                                          ? new Date(article.scheduled_for).toLocaleDateString('fr-FR', {
+                                              day: 'numeric',
+                                              month: 'short',
+                                            })
+                                          : 'Bientôt'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Commands Tab Content */}
+          {mainTab === 'commands' && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Commands Sub-Tabs */}
+              <div className="flex border-b border-gray-100 flex-shrink-0 bg-gray-50">
+                <button
+                  onClick={() => setCommandsSubTab('chat')}
+                  className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                    commandsSubTab === 'chat'
+                      ? 'text-emerald-700 border-b-2 border-emerald-500 bg-white'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  Chat
+                </button>
+                <button
+                  onClick={() => { setCommandsSubTab('queue'); refreshCmdTasks(); }}
+                  className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                    commandsSubTab === 'queue'
+                      ? 'text-emerald-700 border-b-2 border-emerald-500 bg-white'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <ListTodo className="w-3.5 h-3.5" />
+                  File d'attente
+                  {pendingCmdCount > 0 && (
+                    <span className="bg-amber-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                      {pendingCmdCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Chat Sub-Tab */}
+              {commandsSubTab === 'chat' && (
+                <>
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+                    {cmdMessages.map(msg => (
+                      <div
+                        key={msg.id}
+                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div
+                          className={`max-w-[85%] rounded-2xl px-3 py-2.5 text-sm ${
+                            msg.role === 'user'
+                              ? 'bg-emerald-600 text-white rounded-br-sm'
+                              : msg.role === 'error'
+                              ? 'bg-red-50 text-red-700 border border-red-200 rounded-bl-sm'
+                              : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-sm'
+                          }`}
+                        >
+                          <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+
+                          {msg.role === 'assistant' && msg.parsed && (
+                            <div className="mt-2.5 pt-2.5 border-t border-gray-100">
+                              <p className="text-xs text-gray-500 mb-1.5">Commande Claude Code :</p>
+                              <div className="bg-emerald-50 rounded-lg p-2 flex items-start gap-2">
+                                <code className="text-xs text-emerald-800 flex-1 leading-relaxed">
+                                  {commandToClaudeCodeString(msg.parsed)}
+                                </code>
+                                <button
+                                  onClick={() => handleCopy(commandToClaudeCodeString(msg.parsed!), msg.id)}
+                                  className="flex-shrink-0 p-1 hover:bg-emerald-100 rounded transition-colors"
+                                  title="Copier la commande"
+                                >
+                                  {copiedId === msg.id ? (
+                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                  ) : (
+                                    <Copy className="w-3.5 h-3.5 text-emerald-600" />
+                                  )}
+                                </button>
+                              </div>
+                              {msg.taskId && (
+                                <div className="flex items-center gap-1.5 mt-1.5">
+                                  <StatusBadge
+                                    status={cmdTasks.find(t => t.id === msg.taskId)?.status ?? 'pending'}
+                                  />
+                                  <span className="text-xs text-gray-400">ajouté à la file</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-emerald-200' : 'text-gray-400'}`}>
+                            {new Date(msg.timestamp).toLocaleTimeString('fr-FR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+
+                    {cmdSending && (
+                      <div className="flex justify-start">
+                        <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-gray-100 flex items-center gap-2">
+                          <Loader2 className="w-3.5 h-3.5 text-emerald-500 animate-spin" />
+                          <span className="text-xs text-gray-500">Analyse en cours…</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <div ref={messagesEndRef} />
+                  </div>
+
+                  <div
+                    className="flex-shrink-0 p-3 bg-white border-t border-gray-100 flex items-end gap-2"
+                    style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
+                  >
+                    <textarea
+                      ref={cmdInputRef}
+                      value={cmdInput}
+                      onChange={e => setCmdInput(e.target.value)}
+                      onKeyDown={handleCmdKeyDown}
+                      placeholder="Ex: Publie le prochain article pour Seb…"
+                      rows={1}
+                      disabled={cmdSending}
+                      className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 disabled:opacity-50 overflow-y-auto"
+                      style={{ minHeight: '42px', maxHeight: '112px' }}
+                    />
+                    <button
+                      onClick={handleCmdSend}
+                      disabled={!cmdInput.trim() || cmdSending}
+                      className="flex-shrink-0 p-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white rounded-xl transition-colors"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* Queue Sub-Tab */}
+              {commandsSubTab === 'queue' && (
+                <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
+                  {cmdTasks.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 gap-3">
+                      <ListTodo className="w-10 h-10 text-gray-300" />
+                      <p className="text-sm">Aucune tâche dans la file</p>
+                      <p className="text-xs">Envoie une commande dans le chat pour commencer</p>
                     </div>
+                  ) : (
+                    cmdTasks.map(task => (
+                      <div
+                        key={task.id}
+                        className="bg-white rounded-xl p-3 shadow-sm border border-gray-100"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <CommandTypeLabel type={task.command_type} />
+                          <StatusBadge status={task.status} />
+                        </div>
+                        {task.seller_name && (
+                          <p className="text-xs text-gray-600 mb-0.5">
+                            Vendeur : <span className="font-medium">{task.seller_name}</span>
+                          </p>
+                        )}
+                        {task.article_title && (
+                          <p className="text-xs text-gray-600 mb-0.5">
+                            Article : <span className="font-medium">"{task.article_title}"</span>
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400 italic mt-1 truncate">
+                          "{task.natural_input}"
+                        </p>
+                        {task.result_message && (
+                          <p className={`text-xs mt-1.5 ${task.status === 'error' ? 'text-red-600' : 'text-emerald-600'}`}>
+                            {task.result_message}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-300 mt-1.5">
+                          {new Date(task.created_at).toLocaleString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                    ))
                   )}
                 </div>
               )}
             </div>
-          </div>
+          )}
         </div>
       </div>
 

@@ -1,12 +1,11 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Package, Settings, BarChart3, Menu, X, LogOut, Users, LayoutDashboard, Shield, ChevronDown, Bot, Activity, Check, CircleUser as UserCircle2, Calendar, Play, MessageSquare, Zap } from "lucide-react";
+import { Package, Settings, BarChart3, Menu, X, LogOut, Users, LayoutDashboard, Shield, ChevronDown, Bot, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
 import { EmailVerificationBanner } from "../EmailVerificationBanner";
 import { KellyUnifiedModal } from "../KellyUnifiedModal";
-import { ChatBotModal } from "../ChatBotModal";
 import "../../styles/navigation.css";
 
 interface AppLayoutProps {
@@ -31,7 +30,6 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   const [showKellyPanel, setShowKellyPanel] = useState(false);
   const [kellyInsightsCount, setKellyInsightsCount] = useState(0);
-  const [showChatBot, setShowChatBot] = useState(false);
 
   const [headerScrolled, setHeaderScrolled] = useState(false);
 
@@ -260,15 +258,6 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              {/* ChatBot Button */}
-              <button
-                onClick={() => setShowChatBot(!showChatBot)}
-                className="relative p-2 hover:bg-indigo-50 rounded-full transition-all duration-300 hover:scale-110 group"
-                title="Assistant EasyVinted - Commandes en langage naturel"
-              >
-                <MessageSquare className="w-5 h-5 text-indigo-500 group-hover:text-indigo-700 transition-colors" />
-              </button>
-
               {/* Kelly Button avec badge */}
               <button
                 onClick={() => setShowKellyPanel(!showKellyPanel)}
@@ -520,10 +509,6 @@ export function AppLayout({ children }: AppLayoutProps) {
           window.location.reload();
         }}
         onInsightsCountChange={setKellyInsightsCount}
-      />
-      <ChatBotModal
-        isOpen={showChatBot}
-        onClose={() => setShowChatBot(false)}
       />
     </div>
   );
