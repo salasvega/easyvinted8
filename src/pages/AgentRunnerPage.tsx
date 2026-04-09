@@ -10,6 +10,8 @@ type PollResult = {
   next_ready_article: Record<string, unknown> | null;
   ready_articles: Record<string, unknown>[];
   ready_lots: Record<string, unknown>[];
+  overdue_scheduled_articles: Record<string, unknown>[];
+  overdue_scheduled_lots: Record<string, unknown>[];
   agent_instructions: string;
   runner_endpoint: string;
   polled_at: string;
@@ -79,13 +81,25 @@ export default function AgentRunnerPage() {
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Items prêts à publier</p>
           <p className="text-3xl font-bold text-slate-800">
             {pollResult
-              ? (pollResult.ready_articles?.length ?? 0) + (pollResult.ready_lots?.length ?? 0)
+              ? (pollResult.ready_articles?.length ?? 0) +
+                (pollResult.ready_lots?.length ?? 0) +
+                (pollResult.overdue_scheduled_articles?.length ?? 0) +
+                (pollResult.overdue_scheduled_lots?.length ?? 0)
               : '—'}
           </p>
           {pollResult && (
-            <p className="text-xs text-slate-400 mt-1">
-              {pollResult.ready_articles?.length ?? 0} article{(pollResult.ready_articles?.length ?? 0) !== 1 ? 's' : ''} · {pollResult.ready_lots?.length ?? 0} lot{(pollResult.ready_lots?.length ?? 0) !== 1 ? 's' : ''}
-            </p>
+            <div className="mt-1 space-y-0.5">
+              {((pollResult.ready_articles?.length ?? 0) + (pollResult.ready_lots?.length ?? 0)) > 0 && (
+                <p className="text-xs text-slate-400">
+                  {pollResult.ready_articles?.length ?? 0} article{(pollResult.ready_articles?.length ?? 0) !== 1 ? 's' : ''} · {pollResult.ready_lots?.length ?? 0} lot{(pollResult.ready_lots?.length ?? 0) !== 1 ? 's' : ''} prêts
+                </p>
+              )}
+              {((pollResult.overdue_scheduled_articles?.length ?? 0) + (pollResult.overdue_scheduled_lots?.length ?? 0)) > 0 && (
+                <p className="text-xs text-amber-500 font-medium">
+                  {pollResult.overdue_scheduled_articles?.length ?? 0} article{(pollResult.overdue_scheduled_articles?.length ?? 0) !== 1 ? 's' : ''} · {pollResult.overdue_scheduled_lots?.length ?? 0} lot{(pollResult.overdue_scheduled_lots?.length ?? 0) !== 1 ? 's' : ''} planifiés
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>
