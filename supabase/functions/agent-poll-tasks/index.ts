@@ -75,17 +75,29 @@ Deno.serve(async (req: Request) => {
       .limit(1)
       .maybeSingle();
 
+    // Fetch scheduled articles whose scheduled_for date has passed
+    const now = new Date().toISOString();
+    const { data: overdueArticles } = await supabase
+      .from("articles")
+      .select("id, title, price, status, scheduled_for, description, brand, size, condition, color, material, photos")
+      .eq("user_id", userId)
+      .eq("status", "scheduled")
+      .lte("scheduled_for", now)
+      .order("scheduled_for", { ascending: true })
+      .limit(10);
+
     const pendingCount = tasks?.length ?? 0;
 
     const agentInstructions = pendingCount === 0
       ? "Aucune tâche en attente. Tu peux interroger à nouveau dans quelques secondes."
-      : buildAgentInstructions(tasks ?? [], nextArticle);
+      : buildAgentInstructions(tasks ?? [], nextArticle, overdueArticles ?? []);
 
     return new Response(
       JSON.stringify({
         pending_count: pendingCount,
         tasks: tasks ?? [],
         next_ready_article: nextArticle ?? null,
+        overdue_scheduled_articles: overdueArticles ?? [],
         agent_instructions: agentInstructions,
         runner_endpoint: `${SUPABASE_URL}/functions/v1/agent-task-runner`,
         polled_at: new Date().toISOString(),
@@ -104,7 +116,8 @@ Deno.serve(async (req: Request) => {
 
 function buildAgentInstructions(
   tasks: Record<string, unknown>[],
-  nextArticle: Record<string, unknown> | null
+  nextArticle: Record<string, unknown> | null,
+  overdueArticles: Record<string, unknown>[]
 ): string {
   const lines: string[] = [
     `Tu as ${tasks.length} tâche(s) en attente à exécuter.`,
@@ -127,6 +140,19 @@ function buildAgentInstructions(
   lines.push("POUR EXÉCUTER CHAQUE TÂCHE, envoie un POST à runner_endpoint avec :");
   lines.push('  { "task_id": "<id>", "command_type": "<type>", "seller_name": "...", "article_title": "...", "params": {...} }');
   lines.push("  Header: Authorization: Bearer <user_jwt>");
+
+  if (overdueArticles.length > 0) {
+    lines.push("");
+    lines.push(`ARTICLES PLANIFIÉS À PUBLIER MAINTENANT (${overdueArticles.length}) :`);
+    lines.push("⚠️ Ces articles ont une date de publication dépassée — ils doivent être publiés en priorité.");
+    overdueArticles.forEach((article, i) => {
+      lines.push(`\n[${i + 1}] id: ${article.id}`);
+      lines.push(`    titre: ${article.title}`);
+      lines.push(`    prix: ${article.price}€`);
+      lines.push(`    statut: ${article.status}`);
+      lines.push(`    planifié pour: ${article.scheduled_for}`);
+    });
+  }
 
   if (nextArticle) {
     lines.push("");
