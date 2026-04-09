@@ -65,18 +65,18 @@ Deno.serve(async (req: Request) => {
 
     if (tasksError) throw tasksError;
 
-    // Also fetch the next ready article (for context)
-    const { data: nextArticle } = await supabase
+    const now = new Date().toISOString();
+
+    // Fetch ready articles
+    const { data: readyArticles } = await supabase
       .from("articles")
       .select("id, title, price, status, description, brand, size, condition, color, material, photos")
       .eq("user_id", userId)
       .eq("status", "ready")
       .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+      .limit(10);
 
     // Fetch scheduled articles whose scheduled_for date has passed
-    const now = new Date().toISOString();
     const { data: overdueArticles } = await supabase
       .from("articles")
       .select("id, title, price, status, scheduled_for, description, brand, size, condition, color, material, photos")
@@ -86,18 +86,35 @@ Deno.serve(async (req: Request) => {
       .order("scheduled_for", { ascending: true })
       .limit(10);
 
-    const pendingCount = tasks?.length ?? 0;
+    // Fetch scheduled lots whose scheduled_for date has passed
+    const { data: overdueLotsRaw } = await supabase
+      .from("lots")
+      .select("id, name, price, status, scheduled_for, description, reference_number")
+      .eq("user_id", userId)
+      .eq("status", "scheduled")
+      .lte("scheduled_for", now)
+      .order("scheduled_for", { ascending: true })
+      .limit(10);
 
-    const agentInstructions = pendingCount === 0
-      ? "Aucune tâche en attente. Tu peux interroger à nouveau dans quelques secondes."
-      : buildAgentInstructions(tasks ?? [], nextArticle, overdueArticles ?? []);
+    const overdueLots = overdueLotsRaw ?? [];
+    const pendingCount = tasks?.length ?? 0;
+    const nextArticle = readyArticles?.[0] ?? null;
+
+    const agentInstructions = buildAgentInstructions(
+      tasks ?? [],
+      readyArticles ?? [],
+      overdueArticles ?? [],
+      overdueLots
+    );
 
     return new Response(
       JSON.stringify({
         pending_count: pendingCount,
         tasks: tasks ?? [],
-        next_ready_article: nextArticle ?? null,
+        next_ready_article: nextArticle,
+        ready_articles: readyArticles ?? [],
         overdue_scheduled_articles: overdueArticles ?? [],
+        overdue_scheduled_lots: overdueLots,
         agent_instructions: agentInstructions,
         runner_endpoint: `${SUPABASE_URL}/functions/v1/agent-task-runner`,
         polled_at: new Date().toISOString(),
@@ -116,35 +133,62 @@ Deno.serve(async (req: Request) => {
 
 function buildAgentInstructions(
   tasks: Record<string, unknown>[],
-  nextArticle: Record<string, unknown> | null,
-  overdueArticles: Record<string, unknown>[]
+  readyArticles: Record<string, unknown>[],
+  overdueArticles: Record<string, unknown>[],
+  overdueLots: Record<string, unknown>[]
 ): string {
-  const lines: string[] = [
-    `Tu as ${tasks.length} tâche(s) en attente à exécuter.`,
-    "",
-    "TÂCHES À EXÉCUTER (dans l'ordre) :",
-  ];
+  const lines: string[] = [];
 
-  tasks.forEach((task, i) => {
-    lines.push(`\n[${i + 1}] task_id: ${task.id}`);
-    lines.push(`    command_type: ${task.command_type}`);
-    if (task.seller_name) lines.push(`    seller_name: ${task.seller_name}`);
-    if (task.article_title) lines.push(`    article_title: ${task.article_title}`);
-    if (task.params && Object.keys(task.params as object).length > 0) {
-      lines.push(`    params: ${JSON.stringify(task.params)}`);
-    }
-    lines.push(`    instruction originale: "${task.natural_input}"`);
-  });
+  const hasTasks = tasks.length > 0;
+  const hasReady = readyArticles.length > 0;
+  const hasOverdueArticles = overdueArticles.length > 0;
+  const hasOverdueLots = overdueLots.length > 0;
+  const hasAnything = hasTasks || hasReady || hasOverdueArticles || hasOverdueLots;
 
-  lines.push("");
-  lines.push("POUR EXÉCUTER CHAQUE TÂCHE, envoie un POST à runner_endpoint avec :");
-  lines.push('  { "task_id": "<id>", "command_type": "<type>", "seller_name": "...", "article_title": "...", "params": {...} }');
-  lines.push("  Header: Authorization: Bearer <user_jwt>");
+  if (!hasAnything) {
+    return "Aucune tâche en attente et aucun article/lot à publier pour le moment.";
+  }
 
-  if (overdueArticles.length > 0) {
+  if (hasTasks) {
+    lines.push(`Tu as ${tasks.length} tâche(s) en attente à exécuter.`);
+    lines.push("");
+    lines.push("TÂCHES À EXÉCUTER (dans l'ordre) :");
+
+    tasks.forEach((task, i) => {
+      lines.push(`\n[${i + 1}] task_id: ${task.id}`);
+      lines.push(`    command_type: ${task.command_type}`);
+      if (task.seller_name) lines.push(`    seller_name: ${task.seller_name}`);
+      if (task.article_title) lines.push(`    article_title: ${task.article_title}`);
+      if (task.params && Object.keys(task.params as object).length > 0) {
+        lines.push(`    params: ${JSON.stringify(task.params)}`);
+      }
+      lines.push(`    instruction originale: "${task.natural_input}"`);
+    });
+
+    lines.push("");
+    lines.push("POUR EXÉCUTER CHAQUE TÂCHE, envoie un POST à runner_endpoint avec :");
+    lines.push('  { "task_id": "<id>", "command_type": "<type>", "seller_name": "...", "article_title": "...", "params": {...} }');
+    lines.push("  Header: Authorization: Bearer <user_jwt>");
+  }
+
+  if (hasOverdueLots) {
+    lines.push("");
+    lines.push(`LOTS PLANIFIÉS À PUBLIER MAINTENANT (${overdueLots.length}) :`);
+    lines.push("Ces lots ont une date de publication dépassée — ils doivent être publiés en priorité.");
+    overdueLots.forEach((lot, i) => {
+      lines.push(`\n[${i + 1}] id: ${lot.id}`);
+      lines.push(`    nom: ${lot.name}`);
+      lines.push(`    prix: ${lot.price}€`);
+      lines.push(`    statut: ${lot.status}`);
+      lines.push(`    planifié pour: ${lot.scheduled_for}`);
+      if (lot.reference_number) lines.push(`    référence: ${lot.reference_number}`);
+    });
+  }
+
+  if (hasOverdueArticles) {
     lines.push("");
     lines.push(`ARTICLES PLANIFIÉS À PUBLIER MAINTENANT (${overdueArticles.length}) :`);
-    lines.push("⚠️ Ces articles ont une date de publication dépassée — ils doivent être publiés en priorité.");
+    lines.push("Ces articles ont une date de publication dépassée — ils doivent être publiés en priorité.");
     overdueArticles.forEach((article, i) => {
       lines.push(`\n[${i + 1}] id: ${article.id}`);
       lines.push(`    titre: ${article.title}`);
@@ -154,13 +198,16 @@ function buildAgentInstructions(
     });
   }
 
-  if (nextArticle) {
+  if (hasReady) {
     lines.push("");
-    lines.push("PROCHAIN ARTICLE READY :");
-    lines.push(`  id: ${nextArticle.id}`);
-    lines.push(`  titre: ${nextArticle.title}`);
-    lines.push(`  prix: ${nextArticle.price}€`);
-    lines.push(`  statut: ${nextArticle.status}`);
+    lines.push(`ARTICLES PRÊTS À PUBLIER (${readyArticles.length}) :`);
+    lines.push("Ces articles sont au statut 'ready' et peuvent être publiés sur Vinted.");
+    readyArticles.forEach((article, i) => {
+      lines.push(`\n[${i + 1}] id: ${article.id}`);
+      lines.push(`    titre: ${article.title}`);
+      lines.push(`    prix: ${article.price}€`);
+      lines.push(`    statut: ${article.status}`);
+    });
   }
 
   return lines.join("\n");
