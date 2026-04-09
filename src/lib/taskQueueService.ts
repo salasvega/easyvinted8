@@ -52,6 +52,37 @@ export async function updateTaskStatus(
   if (error) throw error;
 }
 
+export async function updatePendingTask(
+  taskId: string,
+  updates: {
+    natural_input?: string;
+    seller_name?: string;
+    article_title?: string;
+    command_type?: string;
+  }
+): Promise<TaskQueueRow> {
+  const { data, error } = await supabase
+    .from('task_queue')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', taskId)
+    .eq('status', 'pending')
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data as TaskQueueRow;
+}
+
+export async function deletePendingTask(taskId: string): Promise<void> {
+  const { error } = await supabase
+    .from('task_queue')
+    .delete()
+    .eq('id', taskId)
+    .eq('status', 'pending');
+
+  if (error) throw error;
+}
+
 export function subscribeToTask(
   taskId: string,
   onUpdate: (row: TaskQueueRow) => void

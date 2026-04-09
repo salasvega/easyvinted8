@@ -24,6 +24,9 @@ import {
   Send,
   Copy,
   ListTodo,
+  Pencil,
+  Trash2,
+  Save,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -31,7 +34,7 @@ import { generateProactiveInsights, ProactiveInsight, optimizeArticleSEO } from 
 import { getPricingInsights, dismissPricingInsight, applyPricingSuggestion, PricingInsight, PricingInsightType } from '../lib/kellyPricingService';
 import { generateLotTitleAndDescription } from '../lib/lotAnalysisService';
 import { parseUserInstruction, describeCommand, commandToClaudeCodeString } from '../lib/chatbotService';
-import { enqueueTask, loadRecentTasks, updateTaskStatus } from '../lib/taskQueueService';
+import { enqueueTask, loadRecentTasks, updateTaskStatus, updatePendingTask, deletePendingTask } from '../lib/taskQueueService';
 import type { ChatMessage, TaskQueueRow, ParsedCommand, TaskStatus } from '../types/taskQueue';
 import { Article } from '../types/article';
 import { Lot } from '../types/lot';
@@ -214,6 +217,10 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
   const [cmdSending, setCmdSending] = useState(false);
   const [cmdFamilyMembers, setCmdFamilyMembers] = useState<FamilyMemberCmd[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<{ natural_input: string; seller_name: string; article_title: string }>({ natural_input: '', seller_name: '', article_title: '' });
+  const [savingTask, setSavingTask] = useState(false);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const cmdInputRef = useRef<HTMLTextAreaElement>(null);
@@ -979,6 +986,51 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     }
   };
 
+  const startEditTask = (task: TaskQueueRow) => {
+    setEditingTaskId(task.id);
+    setEditDraft({
+      natural_input: task.natural_input,
+      seller_name: task.seller_name ?? '',
+      article_title: task.article_title ?? '',
+    });
+  };
+
+  const cancelEditTask = () => {
+    setEditingTaskId(null);
+    setEditDraft({ natural_input: '', seller_name: '', article_title: '' });
+  };
+
+  const saveEditTask = async (taskId: string) => {
+    setSavingTask(true);
+    try {
+      const updated = await updatePendingTask(taskId, {
+        natural_input: editDraft.natural_input,
+        seller_name: editDraft.seller_name,
+        article_title: editDraft.article_title,
+      });
+      setCmdTasks(prev => prev.map(t => t.id === taskId ? updated : t));
+      setEditingTaskId(null);
+      setToast({ type: 'success', text: 'Tâche modifiée avec succès' });
+    } catch (err) {
+      setToast({ type: 'error', text: 'Erreur lors de la modification' });
+    } finally {
+      setSavingTask(false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    setDeletingTaskId(taskId);
+    try {
+      await deletePendingTask(taskId);
+      setCmdTasks(prev => prev.filter(t => t.id !== taskId));
+      setToast({ type: 'success', text: 'Tâche supprimée' });
+    } catch (err) {
+      setToast({ type: 'error', text: 'Erreur lors de la suppression' });
+    } finally {
+      setDeletingTaskId(null);
+    }
+  };
+
   const visibleInsights = insights.filter(i => !dismissed.has(i.title));
   const pendingSuggestions = suggestions.filter((s) => s.status === 'pending');
   const totalScheduled = scheduledArticles.length + scheduledLots.length;
@@ -1639,43 +1691,123 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                       <p className="text-xs">Envoie une commande dans le chat pour commencer</p>
                     </div>
                   ) : (
-                    cmdTasks.map(task => (
-                      <div
-                        key={task.id}
-                        className="bg-white rounded-xl p-3 shadow-sm border border-gray-100"
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <CommandTypeLabel type={task.command_type} />
-                          <StatusBadge status={task.status} />
+                    cmdTasks.map(task => {
+                      const isEditing = editingTaskId === task.id;
+                      const isPending = task.status === 'pending';
+                      const isDeleting = deletingTaskId === task.id;
+                      return (
+                        <div
+                          key={task.id}
+                          className={`bg-white rounded-xl p-3 shadow-sm border transition-colors ${isEditing ? 'border-emerald-300 ring-1 ring-emerald-200' : 'border-gray-100'}`}
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <CommandTypeLabel type={task.command_type} />
+                            <div className="flex items-center gap-1.5">
+                              <StatusBadge status={task.status} />
+                              {isPending && !isEditing && (
+                                <>
+                                  <button
+                                    onClick={() => startEditTask(task)}
+                                    title="Modifier"
+                                    className="p-1 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteTask(task.id)}
+                                    disabled={isDeleting}
+                                    title="Supprimer"
+                                    className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                                  >
+                                    {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {isEditing ? (
+                            <div className="space-y-2 mt-2">
+                              <div>
+                                <label className="text-xs font-medium text-gray-500 mb-1 block">Commande</label>
+                                <textarea
+                                  value={editDraft.natural_input}
+                                  onChange={e => setEditDraft(d => ({ ...d, natural_input: e.target.value }))}
+                                  rows={2}
+                                  className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-400 resize-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-gray-500 mb-1 block">Vendeur</label>
+                                <input
+                                  type="text"
+                                  value={editDraft.seller_name}
+                                  onChange={e => setEditDraft(d => ({ ...d, seller_name: e.target.value }))}
+                                  className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                                  placeholder="Nom du vendeur"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs font-medium text-gray-500 mb-1 block">Article</label>
+                                <input
+                                  type="text"
+                                  value={editDraft.article_title}
+                                  onChange={e => setEditDraft(d => ({ ...d, article_title: e.target.value }))}
+                                  className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                                  placeholder="Titre de l'article"
+                                />
+                              </div>
+                              <div className="flex gap-2 pt-1">
+                                <button
+                                  onClick={() => saveEditTask(task.id)}
+                                  disabled={savingTask || !editDraft.natural_input.trim()}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white text-xs font-medium rounded-lg transition-colors"
+                                >
+                                  {savingTask ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                                  Enregistrer
+                                </button>
+                                <button
+                                  onClick={cancelEditTask}
+                                  disabled={savingTask}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium rounded-lg transition-colors"
+                                >
+                                  Annuler
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              {task.seller_name && (
+                                <p className="text-xs text-gray-600 mb-0.5">
+                                  Vendeur : <span className="font-medium">{task.seller_name}</span>
+                                </p>
+                              )}
+                              {task.article_title && (
+                                <p className="text-xs text-gray-600 mb-0.5">
+                                  Article : <span className="font-medium">"{task.article_title}"</span>
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-400 italic mt-1 truncate">
+                                "{task.natural_input}"
+                              </p>
+                              {task.result_message && (
+                                <p className={`text-xs mt-1.5 ${task.status === 'error' ? 'text-red-600' : 'text-emerald-600'}`}>
+                                  {task.result_message}
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-300 mt-1.5">
+                                {new Date(task.created_at).toLocaleString('fr-FR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </p>
+                            </>
+                          )}
                         </div>
-                        {task.seller_name && (
-                          <p className="text-xs text-gray-600 mb-0.5">
-                            Vendeur : <span className="font-medium">{task.seller_name}</span>
-                          </p>
-                        )}
-                        {task.article_title && (
-                          <p className="text-xs text-gray-600 mb-0.5">
-                            Article : <span className="font-medium">"{task.article_title}"</span>
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-400 italic mt-1 truncate">
-                          "{task.natural_input}"
-                        </p>
-                        {task.result_message && (
-                          <p className={`text-xs mt-1.5 ${task.status === 'error' ? 'text-red-600' : 'text-emerald-600'}`}>
-                            {task.result_message}
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-300 mt-1.5">
-                          {new Date(task.created_at).toLocaleString('fr-FR', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </p>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               )}
