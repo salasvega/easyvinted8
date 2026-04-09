@@ -90,6 +90,25 @@ Deno.serve(async (req: Request) => {
         .in("lot_id", invalidLotIds);
     }
 
+    const readyArticleIds = (articles || []).map((a: Article) => a.id);
+    const readyLotIds = (lots || []).map((l: Lot) => l.id);
+
+    if (readyArticleIds.length > 0) {
+      await supabase
+        .from("selling_suggestions")
+        .update({ status: "pending", updated_at: new Date().toISOString() })
+        .in("article_id", readyArticleIds)
+        .eq("status", "accepted");
+    }
+
+    if (readyLotIds.length > 0) {
+      await supabase
+        .from("selling_suggestions")
+        .update({ status: "pending", updated_at: new Date().toISOString() })
+        .in("lot_id", readyLotIds)
+        .eq("status", "accepted");
+    }
+
     if ((!articles || articles.length === 0) && (!lots || lots.length === 0)) {
       return new Response(
         JSON.stringify({ message: "No articles or lots to analyze", processed: 0 }),
