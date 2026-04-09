@@ -1,30 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import {
-  Sparkles,
-  Calendar,
-  Upload,
-  Camera,
-  TrendingUp,
-  ShoppingBag,
-  Shield,
-  Zap,
-  Check,
-  ArrowRight,
-  BarChart3,
-  Clock,
-  Star,
-  LogOut,
-  LayoutDashboard,
-  Bot,
-  Activity,
-  Users,
-  UserCircle2,
-  ChevronDown,
-  Package,
-  Settings,
-  Play,
-} from "lucide-react";
+import { Sparkles, Calendar, Upload, Camera, TrendingUp, ShoppingBag, Shield, Zap, Check, ArrowRight, BarChart3, Clock, Star, LogOut, Bot, Activity, Users, CircleUser as UserCircle2, ChevronDown, Package, Play, Send, Shirt } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import "../styles/navigation.css";
 import { HomePageSkeleton } from "../components/ui/HomePageSkeleton";
@@ -37,9 +13,7 @@ export function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const [pagesExpanded, setPagesExpanded] = useState(false);
-  const [actionsExpanded, setActionsExpanded] = useState(false);
-  const [configExpanded, setConfigExpanded] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string>("");
 
   const MENU_CLOSE_MS = 520;
 
@@ -152,186 +126,104 @@ export function HomePage() {
 
                   {showUserMenu && (
                     <div className={`dropdown-menu dropdown-menu-large ${closingUserMenu ? "closing" : ""}`}>
-                      {/* Section Pages */}
-                      <div className="border-b border-gray-100">
-                        <button
-                          onClick={() => setPagesExpanded(!pagesExpanded)}
-                          className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Package className="w-4 h-4" />
-                            Pages
-                          </span>
-                          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${pagesExpanded ? "rotate-180" : ""}`} />
-                        </button>
+                      {[
+                        {
+                          key: "dressing",
+                          label: "Mon Dressing",
+                          Icon: Package,
+                          items: [
+                            { to: "/mon_dressing", label: "Mon dressing", Icon: ShoppingBag },
+                            { to: "/virtual-stylist", label: "Mon style", Icon: Shirt },
+                          ],
+                        },
+                        {
+                          key: "publier",
+                          label: "Publier",
+                          Icon: Send,
+                          items: [
+                            { to: "/to-publish", label: "À Publier !", Icon: Play },
+                            { to: "/admin/agent-publisher-ia", label: "Agent Publisher IA", Icon: Bot },
+                            { to: "/admin/publication-monitor", label: "Monitoring", Icon: Activity },
+                            { to: "/admin/agent-runner", label: "Agent Runner", Icon: Zap },
+                          ],
+                        },
+                        {
+                          key: "planification",
+                          label: "Planification",
+                          Icon: Calendar,
+                          items: [
+                            { to: "/timeline", label: "Timeline Planning", Icon: Calendar },
+                            { to: "/planner", label: "Planificateur", Icon: Calendar },
+                          ],
+                        },
+                        {
+                          key: "analyse",
+                          label: "Analyse",
+                          Icon: BarChart3,
+                          items: [
+                            { to: "/analytics", label: "Statistiques", Icon: BarChart3 },
+                          ],
+                        },
+                        {
+                          key: "compte",
+                          label: "Mon Compte",
+                          Icon: UserCircle2,
+                          items: [
+                            { to: "/profile", label: "Mon Profil", Icon: UserCircle2 },
+                            { to: "/family", label: "Vendeurs", Icon: Users },
+                          ],
+                        },
+                      ].map((section) => {
+                        const isExpanded = expandedSection === section.key;
+                        return (
+                          <div key={section.key} className="border-b border-gray-100 last:border-b-0">
+                            <button
+                              onClick={() => setExpandedSection(isExpanded ? "" : section.key)}
+                              className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
+                            >
+                              <span className="flex items-center gap-2">
+                                <section.Icon className="w-4 h-4" />
+                                {section.label}
+                              </span>
+                              <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
+                            </button>
 
-                        <div className={`overflow-hidden transition-all duration-300 ${pagesExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                          <Link
-                            to="/mon_dressing"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/mon_dressing") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && pagesExpanded ? "50ms" : "0ms" }}
-                          >
-                            <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            Mon dressing
-                          </Link>
+                            <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
+                              {section.items.map((item, index) => (
+                                <Link
+                                  key={item.to}
+                                  to={item.to}
+                                  onClick={() => closeMenuWithAnimation()}
+                                  className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
+                                    isActive(item.to) ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
+                                  }`}
+                                  style={{ animationDelay: showUserMenu && isExpanded ? `${50 + index * 40}ms` : "0ms" }}
+                                >
+                                  <item.Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                  {item.label}
+                                </Link>
+                              ))}
 
-                          <Link
-                            to="/virtual-stylist"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/virtual-stylist") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && pagesExpanded ? "90ms" : "0ms" }}
-                          >
-                            <UserCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            Mon style
-                          </Link>
-
-                          <Link
-                            to="/planner"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/planner") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && pagesExpanded ? "130ms" : "0ms" }}
-                          >
-                            <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            Planificateur
-                          </Link>
-
-                          <Link
-                            to="/timeline"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/timeline") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && pagesExpanded ? "170ms" : "0ms" }}
-                          >
-                            <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            Timeline Planning
-                          </Link>
-
-                          <Link
-                            to="/to-publish"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/to-publish") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && pagesExpanded ? "210ms" : "0ms" }}
-                          >
-                            <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            À Publier!
-                          </Link>
-                        </div>
-                      </div>
-
-                      {/* Section Actions */}
-                      <div className="border-b border-gray-100">
-                        <button
-                          onClick={() => setActionsExpanded(!actionsExpanded)}
-                          className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Shield className="w-4 h-4" />
-                            Actions
-                          </span>
-                          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${actionsExpanded ? "rotate-180" : ""}`} />
-                        </button>
-
-                        <div className={`overflow-hidden transition-all duration-300 ${actionsExpanded ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"}`}>
-                          <Link
-                            to="/admin/agent-publisher-ia"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/admin/agent-publisher-ia") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && actionsExpanded ? "50ms" : "0ms" }}
-                          >
-                            <Bot className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            Agent Publisher IA
-                          </Link>
-
-                          <Link
-                            to="/admin/publication-monitor"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/admin/publication-monitor") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && actionsExpanded ? "90ms" : "0ms" }}
-                          >
-                            <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            Monitoring publications
-                          </Link>
-
-                          <Link
-                            to="/analytics"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/analytics") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && actionsExpanded ? "130ms" : "0ms" }}
-                          >
-                            <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            Statistiques
-                          </Link>
-                        </div>
-                      </div>
-
-                      {/* Section Configuration */}
-                      <div className="border-b border-gray-100">
-                        <button
-                          onClick={() => setConfigExpanded(!configExpanded)}
-                          className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
-                        >
-                          <span className="flex items-center gap-2">
-                            <Settings className="w-4 h-4" />
-                            Configuration
-                          </span>
-                          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${configExpanded ? "rotate-180" : ""}`} />
-                        </button>
-
-                        <div className={`overflow-hidden transition-all duration-300 ${configExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                          <Link
-                            to="/profile"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/profile") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && configExpanded ? "50ms" : "0ms" }}
-                          >
-                            <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                              <span className="text-xs font-semibold text-white">{user?.email ? getInitials(user.email) : "U"}</span>
+                              {section.key === "compte" && (
+                                <>
+                                  <div className="mx-4 my-1 border-t border-gray-100" />
+                                  <button
+                                    onClick={handleSignOut}
+                                    className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
+                                    style={{ animationDelay: showUserMenu && isExpanded ? "130ms" : "0ms" }}
+                                  >
+                                    <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
+                                    Se déconnecter
+                                  </button>
+                                </>
+                              )}
                             </div>
-                            Mon Profil
-                          </Link>
+                          </div>
+                        );
+                      })}
 
-                          <Link
-                            to="/family"
-                            onClick={() => closeMenuWithAnimation()}
-                            className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                              isActive("/family") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                            style={{ animationDelay: showUserMenu && configExpanded ? "90ms" : "0ms" }}
-                          >
-                            <Users className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            Vendeurs
-                          </Link>
-                        </div>
-                      </div>
-
-                      {/* Bouton Se déconnecter - en dehors de la section Configuration */}
-                      <div className="px-4 py-2">
-                        <button
-                          onClick={handleSignOut}
-                          className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
-                          style={{ animationDelay: showUserMenu ? "50ms" : "0ms" }}
-                        >
-                          <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
-                          Se déconnecter
-                        </button>
+                      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+                        <p className="text-xs text-gray-400 text-center">{user?.email ?? ""}</p>
                       </div>
                     </div>
                   )}

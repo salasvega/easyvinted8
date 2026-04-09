@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Package, Settings, BarChart3, Menu, X, LogOut, Users, LayoutDashboard, Shield, ChevronDown, Bot, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap } from "lucide-react";
+import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Bot, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -16,6 +16,70 @@ interface FamilyMember {
   id: string;
   name: string;
 }
+
+interface NavSection {
+  key: string;
+  label: string;
+  icon: React.ElementType;
+  items: NavItem[];
+}
+
+interface NavItem {
+  to: string;
+  label: string;
+  icon: React.ElementType;
+  iconClassName?: string;
+  activeClassName?: string;
+}
+
+const NAV_SECTIONS: NavSection[] = [
+  {
+    key: "dressing",
+    label: "Mon Dressing",
+    icon: Package,
+    items: [
+      { to: "/mon_dressing", label: "Mon dressing", icon: ShoppingBag },
+      { to: "/virtual-stylist", label: "Mon style", icon: Shirt },
+    ],
+  },
+  {
+    key: "publier",
+    label: "Publier",
+    icon: Send,
+    items: [
+      { to: "/to-publish", label: "À Publier !", icon: Play },
+      { to: "/admin/agent-publisher-ia", label: "Agent Publisher IA", icon: Bot },
+      { to: "/admin/publication-monitor", label: "Monitoring", icon: Activity },
+      { to: "/admin/agent-runner", label: "Agent Runner", icon: Zap, iconClassName: "text-amber-500", activeClassName: "bg-amber-50 text-amber-700" },
+    ],
+  },
+  {
+    key: "planification",
+    label: "Planification",
+    icon: Calendar,
+    items: [
+      { to: "/timeline", label: "Timeline Planning", icon: Calendar },
+      { to: "/planner", label: "Planificateur", icon: Calendar },
+    ],
+  },
+  {
+    key: "analyse",
+    label: "Analyse",
+    icon: TrendingUp,
+    items: [
+      { to: "/analytics", label: "Statistiques", icon: BarChart3 },
+    ],
+  },
+  {
+    key: "compte",
+    label: "Mon Compte",
+    icon: UserCircle2,
+    items: [
+      { to: "/profile", label: "Mon Profil", icon: UserCircle2 },
+      { to: "/family", label: "Vendeurs", icon: Users },
+    ],
+  },
+];
 
 export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
@@ -36,9 +100,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [closingMenu, setClosingMenu] = useState(false);
   const [closingSellerMenu, setClosingSellerMenu] = useState(false);
 
-  const [pagesExpanded, setPagesExpanded] = useState(true);
-  const [actionsExpanded, setActionsExpanded] = useState(false);
-  const [configExpanded, setConfigExpanded] = useState(false);
+  const [expandedSection, setExpandedSection] = useState<string>("dressing");
 
   const menuRef = useRef<HTMLDivElement>(null);
   const sellerMenuRef = useRef<HTMLDivElement>(null);
@@ -187,6 +249,13 @@ export function AppLayout({ children }: AppLayoutProps) {
     navigate("/login");
   };
 
+  const getActiveClassName = (item: NavItem) => {
+    if (isActive(item.to)) {
+      return item.activeClassName ?? "bg-emerald-50 text-emerald-700 shadow-sm";
+    }
+    return "text-gray-700 hover:bg-gray-50";
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header
@@ -198,7 +267,6 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-8">
-              {/* Logo = retour au dashboard */}
               <Link to="/mon_dressing" className="flex items-center gap-2 logo-animation ripple-effect">
                 <ShoppingBag className="w-6 h-6 text-emerald-600 transition-transform" />
                 <span className="text-base font-semibold text-gray-900">
@@ -206,7 +274,6 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </span>
               </Link>
 
-              {/* Vendeur par défaut - cliquable si plusieurs vendeurs */}
               {familyMembers.length > 1 && (
                 <div className="relative" ref={sellerMenuRef}>
                   <button
@@ -254,11 +321,9 @@ export function AppLayout({ children }: AppLayoutProps) {
                   )}
                 </div>
               )}
-
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Kelly Button avec badge */}
               <button
                 onClick={() => setShowKellyPanel(!showKellyPanel)}
                 className="relative p-1 hover:bg-emerald-50 rounded-full transition-all duration-300 hover:scale-110 ripple-effect group"
@@ -287,16 +352,13 @@ export function AppLayout({ children }: AppLayoutProps) {
                 </div>
               </button>
 
-              {/* Burger menu - visible sur mobile et desktop */}
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => {
                     if (mobileMenuOpen) {
                       if (!closingMenu) closeMenuWithAnimation("main");
                     } else {
-                      setPagesExpanded(true);
-                      setActionsExpanded(false);
-                      setConfigExpanded(false);
+                      setExpandedSection("dressing");
                       setMobileMenuOpen(true);
                     }
                   }}
@@ -309,186 +371,61 @@ export function AppLayout({ children }: AppLayoutProps) {
                 {mobileMenuOpen && (
                   <div className={`dropdown-menu dropdown-menu-large ${closingMenu ? "closing" : ""}`}>
 
-                    {/* Section Pages */}
-                    <div className="border-b border-gray-100">
-                      <button
-                        onClick={() => setPagesExpanded(!pagesExpanded)}
-                        className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Package className="w-4 h-4" />
-                          Pages
-                        </span>
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${pagesExpanded ? "rotate-180" : ""}`} />
-                      </button>
+                    {NAV_SECTIONS.map((section) => {
+                      const isExpanded = expandedSection === section.key;
+                      const SectionIcon = section.icon;
+                      return (
+                        <div key={section.key} className="border-b border-gray-100 last:border-b-0">
+                          <button
+                            onClick={() => setExpandedSection(isExpanded ? "" : section.key)}
+                            className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
+                          >
+                            <span className="flex items-center gap-2">
+                              <SectionIcon className="w-4 h-4" />
+                              {section.label}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? "rotate-180" : ""}`} />
+                          </button>
 
-                      <div className={`overflow-hidden transition-all duration-300 ${pagesExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                        <Link
-                          to="/mon_dressing"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/mon_dressing") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "50ms" : "0ms" }}
-                        >
-                          <LayoutDashboard className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          Mon dressing
-                        </Link>
+                          <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
+                            {section.items.map((item, index) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <Link
+                                  key={item.to}
+                                  to={item.to}
+                                  onClick={() => closeMenuWithAnimation("main")}
+                                  className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${getActiveClassName(item)}`}
+                                  style={{ animationDelay: mobileMenuOpen && isExpanded ? `${50 + index * 40}ms` : "0ms" }}
+                                >
+                                  <ItemIcon className={`w-5 h-5 group-hover:scale-110 transition-transform ${item.iconClassName ?? ""}`} />
+                                  {item.label}
+                                </Link>
+                              );
+                            })}
 
-                        <Link
-                          to="/virtual-stylist"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/virtual-stylist") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "90ms" : "0ms" }}
-                        >
-                          <UserCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          Mon style
-                        </Link>
-
-                        <Link
-                          to="/timeline"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/timeline") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "130ms" : "0ms" }}
-                        >
-                          <Calendar className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          Timeline Planning
-                        </Link>
-
-                        <Link
-                          to="/to-publish"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/to-publish") ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && pagesExpanded ? "170ms" : "0ms" }}
-                        >
-                          <Play className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          À Publier!
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Section Actions */}
-                    <div className="border-b border-gray-100">
-                      <button
-                        onClick={() => setActionsExpanded(!actionsExpanded)}
-                        className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Shield className="w-4 h-4" />
-                          Actions
-                        </span>
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${actionsExpanded ? "rotate-180" : ""}`} />
-                      </button>
-
-                      <div className={`overflow-hidden transition-all duration-300 ${actionsExpanded ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"}`}>
-                        <Link
-                          to="/admin/agent-publisher-ia"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/admin/agent-publisher-ia") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "50ms" : "0ms" }}
-                        >
-                          <Bot className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          Agent Publisher IA
-                        </Link>
-
-                        <Link
-                          to="/admin/publication-monitor"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/admin/publication-monitor") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "90ms" : "0ms" }}
-                        >
-                          <Activity className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          Monitoring publications
-                        </Link>
-
-                        <Link
-                          to="/analytics"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/analytics") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "130ms" : "0ms" }}
-                        >
-                          <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          Statistiques
-                        </Link>
-
-                        <Link
-                          to="/admin/agent-runner"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/admin/agent-runner") ? "bg-amber-50 text-amber-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && actionsExpanded ? "170ms" : "0ms" }}
-                        >
-                          <Zap className="w-5 h-5 group-hover:scale-110 transition-transform text-amber-500" />
-                          Agent Runner
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Section Configuration */}
-                    <div className="border-b border-gray-100">
-                      <button
-                        onClick={() => setConfigExpanded(!configExpanded)}
-                        className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-bold text-gray-900 uppercase tracking-wider hover:bg-gray-50 transition-colors ripple-effect"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Settings className="w-4 h-4" />
-                          Configuration
-                        </span>
-                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${configExpanded ? "rotate-180" : ""}`} />
-                      </button>
-
-                      <div className={`overflow-hidden transition-all duration-300 ${configExpanded ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
-                        <Link
-                          to="/profile"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/profile") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && configExpanded ? "50ms" : "0ms" }}
-                        >
-                          <div className="w-5 h-5 rounded-full bg-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <span className="text-xs font-semibold text-white">{user?.email ? getInitials(user.email) : "U"}</span>
+                            {section.key === "compte" && (
+                              <>
+                                <div className="mx-4 my-1 border-t border-gray-100" />
+                                <button
+                                  onClick={handleSignOut}
+                                  className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
+                                  style={{ animationDelay: mobileMenuOpen && isExpanded ? "130ms" : "0ms" }}
+                                >
+                                  <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
+                                  Se déconnecter
+                                </button>
+                              </>
+                            )}
                           </div>
-                          Mon Profil
-                        </Link>
+                        </div>
+                      );
+                    })}
 
-                        <Link
-                          to="/family"
-                          onClick={() => closeMenuWithAnimation("main")}
-                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                            isActive("/family") ? "bg-slate-50 text-slate-900 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                          style={{ animationDelay: mobileMenuOpen && configExpanded ? "90ms" : "0ms" }}
-                        >
-                          <Users className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                          Vendeurs
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Bouton Se déconnecter - en dehors de la section Configuration */}
-                    <div className="px-4 py-2">
-                      <button
-                        onClick={handleSignOut}
-                        className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
-                        style={{ animationDelay: mobileMenuOpen ? "50ms" : "0ms" }}
-                      >
-                        <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
-                        Se déconnecter
-                      </button>
+                    <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+                      <p className="text-xs text-gray-400 text-center">
+                        {user?.email ?? ""}
+                      </p>
                     </div>
                   </div>
                 )}
