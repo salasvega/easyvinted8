@@ -51,7 +51,6 @@ export default function AgentRunnerPage() {
   const [autoRun, setAutoRun] = useState(false);
   const [logs, setLogs] = useState<ExecLog[]>([]);
   const [showInstructions, setShowInstructions] = useState(false);
-  const [showCurlExample, setShowCurlExample] = useState(false);
   const autoRunRef = useRef(false);
   const intervalRef = useRef<number | null>(null);
 
@@ -167,33 +166,6 @@ export default function AgentRunnerPage() {
       .limit(20);
     return data;
   }
-
-  const curlPollExample = session?.access_token
-    ? `curl -X GET \\
-  "${SUPABASE_URL}/functions/v1/agent-poll-tasks" \\
-  -H "Authorization: Bearer ${session.access_token}" \\
-  -H "apikey: ${SUPABASE_ANON_KEY}"`
-    : '# Connectez-vous pour voir votre token';
-
-  const curlRunExample = pollResult?.tasks?.[0]
-    ? `curl -X POST \\
-  "${SUPABASE_URL}/functions/v1/agent-task-runner" \\
-  -H "Authorization: Bearer ${session?.access_token ?? '<token>'}" \\
-  -H "apikey: ${SUPABASE_ANON_KEY}" \\
-  -H "Content-Type: application/json" \\
-  -d '${JSON.stringify({
-    task_id: pollResult.tasks[0].id,
-    command_type: pollResult.tasks[0].command_type,
-    seller_name: pollResult.tasks[0].seller_name,
-    article_title: pollResult.tasks[0].article_title,
-    params: pollResult.tasks[0].params,
-  }, null, 2)}'`
-    : `curl -X POST \\
-  "${SUPABASE_URL}/functions/v1/agent-task-runner" \\
-  -H "Authorization: Bearer <user_jwt>" \\
-  -H "apikey: ${SUPABASE_ANON_KEY}" \\
-  -H "Content-Type: application/json" \\
-  -d '{"task_id":"<id>","command_type":"list_articles"}'`;
 
   async function copyText(text: string) {
     await navigator.clipboard.writeText(text).catch(() => {});
@@ -373,53 +345,6 @@ export default function AgentRunnerPage() {
         )}
       </div>
 
-      {/* cURL examples (collapsible) */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <button
-          onClick={() => setShowCurlExample(v => !v)}
-          className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors"
-        >
-          <h2 className="font-semibold text-slate-800 flex items-center gap-2">
-            <Terminal className="w-4 h-4 text-slate-500" />
-            Exemples d'appel API (pour l'agent externe)
-          </h2>
-          {showCurlExample ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-        </button>
-
-        {showCurlExample && (
-          <div className="px-5 pb-5 space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">1. Lire les taches (poll)</p>
-                <button onClick={() => copyText(curlPollExample)} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600">
-                  <Copy className="w-3 h-3" /> Copier
-                </button>
-              </div>
-              <pre className="bg-slate-900 text-cyan-300 text-xs p-4 rounded-xl overflow-x-auto font-mono">
-                {curlPollExample}
-              </pre>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">2. Executer une tache (runner)</p>
-                <button onClick={() => copyText(curlRunExample)} className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600">
-                  <Copy className="w-3 h-3" /> Copier
-                </button>
-              </div>
-              <pre className="bg-slate-900 text-cyan-300 text-xs p-4 rounded-xl overflow-x-auto font-mono">
-                {curlRunExample}
-              </pre>
-            </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700">
-              <strong>Endpoints :</strong><br />
-              Poll : <code className="font-mono">{SUPABASE_URL}/functions/v1/agent-poll-tasks</code><br />
-              Runner : <code className="font-mono">{SUPABASE_URL}/functions/v1/agent-task-runner</code><br />
-              <br />
-              L'agent doit : (1) appeler poll pour lire les taches, (2) pour chaque tache appeler runner avec le task_id et la commande.
-            </div>
-          </div>
-        )}
-      </div>
 
     </div>
   );
