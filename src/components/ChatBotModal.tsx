@@ -89,7 +89,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
       id: 'welcome',
       role: 'assistant',
       content:
-        'Bonjour ! Dis-moi ce que tu veux faire.\n\nExemple : "Publie le prochain article pour Seb" ou "Finalise et mets en ligne la robe bleue pour Seb"',
+        'Bonjour ! Dis-moi ce que tu veux que je fasse?\n\nExemple : "Publie le prochain article pour Seb" ou "Finalise et mets en ligne la robe bleue pour Seb"',
       timestamp: new Date().toISOString(),
     },
   ]);
