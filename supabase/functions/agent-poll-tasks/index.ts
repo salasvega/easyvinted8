@@ -86,6 +86,15 @@ Deno.serve(async (req: Request) => {
       .order("scheduled_for", { ascending: true })
       .limit(10);
 
+    // Fetch ready lots
+    const { data: readyLots } = await supabase
+      .from("lots")
+      .select("id, name, price, status, description, reference_number")
+      .eq("user_id", userId)
+      .eq("status", "ready")
+      .order("created_at", { ascending: true })
+      .limit(10);
+
     // Fetch scheduled lots whose scheduled_for date has passed
     const { data: overdueLotsRaw } = await supabase
       .from("lots")
@@ -103,6 +112,7 @@ Deno.serve(async (req: Request) => {
     const agentInstructions = buildAgentInstructions(
       tasks ?? [],
       readyArticles ?? [],
+      readyLots ?? [],
       overdueArticles ?? [],
       overdueLots
     );
@@ -113,6 +123,7 @@ Deno.serve(async (req: Request) => {
         tasks: tasks ?? [],
         next_ready_article: nextArticle,
         ready_articles: readyArticles ?? [],
+        ready_lots: readyLots ?? [],
         overdue_scheduled_articles: overdueArticles ?? [],
         overdue_scheduled_lots: overdueLots,
         agent_instructions: agentInstructions,
@@ -134,6 +145,7 @@ Deno.serve(async (req: Request) => {
 function buildAgentInstructions(
   tasks: Record<string, unknown>[],
   readyArticles: Record<string, unknown>[],
+  readyLots: Record<string, unknown>[],
   overdueArticles: Record<string, unknown>[],
   overdueLots: Record<string, unknown>[]
 ): string {
@@ -141,9 +153,10 @@ function buildAgentInstructions(
 
   const hasTasks = tasks.length > 0;
   const hasReady = readyArticles.length > 0;
+  const hasReadyLots = readyLots.length > 0;
   const hasOverdueArticles = overdueArticles.length > 0;
   const hasOverdueLots = overdueLots.length > 0;
-  const hasAnything = hasTasks || hasReady || hasOverdueArticles || hasOverdueLots;
+  const hasAnything = hasTasks || hasReady || hasReadyLots || hasOverdueArticles || hasOverdueLots;
 
   if (!hasAnything) {
     return "Aucune tâche en attente et aucun article/lot à publier pour le moment.";
@@ -207,6 +220,19 @@ function buildAgentInstructions(
       lines.push(`    titre: ${article.title}`);
       lines.push(`    prix: ${article.price}€`);
       lines.push(`    statut: ${article.status}`);
+    });
+  }
+
+  if (hasReadyLots) {
+    lines.push("");
+    lines.push(`LOTS PRÊTS À PUBLIER (${readyLots.length}) :`);
+    lines.push("Ces lots sont au statut 'ready' et peuvent être publiés sur Vinted.");
+    readyLots.forEach((lot, i) => {
+      lines.push(`\n[${i + 1}] id: ${lot.id}`);
+      lines.push(`    nom: ${lot.name}`);
+      lines.push(`    prix: ${lot.price}€`);
+      lines.push(`    statut: ${lot.status}`);
+      if (lot.reference_number) lines.push(`    référence: ${lot.reference_number}`);
     });
   }
 
