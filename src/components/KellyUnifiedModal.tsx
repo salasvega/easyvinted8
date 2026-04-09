@@ -205,7 +205,7 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     {
       id: 'welcome',
       role: 'assistant',
-      content: 'Bonjour ! Dis-moi ce que tu veux faire en langage naturel.\n\nExemple : "Publie le prochain article pour Seb" ou "Change le statut de la robe bleue en ready"',
+      content: 'Bonjour ! Dis-moi ce que tu veux que je fasse?\n\nExemple : "Publie le prochain article pour Seb" ou "Change le statut de la robe bleue en ready"',
       timestamp: new Date().toISOString(),
     },
   ]);
