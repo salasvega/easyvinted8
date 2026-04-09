@@ -8,6 +8,7 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 type PollResult = {
   pending_count: number;
   next_ready_article: Record<string, unknown> | null;
+  ready_articles: Record<string, unknown>[];
   agent_instructions: string;
   runner_endpoint: string;
   polled_at: string;
@@ -74,12 +75,8 @@ export default function AgentRunnerPage() {
           <p className="text-3xl font-bold text-slate-800">{pollResult?.pending_count ?? '—'}</p>
         </div>
         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Article ready suivant</p>
-          <p className="text-sm font-medium text-slate-700 truncate">
-            {pollResult?.next_ready_article
-              ? `${pollResult.next_ready_article.title} (${pollResult.next_ready_article.price}€)`
-              : 'Aucun'}
-          </p>
+          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Items prêts à publier</p>
+          <p className="text-3xl font-bold text-slate-800">{pollResult?.ready_articles?.length ?? '—'}</p>
         </div>
       </div>
 
