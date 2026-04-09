@@ -1,20 +1,5 @@
-// src/lib/geminiService.ts
-import { GoogleGenAI, Type } from "@google/genai";
+import { callGeminiProxy } from './geminiProxy';
 
-let ai: GoogleGenAI | null = null;
-
-const getAI = () => {
-  if (!ai) {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("VITE_GEMINI_API_KEY is not configured");
-    }
-    ai = new GoogleGenAI({ apiKey });
-  }
-  return ai;
-};
-
-// ✅ Shared constraint vocabulary (re-used across image features)
 const HUMAN_IPHONE_CONSTRAINTS =
   "Output must look like an ordinary iPhone photo taken by a real person: natural ambient light, slightly imperfect framing, faithful colors, mild sensor grain, no studio look, no editorial styling, no seamless/gradient background, no HDR/glow, no over-sharpening, no AI-smoothed/plastic textures, no obvious AI artifacts. Keep it believable.";
 
@@ -22,9 +7,6 @@ function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-/** ---------------------------------------------------------
- * ✅ SAFETY + DIAGNOSTICS (prod-friendly, stable UX)
- * -------------------------------------------------------- */
 const SAFETY_SETTINGS_PROD = [
   { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
@@ -32,25 +14,7 @@ const SAFETY_SETTINGS_PROD = [
   { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
 ] as const;
 
-type GeminiFinishReason =
-  | "STOP"
-  | "SAFETY"
-  | "IMAGE_SAFETY"
-  | "IMAGE_OTHER"
-  | "RECITATION"
-  | "OTHER"
-  | string;
-
-function extractMeta(response: any) {
-  const c = response?.candidates?.[0];
-  return {
-    hasCandidates: !!response?.candidates?.length,
-    finishReason: (c?.finishReason as GeminiFinishReason) ?? undefined,
-    // may be undefined for image models; that's okay
-    safetyRatings: c?.safetyRatings,
-    promptFeedback: response?.promptFeedback,
-  };
-}
+type GeminiFinishReason = "STOP" | "SAFETY" | "IMAGE_SAFETY" | "IMAGE_OTHER" | "RECITATION" | "OTHER" | string;
 
 function finishReasonToCode(fr?: GeminiFinishReason) {
   if (!fr || fr === "STOP") return null;
@@ -60,14 +24,12 @@ function finishReasonToCode(fr?: GeminiFinishReason) {
 }
 
 function normalizeBase64Data(data: string): string {
-  // accepts raw base64 or data:*;base64,xxx
   if (!data) return data;
   const idx = data.indexOf("base64,");
   return idx >= 0 ? data.slice(idx + "base64,".length) : data;
 }
 
 function normalizeMimeType(mimeType: string): string {
-  // Keep as-is; if you want extra stability you can force "image/jpeg"
   return mimeType || "image/jpeg";
 }
 
@@ -80,45 +42,25 @@ function buildUserError(code: string) {
       );
     case "GEMINI_IMAGE_OTHER":
       return new Error(
-        "La génération d’image a échoué pour une raison technique (IMAGE_OTHER). " +
+        "La génération d'image a échoué pour une raison technique (IMAGE_OTHER). " +
           "Essayez une image plus nette, un cadrage moins serré (éviter gros plans), ou réessayez."
       );
     default:
-      return new Error("Impossible de générer l’image pour le moment.");
+      return new Error("Impossible de générer l'image pour le moment.");
   }
 }
 
-/** ---------------------------------------------------------
- * ✅ Image-call wrapper with meta checks + consistent errors
- * -------------------------------------------------------- */
-async function generateImageWithMeta(args: {
-  model: string;
-  parts: any[];
-  label: string;
-}) {
-  const response = await getAI().models.generateContent({
-    model: args.model,
-    contents: { parts: args.parts },
-    config: {
-      safetySettings: SAFETY_SETTINGS_PROD,
-    },
+async function generateImageWithProxy(args: { model: string; parts: any[]; label: string }): Promise<string> {
+  const result = await callGeminiProxy(args.model, { parts: args.parts }, {
+    safetySettings: SAFETY_SETTINGS_PROD,
   });
 
-  const meta = extractMeta(response);
-  console.error("[Gemini " + args.label + "] meta:", meta);
+  if ('imageData' in result && result.imageData) return result.imageData;
 
-  const code = finishReasonToCode(meta.finishReason);
+  const finishReason = 'finishReason' in result ? result.finishReason : undefined;
+  const code = finishReasonToCode(finishReason);
   if (code) throw new Error(code);
 
-  // extract base64 image
-  const outParts = response.candidates?.[0]?.content?.parts;
-  if (outParts) {
-    for (const part of outParts) {
-      if (part.inlineData?.data) return part.inlineData.data as string;
-    }
-  }
-
-  // no image even though STOP -> treat as technical
   throw new Error("GEMINI_IMAGE_OTHER");
 }
 
@@ -149,8 +91,6 @@ export const analyzeProductImage = async (
   mimeType: string,
   writingStyle?: string
 ): Promise<ProductData[]> => {
-  const model = "gemini-2.5-flash";
-
   const writingStyleInstruction = writingStyle
     ? "\n    WRITING STYLE: When generating the title and description, use this specific writing style:\n    " + writingStyle + "\n    "
     : "";
@@ -169,9 +109,7 @@ ${writingStyleInstruction}
     1. BASIC INFO:
        - title: A catchy, descriptive title in French (e.g., "Robe d'été fleurie Zara")
        - description: Detailed description in French highlighting condition, style, and key features (2-3 sentences)${
-         writingStyle
-           ? " - IMPORTANT: Use the writing style provided above for the description"
-           : ""
+         writingStyle ? " - IMPORTANT: Use the writing style provided above for the description" : ""
        }
        - features: 5 key features or selling points in French
 
@@ -224,49 +162,44 @@ ${writingStyleInstruction}
   `;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const result = await callGeminiProxy(
+      "gemini-2.5-flash",
+      {
         parts: [
-          {
-            inlineData: {
-              mimeType: normalizeMimeType(mimeType),
-              data: normalizeBase64Data(base64Image),
-            },
-          },
+          { inlineData: { mimeType: normalizeMimeType(mimeType), data: normalizeBase64Data(base64Image) } },
           { text: prompt },
         ],
       },
-      config: {
+      {
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
             products: {
-              type: Type.ARRAY,
+              type: "ARRAY",
               items: {
-                type: Type.OBJECT,
+                type: "OBJECT",
                 properties: {
-                  title: { type: Type.STRING },
-                  description: { type: Type.STRING },
-                  features: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  category: { type: Type.STRING },
-                  priceEstimate: { type: Type.STRING },
-                  brand: { type: Type.STRING },
-                  size: { type: Type.STRING },
-                  color: { type: Type.STRING },
-                  material: { type: Type.STRING },
-                  condition: { type: Type.STRING },
-                  gender: { type: Type.STRING },
-                  season: { type: Type.STRING },
-                  suggestedPeriod: { type: Type.STRING },
+                  title: { type: "STRING" },
+                  description: { type: "STRING" },
+                  features: { type: "ARRAY", items: { type: "STRING" } },
+                  category: { type: "STRING" },
+                  priceEstimate: { type: "STRING" },
+                  brand: { type: "STRING" },
+                  size: { type: "STRING" },
+                  color: { type: "STRING" },
+                  material: { type: "STRING" },
+                  condition: { type: "STRING" },
+                  gender: { type: "STRING" },
+                  season: { type: "STRING" },
+                  suggestedPeriod: { type: "STRING" },
                   marketing: {
-                    type: Type.OBJECT,
+                    type: "OBJECT",
                     properties: {
-                      instagramCaption: { type: Type.STRING },
-                      hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      salesEmail: { type: Type.STRING },
-                      seoKeywords: { type: Type.ARRAY, items: { type: Type.STRING } },
+                      instagramCaption: { type: "STRING" },
+                      hashtags: { type: "ARRAY", items: { type: "STRING" } },
+                      salesEmail: { type: "STRING" },
+                      seoKeywords: { type: "ARRAY", items: { type: "STRING" } },
                     },
                   },
                 },
@@ -275,29 +208,19 @@ ${writingStyleInstruction}
             },
           },
         },
-      },
-    });
+      }
+    );
 
-    if (response.text) {
-      const parsed = JSON.parse(response.text);
+    if ('text' in result && result.text) {
+      const parsed = JSON.parse(result.text);
       return parsed.products || [];
     }
     throw new Error("No text response from model");
   } catch (error: any) {
     console.error("Analysis failed:", error);
-
-    if (error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
-      throw new Error(
-        "Quota Gemini dépassé pour l'analyse. Veuillez réessayer plus tard ou activer la facturation sur Google Cloud."
-      );
+    if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
+      throw new Error("Quota Gemini dépassé pour l'analyse. Veuillez réessayer plus tard ou activer la facturation sur Google Cloud.");
     }
-
-    if (error?.message?.includes("API key")) {
-      throw new Error(
-        "Clé API Gemini invalide ou manquante. Vérifiez VITE_GEMINI_API_KEY dans votre fichier .env"
-      );
-    }
-
     throw error;
   }
 };
@@ -308,58 +231,30 @@ export const editProductImage = async (
   instruction: string,
   referenceImages?: { data: string; description: string }[]
 ): Promise<string> => {
-  const model = "gemini-2.5-flash-image";
-
   const enhancedInstruction = instruction + "\n" + HUMAN_IPHONE_CONSTRAINTS + "\nPreserve product details perfectly (logos/text/labels), keep product as focal point, no distortions.";
 
   try {
     const parts: any[] = [
-      {
-        inlineData: {
-          mimeType: normalizeMimeType(mimeType),
-          data: normalizeBase64Data(base64Image),
-        },
-      },
+      { inlineData: { mimeType: normalizeMimeType(mimeType), data: normalizeBase64Data(base64Image) } },
     ];
 
     if (referenceImages && referenceImages.length > 0) {
       for (const refImage of referenceImages) {
         parts.push({ text: refImage.description });
-        parts.push({
-          inlineData: {
-            // NOTE: ideally pass true mimeType per ref; keeping png for compatibility
-            mimeType: "image/png",
-            data: normalizeBase64Data(refImage.data),
-          },
-        });
+        parts.push({ inlineData: { mimeType: "image/png", data: normalizeBase64Data(refImage.data) } });
       }
     }
 
     parts.push({ text: enhancedInstruction });
 
-    return await generateImageWithMeta({
-      model,
-      parts,
-      label: "editProductImage",
-    });
+    return await generateImageWithProxy({ model: "gemini-2.5-flash-image", parts, label: "editProductImage" });
   } catch (error: any) {
     console.error("Editing failed:", error);
-
-    if (error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
-      throw new Error(
-        "Quota Gemini dépassé. L'édition d'images nécessite un compte avec facturation activée sur Google Cloud. Consultez GEMINI_SETUP.md pour plus d'informations."
-      );
+    if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
+      throw new Error("Quota Gemini dépassé. L'édition d'images nécessite un compte avec facturation activée sur Google Cloud.");
     }
-
-    if (error?.message?.includes("API key")) {
-      throw new Error(
-        "Clé API Gemini invalide ou manquante. Vérifiez votre .env (VITE_GEMINI_API_KEY)."
-      );
-    }
-
     const code = String(error?.message || "");
     if (code.startsWith("GEMINI_")) throw buildUserError(code);
-
     throw error;
   }
 };
@@ -368,7 +263,6 @@ async function convertImageUrlToBase64(url: string): Promise<string> {
   try {
     const response = await fetch(url);
     const blob = await response.blob();
-
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -385,29 +279,16 @@ async function convertImageUrlToBase64(url: string): Promise<string> {
 }
 
 export interface Suggestion {
-  field:
-    | "title"
-    | "description"
-    | "price"
-    | "brand"
-    | "size"
-    | "color"
-    | "material"
-    | "condition";
+  field: "title" | "description" | "price" | "brand" | "size" | "color" | "material" | "condition";
   currentValue: string | number;
   suggestedValue: string | number;
   reason: string;
 }
 
-export const parseSuggestionValue = (
-  field: string,
-  value: string | number
-): string | number => {
+export const parseSuggestionValue = (field: string, value: string | number): string | number => {
   if (field === "price") {
     const stringValue = String(value);
-    const numericValue = parseFloat(
-      stringValue.replace(/[^0-9.,]/g, "").replace(",", ".")
-    );
+    const numericValue = parseFloat(stringValue.replace(/[^0-9.,]/g, "").replace(",", "."));
     return isNaN(numericValue) ? "" : numericValue.toString();
   }
   return value;
@@ -418,13 +299,8 @@ export interface CoachAdvice {
   suggestions: Suggestion[];
 }
 
-export const getListingCoachAdvice = async (
-  article: any,
-  activePhoto?: string
-): Promise<string> => {
-  const model = "gemini-2.5-flash";
+export const getListingCoachAdvice = async (article: any, activePhoto?: string): Promise<string> => {
   const photoPrompt = activePhoto ? "\n\nPhoto attached for visual analysis." : "";
-
   const prompt = `You are an expert Vinted sales coach. Analyze this listing and provide actionable advice to improve it and sell faster.
 
 **LISTING DATA:**
@@ -454,7 +330,6 @@ Format your response in French with clear sections using **bold headers** for re
 
     if (activePhoto) {
       let base64Data: string;
-
       if (activePhoto.startsWith("http://") || activePhoto.startsWith("https://")) {
         base64Data = await convertImageUrlToBase64(activePhoto);
       } else if (activePhoto.startsWith("data:")) {
@@ -462,43 +337,23 @@ Format your response in French with clear sections using **bold headers** for re
       } else {
         base64Data = activePhoto;
       }
-
-      parts.unshift({
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: normalizeBase64Data(base64Data),
-        },
-      });
+      parts.unshift({ inlineData: { mimeType: "image/jpeg", data: normalizeBase64Data(base64Data) } });
     }
 
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: { parts },
-    });
-
-    return response.text || "Désolé, je n'ai pas pu analyser votre annonce pour le moment.";
+    const result = await callGeminiProxy("gemini-2.5-flash", { parts });
+    if ('text' in result && result.text) return result.text;
+    return "Désolé, je n'ai pas pu analyser votre annonce pour le moment.";
   } catch (error: any) {
     console.error("Listing coach analysis failed:", error);
-
-    if (error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
+    if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
       throw new Error("Quota Gemini dépassé. Veuillez réessayer plus tard.");
     }
-
-    if (error?.message?.includes("API key")) {
-      throw new Error("Clé API Gemini invalide. Vérifiez votre configuration.");
-    }
-
     throw new Error("Impossible d'analyser l'annonce pour le moment.");
   }
 };
 
-export const getStructuredCoachAdvice = async (
-  article: any,
-  activePhoto?: string
-): Promise<CoachAdvice> => {
-  const model = "gemini-2.5-flash";
+export const getStructuredCoachAdvice = async (article: any, activePhoto?: string): Promise<CoachAdvice> => {
   const photoPrompt = activePhoto ? "\n\nPhoto attached for visual analysis." : "";
-
   const prompt = `Tu es KELLY, une coach de vente EXPERTE sur Vinted avec 8 ans d'experience et plus de 50 000 ventes reussies.
 Tu connais PARFAITEMENT l'algorithme Vinted et les meilleures pratiques SEO marketplace.
 
@@ -527,7 +382,6 @@ IMPORTANT:
 
     if (activePhoto) {
       let base64Data: string;
-
       if (activePhoto.startsWith("http://") || activePhoto.startsWith("https://")) {
         base64Data = await convertImageUrlToBase64(activePhoto);
       } else if (activePhoto.startsWith("data:")) {
@@ -535,59 +389,40 @@ IMPORTANT:
       } else {
         base64Data = activePhoto;
       }
-
-      parts.unshift({
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: normalizeBase64Data(base64Data),
-        },
-      });
+      parts.unshift({ inlineData: { mimeType: "image/jpeg", data: normalizeBase64Data(base64Data) } });
     }
 
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: { parts },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            generalAdvice: { type: Type.STRING },
-            suggestions: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  field: { type: Type.STRING },
-                  currentValue: { type: Type.STRING },
-                  suggestedValue: { type: Type.STRING },
-                  reason: { type: Type.STRING },
-                },
-                required: ["field", "currentValue", "suggestedValue", "reason"],
+    const result = await callGeminiProxy("gemini-2.5-flash", { parts }, {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: "OBJECT",
+        properties: {
+          generalAdvice: { type: "STRING" },
+          suggestions: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                field: { type: "STRING" },
+                currentValue: { type: "STRING" },
+                suggestedValue: { type: "STRING" },
+                reason: { type: "STRING" },
               },
+              required: ["field", "currentValue", "suggestedValue", "reason"],
             },
           },
-          required: ["generalAdvice", "suggestions"],
         },
+        required: ["generalAdvice", "suggestions"],
       },
     });
 
-    if (response.text) {
-      const parsed = JSON.parse(response.text);
-      return parsed;
-    }
+    if ('text' in result && result.text) return JSON.parse(result.text);
     throw new Error("No text response from model");
   } catch (error: any) {
     console.error("Structured coach analysis failed:", error);
-
-    if (error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
+    if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
       throw new Error("Quota Gemini dépassé. Veuillez réessayer plus tard.");
     }
-
-    if (error?.message?.includes("API key")) {
-      throw new Error("Clé API Gemini invalide. Vérifiez votre configuration.");
-    }
-
     throw new Error("Impossible d'analyser l'annonce pour le moment.");
   }
 };
@@ -606,12 +441,7 @@ export interface DefectAnalysis {
   estimatedCondition: string;
 }
 
-export const analyzeDefects = async (
-  base64Image: string,
-  mimeType: string
-): Promise<DefectAnalysis> => {
-  const model = "gemini-2.5-flash";
-
+export const analyzeDefects = async (base64Image: string, mimeType: string): Promise<DefectAnalysis> => {
   const prompt = `Tu es un expert en inspection de vetements d'occasion pour la revente sur Vinted.
 Analyse cette photo de vetement et detecte TOUS les defauts visibles avec precision.
 
@@ -641,63 +471,45 @@ Fournis aussi:
 Si aucun defaut n'est visible, retourne defects=[] et score=10.`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
-        parts: [
-          {
-            inlineData: {
-              mimeType: normalizeMimeType(mimeType),
-              data: normalizeBase64Data(base64Image),
-            },
-          },
-          { text: prompt },
-        ],
-      },
-      config: {
+    const result = await callGeminiProxy(
+      "gemini-2.5-flash",
+      { parts: [{ inlineData: { mimeType: normalizeMimeType(mimeType), data: normalizeBase64Data(base64Image) } }, { text: prompt }] },
+      {
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
-            overallConditionScore: { type: Type.NUMBER },
+            overallConditionScore: { type: "NUMBER" },
             defects: {
-              type: Type.ARRAY,
+              type: "ARRAY",
               items: {
-                type: Type.OBJECT,
+                type: "OBJECT",
                 properties: {
-                  type: { type: Type.STRING },
-                  severity: { type: Type.STRING },
-                  location: { type: Type.STRING },
-                  description: { type: Type.STRING },
-                  impactOnPrice: { type: Type.NUMBER },
+                  type: { type: "STRING" },
+                  severity: { type: "STRING" },
+                  location: { type: "STRING" },
+                  description: { type: "STRING" },
+                  impactOnPrice: { type: "NUMBER" },
                 },
                 required: ["type", "severity", "location", "description", "impactOnPrice"],
               },
             },
-            recommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
-            suggestedDisclosure: { type: Type.STRING },
-            estimatedCondition: { type: Type.STRING },
+            recommendations: { type: "ARRAY", items: { type: "STRING" } },
+            suggestedDisclosure: { type: "STRING" },
+            estimatedCondition: { type: "STRING" },
           },
-          required: [
-            "overallConditionScore",
-            "defects",
-            "recommendations",
-            "suggestedDisclosure",
-            "estimatedCondition",
-          ],
+          required: ["overallConditionScore", "defects", "recommendations", "suggestedDisclosure", "estimatedCondition"],
         },
-      },
-    });
+      }
+    );
 
-    if (response.text) return JSON.parse(response.text);
+    if ('text' in result && result.text) return JSON.parse(result.text);
     throw new Error("No text response from model");
   } catch (error: any) {
     console.error("Defect analysis failed:", error);
-
-    if (error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
+    if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
       throw new Error("Quota Gemini depasse. Veuillez reessayer plus tard.");
     }
-
     throw new Error("Impossible d'analyser les defauts pour le moment.");
   }
 };
@@ -707,8 +519,6 @@ export const generateVirtualTryOn = async (
   mimeType: string,
   gender: "female" | "male" | "neutral" = "female"
 ): Promise<string> => {
-  const model = "gemini-2.5-flash-image";
-
   const genderSubjects = {
     female: "a real adult woman (everyday body, not a model)",
     male: "a real adult man (everyday body, not a model)",
@@ -747,7 +557,6 @@ OUTPUT:
 - Photorealistic casual iPhone-like photo (UGC), item clearly visible.
 `.trim();
 
-  // Fallback prompt: simpler + more “generate-friendly”
   const fallbackPrompt = `
 Create a photorealistic iPhone-like photo of the SAME clothing item being worn by ${genderSubjects[gender]}.
 
@@ -762,47 +571,30 @@ Keep it simple and realistic, like a quick personal photo.
 
   try {
     const partsA = [
-      {
-        inlineData: {
-          mimeType: normalizeMimeType(mimeType),
-          data: normalizeBase64Data(base64Image),
-        },
-      },
+      { inlineData: { mimeType: normalizeMimeType(mimeType), data: normalizeBase64Data(base64Image) } },
       { text: basePrompt },
     ];
 
-    // Attempt A
     try {
-      return await generateImageWithMeta({ model, parts: partsA, label: "virtualTryOn-A" });
+      return await generateImageWithProxy({ model: "gemini-2.5-flash-image", parts: partsA, label: "virtualTryOn-A" });
     } catch (e: any) {
       const code = String(e?.message || "");
-      // Retry only for recoverable cases
       if (code === "GEMINI_IMAGE_OTHER" || code === "GEMINI_BLOCKED_SAFETY" || code === "GEMINI_IMAGE_SAFETY") {
         const partsB = [
-          {
-            inlineData: {
-              mimeType: normalizeMimeType(mimeType),
-              data: normalizeBase64Data(base64Image),
-            },
-          },
+          { inlineData: { mimeType: normalizeMimeType(mimeType), data: normalizeBase64Data(base64Image) } },
           { text: fallbackPrompt },
         ];
-        return await generateImageWithMeta({ model, parts: partsB, label: "virtualTryOn-B" });
+        return await generateImageWithProxy({ model: "gemini-2.5-flash-image", parts: partsB, label: "virtualTryOn-B" });
       }
       throw e;
     }
   } catch (error: any) {
     console.error("Virtual try-on failed:", error);
-
-    if (error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
-      throw new Error(
-        "Quota Gemini depasse. L'essayage virtuel necessite un compte avec facturation activee."
-      );
+    if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
+      throw new Error("Quota Gemini depasse. L'essayage virtuel necessite un compte avec facturation activee.");
     }
-
     const code = String(error?.message || "");
     if (code.startsWith("GEMINI_")) throw buildUserError(code);
-
     throw new Error("Impossible de generer l'essayage virtuel pour le moment.");
   }
 };
@@ -824,21 +616,14 @@ export interface ProactiveInsight {
   actionLabel: string;
   articleIds?: string[];
   articleTitles?: string[];
-  suggestedAction?: {
-    type: string;
-    value: any;
-  };
+  suggestedAction?: { type: string; value: any };
 }
 
-export const optimizeArticleSEO = async (
-  article: any
-): Promise<{
+export const optimizeArticleSEO = async (article: any): Promise<{
   seo_keywords: string[];
   hashtags: string[];
   search_terms: string[];
 }> => {
-  const model = "gemini-2.5-flash";
-
   const prompt = `Tu es un expert SEO pour Vinted. Optimise le référencement de cet article pour maximiser sa visibilité.
 
 ARTICLE:
@@ -860,25 +645,25 @@ RÈGLES:
 - Termes recherchés par des acheteurs FR, variantes, occasions, style.`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: {
+    const result = await callGeminiProxy(
+      "gemini-2.5-flash",
+      [{ parts: [{ text: prompt }] }],
+      {
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
-            seo_keywords: { type: Type.ARRAY, items: { type: Type.STRING } },
-            hashtags: { type: Type.ARRAY, items: { type: Type.STRING } },
-            search_terms: { type: Type.ARRAY, items: { type: Type.STRING } },
+            seo_keywords: { type: "ARRAY", items: { type: "STRING" } },
+            hashtags: { type: "ARRAY", items: { type: "STRING" } },
+            search_terms: { type: "ARRAY", items: { type: "STRING" } },
           },
           required: ["seo_keywords", "hashtags", "search_terms"],
         },
-      },
-    });
+      }
+    );
 
-    if (response.text) {
-      const parsed = JSON.parse(response.text);
+    if ('text' in result && result.text) {
+      const parsed = JSON.parse(result.text);
       return {
         seo_keywords: parsed.seo_keywords || [],
         hashtags: parsed.hashtags || [],
@@ -897,21 +682,10 @@ export const generateProactiveInsights = async (
   soldArticles: any[],
   currentMonth: number
 ): Promise<ProactiveInsight[]> => {
-  const model = "gemini-2.5-flash";
-
   const seasonMap: Record<number, string> = {
-    1: "winter",
-    2: "winter",
-    3: "spring",
-    4: "spring",
-    5: "spring",
-    6: "summer",
-    7: "summer",
-    8: "summer",
-    9: "autumn",
-    10: "autumn",
-    11: "autumn",
-    12: "winter",
+    1: "winter", 2: "winter", 3: "spring", 4: "spring", 5: "spring",
+    6: "summer", 7: "summer", 8: "summer", 9: "autumn", 10: "autumn",
+    11: "autumn", 12: "winter",
   };
   const currentSeason = seasonMap[currentMonth];
   const nextMonthSeason = seasonMap[(currentMonth % 12) + 1];
@@ -939,8 +713,7 @@ export const generateProactiveInsights = async (
     totalSold: soldArticles.length,
     averagePrice:
       soldArticles.length > 0
-        ? soldArticles.reduce((sum, a) => sum + (a.sold_price || a.price), 0) /
-          soldArticles.length
+        ? soldArticles.reduce((sum, a) => sum + (a.sold_price || a.price), 0) / soldArticles.length
         : 0,
     recentSales: soldArticles.filter((a) => {
       const soldDate = new Date(a.sold_at || a.updated_at);
@@ -961,7 +734,7 @@ ${JSON.stringify(articlesSummary, null, 2)}
 
 TYPES D'INSIGHTS DISPONIBLES:
 
-🟢 ACTIONS AUTO-EXECUTABLES (prioritaires) :
+ACTIONS AUTO-EXECUTABLES (prioritaires) :
 1. "ready_to_publish" : Articles brouillons complets (photos, description, prix) à passer en statut "Prêt" pour maximiser les ventes
 2. "ready_to_list" : Articles qui peuvent passer en statut "prêt"
 3. "price_drop" : Baisser le prix d'articles qui ne se vendent pas
@@ -969,7 +742,7 @@ TYPES D'INSIGHTS DISPONIBLES:
 5. "bundle" : Créer un lot avec plusieurs articles similaires
 6. "seo_optimization" : Optimiser mots-clés/hashtags/termes de recherche
 
-🟡 CONSEILS (non auto-exécutables) :
+CONSEILS (non auto-exécutables) :
 1. "seasonal" : Articles à mettre en avant selon la saison
 2. "incomplete" : Articles sans photos/description/infos manquantes
 3. "opportunity" : Opportunités de vente basées sur les tendances
@@ -977,43 +750,37 @@ TYPES D'INSIGHTS DISPONIBLES:
 REGLES CRITIQUES:
 - Maximum 5 insights, priorise ACTIONS AUTO-EXECUTABLES
 - Privilégie "ready_to_publish" si brouillons complets trouvés
-- Pour "ready_to_publish" : le message doit expliquer que l'action va passer les articles en statut "Prêt" pour être publiés et maximiser les ventes
 - Pour "ready_to_publish" : actionLabel doit être "Passer en Prêt"
-- Pour autres types : actionLabel doit être un verbe d'action ("Créer le lot", "Baisser de 10%", etc.)
 - priority: "high" pour urgent, "medium" pour important, "low" pour conseil simple
 
-⚠️ REGLE IMPORTANTE POUR OPTIMISATION DE PRIX:
-- NE suggère une optimisation de prix (price_drop ou price_optimization) que SI l'écart entre le prix optimal recommandé (optimal_price) et le prix actuel (price) est SUPERIEUR à 10%
-- Calcul: écart = abs(optimal_price - price) / price * 100
-- Si écart <= 10%, NE PAS suggérer d'optimisation de prix
-- Exemple: prix actuel 20€, prix optimal 18€ → écart = 10% → NE PAS suggérer
-- Exemple: prix actuel 20€, prix optimal 16€ → écart = 20% → SUGGERER`;
+REGLE IMPORTANTE POUR OPTIMISATION DE PRIX:
+- NE suggère une optimisation de prix que SI l'écart entre optimal_price et price est SUPERIEUR à 10%`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: [{ parts: [{ text: prompt }] }],
-      config: {
+    const result = await callGeminiProxy(
+      "gemini-2.5-flash",
+      [{ parts: [{ text: prompt }] }],
+      {
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
             insights: {
-              type: Type.ARRAY,
+              type: "ARRAY",
               items: {
-                type: Type.OBJECT,
+                type: "OBJECT",
                 properties: {
-                  type: { type: Type.STRING },
-                  priority: { type: Type.STRING },
-                  title: { type: Type.STRING },
-                  message: { type: Type.STRING },
-                  actionLabel: { type: Type.STRING },
-                  articleIds: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  type: { type: "STRING" },
+                  priority: { type: "STRING" },
+                  title: { type: "STRING" },
+                  message: { type: "STRING" },
+                  actionLabel: { type: "STRING" },
+                  articleIds: { type: "ARRAY", items: { type: "STRING" } },
                   suggestedAction: {
-                    type: Type.OBJECT,
+                    type: "OBJECT",
                     properties: {
-                      type: { type: Type.STRING },
-                      value: { type: Type.STRING },
+                      type: { type: "STRING" },
+                      value: { type: "STRING" },
                     },
                   },
                 },
@@ -1023,11 +790,11 @@ REGLES CRITIQUES:
           },
           required: ["insights"],
         },
-      },
-    });
+      }
+    );
 
-    if (response.text) {
-      const parsed = JSON.parse(response.text);
+    if ('text' in result && result.text) {
+      const parsed = JSON.parse(result.text);
       return parsed.insights || [];
     }
     return [];
@@ -1038,51 +805,35 @@ REGLES CRITIQUES:
 };
 
 export const generateSpeech = async (text: string): Promise<ArrayBuffer> => {
-  const model = "gemini-2.5-flash-preview-tts";
-
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: [{ parts: [{ text }] }],
-      config: {
+    const result = await callGeminiProxy(
+      "gemini-2.5-flash-preview-tts",
+      [{ parts: [{ text }] }],
+      {
         responseModalities: ["AUDIO"],
         speechConfig: {
           voiceConfig: {
-            prebuiltVoiceConfig: {
-              voiceName: "Kore",
-            },
+            prebuiltVoiceConfig: { voiceName: "Kore" },
           },
         },
-      },
-    });
-
-    const parts = response.candidates?.[0]?.content?.parts;
-    if (parts) {
-      for (const part of parts) {
-        if (part.inlineData && part.inlineData.data) {
-          const base64Data = part.inlineData.data;
-          const binaryString = atob(base64Data);
-          const bytes = new Uint8Array(binaryString.length);
-          for (let i = 0; i < binaryString.length; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
-          return bytes.buffer;
-        }
       }
+    );
+
+    if ('audioData' in result && result.audioData) {
+      const binaryString = atob(result.audioData);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      return bytes.buffer;
     }
 
     throw new Error("No audio data found in response");
   } catch (error: any) {
     console.error("Speech generation failed:", error);
-
-    if (error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
+    if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
       throw new Error("Quota Gemini dépassé pour la synthèse vocale. Veuillez réessayer plus tard.");
     }
-
-    if (error?.message?.includes("API key")) {
-      throw new Error("Clé API Gemini invalide. Vérifiez votre configuration.");
-    }
-
     throw error;
   }
 };
@@ -1101,8 +852,6 @@ export const generatePoseVariation = async (
   mimeType: string,
   poseInstruction: string
 ): Promise<string> => {
-  const model = "gemini-2.5-flash-image";
-
   const prompt = `
 Regenerate this image from a different perspective. The person, clothing, and background style must remain consistent.
 New perspective/pose: "${poseInstruction}".
@@ -1121,32 +870,17 @@ Return ONLY the final image.
 
   try {
     const parts = [
-      {
-        inlineData: {
-          mimeType: normalizeMimeType(mimeType),
-          data: normalizeBase64Data(base64Image),
-        },
-      },
+      { inlineData: { mimeType: normalizeMimeType(mimeType), data: normalizeBase64Data(base64Image) } },
       { text: prompt },
     ];
-
-    return await generateImageWithMeta({ model, parts, label: "poseVariation" });
+    return await generateImageWithProxy({ model: "gemini-2.5-flash-image", parts, label: "poseVariation" });
   } catch (error: any) {
     console.error("Pose variation generation failed:", error);
-
-    if (error?.message?.includes("quota") || error?.message?.includes("RESOURCE_EXHAUSTED")) {
-      throw new Error(
-        "Quota Gemini dépassé. La génération de variations de pose nécessite un compte avec facturation activée."
-      );
+    if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
+      throw new Error("Quota Gemini dépassé. La génération de variations de pose nécessite un compte avec facturation activée.");
     }
-
-    if (error?.message?.includes("API key")) {
-      throw new Error("Clé API Gemini invalide. Vérifiez votre configuration.");
-    }
-
     const code = String(error?.message || "");
     if (code.startsWith("GEMINI_")) throw buildUserError(code);
-
     throw new Error("Impossible de generer la variation de pose pour le moment.");
   }
 };

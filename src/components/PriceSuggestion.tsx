@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, CheckCircle2, Sparkles, AlertCircle } from 'lucide-react';
-import { GoogleGenAI } from '@google/genai';
+import { callGeminiProxy } from '../lib/geminiProxy';
 
 interface PriceSuggestionProps {
   brand?: string;
@@ -21,21 +21,11 @@ export interface PricingData {
   confidence: number;
 }
 
-function getAI() {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('VITE_GEMINI_API_KEY is not configured');
-  }
-  return new GoogleGenAI({ apiKey });
-}
-
 async function getPriceSuggestion(
   brand: string,
   title: string,
   condition: string
 ): Promise<PricingData> {
-  const ai = getAI();
-
   const prompt = `Tu es un expert pricing pour Vinted. Analyse et suggère un prix optimal pour cet article:
 
 Titre: ${title}
@@ -55,17 +45,13 @@ Réponds en JSON strict:
 
 Génère maintenant:`;
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: prompt,
-    config: {
-      responseMimeType: 'application/json',
-      temperature: 0.7,
-    },
+  const result = await callGeminiProxy('gemini-2.5-flash', prompt, {
+    responseMimeType: 'application/json',
+    temperature: 0.7,
   });
 
-  const result = response.text;
-  return JSON.parse(result);
+  if (!('text' in result) || !result.text) throw new Error('No response from model');
+  return JSON.parse(result.text);
 }
 
 export function PriceSuggestion({

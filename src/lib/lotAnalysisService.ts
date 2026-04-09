@@ -1,18 +1,5 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { Article } from "../types/article";
-
-let ai: GoogleGenAI | null = null;
-
-const getAI = () => {
-  if (!ai) {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("VITE_GEMINI_API_KEY is not configured");
-    }
-    ai = new GoogleGenAI({ apiKey });
-  }
-  return ai;
-};
+import { callGeminiProxy } from "./geminiProxy";
 
 export interface LotAnalysisResult {
   title: string;
@@ -132,38 +119,27 @@ Génère :
 Réponds TOUJOURS en français.`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
-        parts: [{ text: prompt }]
-      },
-      config: {
+    const response = await callGeminiProxy(
+      model,
+      { parts: [{ text: prompt }] },
+      {
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           properties: {
-            title: { type: Type.STRING },
-            description: { type: Type.STRING },
-            seo_keywords: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            },
-            hashtags: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            },
-            search_terms: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING }
-            },
-            ai_confidence_score: { type: Type.NUMBER }
+            title: { type: "STRING" },
+            description: { type: "STRING" },
+            seo_keywords: { type: "ARRAY", items: { type: "STRING" } },
+            hashtags: { type: "ARRAY", items: { type: "STRING" } },
+            search_terms: { type: "ARRAY", items: { type: "STRING" } },
+            ai_confidence_score: { type: "NUMBER" }
           },
           required: ["title", "description", "seo_keywords", "hashtags", "search_terms", "ai_confidence_score"]
         }
       }
-    });
+    );
 
-    if (response.text) {
+    if ('text' in response && response.text) {
       const parsed = JSON.parse(response.text);
       let confidenceScore = parsed.ai_confidence_score || 0;
       if (confidenceScore > 0 && confidenceScore <= 1) {

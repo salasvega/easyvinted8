@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { Article } from '../types/article';
 import { Lot } from '../types/lot';
-import { GoogleGenAI } from '@google/genai';
+import { callGeminiProxy } from './geminiProxy';
 
 export type PlanningInsightType =
   | 'seasonal_peak'        // Période de saison idéale
@@ -78,13 +78,6 @@ const MIN_GAIN_FOR_SUGGESTION_EUR = 3;
 const MIN_TIME_WINDOW_FOR_URGENCY_DAYS = 7;
 const MIN_ARTICLES_FOR_BUNDLE = 3;
 
-function getAI() {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('VITE_GEMINI_API_KEY is not configured');
-  }
-  return new GoogleGenAI({ apiKey });
-}
 
 function shouldSuggestPriceAdjustment(currentPrice: number, suggestedPrice: number): boolean {
   const diff = Math.abs(suggestedPrice - currentPrice);
@@ -429,21 +422,18 @@ async function generateInsightsWithAI(
   userHistory: UserHistory
 ): Promise<PlanningInsight[]> {
   try {
-    const ai = getAI();
     const currentDate = new Date().toISOString();
     const prompt = buildPlanningAnalysisPrompt(readyArticles, readyLots, userHistory, currentDate);
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        temperature: 0.7,
-      },
+    const response = await callGeminiProxy('gemini-2.5-flash', prompt, {
+      responseMimeType: 'application/json',
+      temperature: 0.7,
     });
 
-    const result = response.text;
-    const parsed = JSON.parse(result);
+    if (!('text' in response) || !response.text) {
+      throw new Error('No text response from model');
+    }
+    const parsed = JSON.parse(response.text);
 
     const rawInsights = parsed.insights.map((insight: any) => {
       const normalizedInsight = {

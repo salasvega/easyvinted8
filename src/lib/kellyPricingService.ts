@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { Article } from '../types/article';
-import { GoogleGenAI } from '@google/genai';
+import { callGeminiProxy } from './geminiProxy';
 
 export type PricingInsightType =
   | 'overpriced'
@@ -51,13 +51,6 @@ function getOptimizationThreshold(price: number): number {
   }
 }
 
-function getAI() {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error('VITE_GEMINI_API_KEY is not configured');
-  }
-  return new GoogleGenAI({ apiKey });
-}
 
 interface MarketStats {
   brand: string;
@@ -183,20 +176,17 @@ async function generatePricingInsightsWithAI(
   marketStats: MarketStats[]
 ): Promise<PricingInsight[]> {
   try {
-    const ai = getAI();
     const prompt = buildPricingAnalysisPrompt(articles, userSoldArticles, marketStats);
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        temperature: 0.7,
-      },
+    const response = await callGeminiProxy('gemini-2.5-flash', prompt, {
+      responseMimeType: 'application/json',
+      temperature: 0.7,
     });
 
-    const result = response.text;
-    const parsed = JSON.parse(result);
+    if (!('text' in response) || !response.text) {
+      throw new Error('No text response from model');
+    }
+    const parsed = JSON.parse(response.text);
 
     const now = new Date();
     const expiresAt = new Date(now.getTime() + CACHE_DURATION_MINUTES * 60 * 1000);

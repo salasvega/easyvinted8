@@ -1,4 +1,5 @@
 import { ParsedCommand } from '../types/taskQueue';
+import { callOpenAIProxy } from './geminiProxy';
 
 const SYSTEM_PROMPT = `
 Tu es un assistant de commande pour l'application EasyVinted.
@@ -46,33 +47,15 @@ draft, ready, scheduled, published, sold, vinted_draft, reserved
 `.trim();
 
 export async function parseUserInstruction(input: string): Promise<ParsedCommand> {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  if (!apiKey) throw new Error('VITE_OPENAI_API_KEY non configuré');
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      temperature: 0.1,
-      max_tokens: 300,
-      messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: input },
-      ],
-    }),
-  });
-
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`OpenAI erreur ${response.status}: ${err}`);
-  }
-
-  const json = await response.json();
-  const raw = json.choices?.[0]?.message?.content ?? '';
+  const raw = await callOpenAIProxy(
+    'gpt-4o-mini',
+    [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: input },
+    ],
+    0.1,
+    300
+  );
 
   try {
     return JSON.parse(raw) as ParsedCommand;
