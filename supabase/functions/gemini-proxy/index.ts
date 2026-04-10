@@ -44,7 +44,7 @@ Deno.serve(async (req: Request) => {
       .eq("id", user.id)
       .maybeSingle();
 
-    const GEMINI_API_KEY = userProfile?.gemini_api_key || SERVER_GEMINI_API_KEY;
+    const GEMINI_API_KEY = userProfile?.gemini_api_key;
 
     if (!GEMINI_API_KEY) {
       return new Response(
