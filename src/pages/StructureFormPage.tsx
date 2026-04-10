@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Copy, CheckCircle, ArrowLeft, ShoppingBag } from 'lucide-react';
+import { Copy, CheckCircle, ArrowLeft, ShoppingBag, ExternalLink } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Toast } from '../components/ui/Toast';
 import { supabase } from '../lib/supabase';
@@ -214,7 +214,18 @@ export function StructureFormPage() {
       </div>
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-        <h2 className="font-semibold text-blue-900 mb-2">Mode d'emploi</h2>
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <h2 className="font-semibold text-blue-900">Mode d'emploi</h2>
+          <a
+            href="https://www.vinted.fr/items/new"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            Publier sur Vinted
+          </a>
+        </div>
         <ol className="list-decimal list-inside space-y-1 text-blue-800 text-sm">
           <li>Ouvrez Vinted dans un nouvel onglet (et identifiez vous si besoin)</li>
           <li className="ml-4 italic">
