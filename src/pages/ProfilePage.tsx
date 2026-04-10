@@ -261,7 +261,7 @@ export function ProfilePage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Modifier le mot de passe</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Modifier mon mot de passe Easyvinted</h2>
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div>
