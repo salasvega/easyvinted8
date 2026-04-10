@@ -149,6 +149,12 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
   ): Promise<{ success: boolean; message: string }> => {
     const titleFilter = parsed.article_title;
 
+    const supaErrMsg = (e: unknown): string => {
+      if (!e) return 'Erreur inconnue';
+      if (typeof e === 'object' && 'message' in e) return String((e as { message: unknown }).message);
+      return JSON.stringify(e);
+    };
+
     switch (parsed.command_type) {
       case 'change_status': {
         if (!titleFilter || !parsed.params?.target_status) {
@@ -158,7 +164,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           .from('articles')
           .update({ status: parsed.params.target_status })
           .ilike('title', `%${titleFilter}%`);
-        if (error) throw error;
+        if (error) return { success: false, message: supaErrMsg(error) };
         return { success: true, message: `Statut mis à jour → ${parsed.params.target_status}` };
       }
 
@@ -174,7 +180,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           .from('articles')
           .update(updateData)
           .ilike('title', `%${titleFilter}%`);
-        if (error) throw error;
+        if (error) return { success: false, message: supaErrMsg(error) };
         const parts = [`Prix mis à jour → ${parsed.params.new_price}€`];
         if (parsed.params?.target_status) parts.push(`Statut → ${parsed.params.target_status}`);
         return { success: true, message: parts.join(' · ') };
@@ -188,7 +194,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           .from('articles')
           .update({ condition: parsed.params.new_condition })
           .ilike('title', `%${titleFilter}%`);
-        if (error) throw error;
+        if (error) return { success: false, message: supaErrMsg(error) };
         return { success: true, message: `État mis à jour → ${parsed.params.new_condition}` };
       }
 
@@ -200,7 +206,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           .from('articles')
           .update({ season: parsed.params.new_season })
           .ilike('title', `%${titleFilter}%`);
-        if (error) throw error;
+        if (error) return { success: false, message: supaErrMsg(error) };
         return { success: true, message: `Saison mise à jour → ${parsed.params.new_season}` };
       }
 
@@ -216,7 +222,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           .from('articles')
           .update(updateData)
           .ilike('title', `%${titleFilter}%`);
-        if (error) throw error;
+        if (error) return { success: false, message: supaErrMsg(error) };
         const parts = ['Article marqué vendu'];
         if (parsed.params?.sold_price != null) parts.push(`à ${parsed.params.sold_price}€`);
         if (parsed.params?.buyer_name) parts.push(`pour ${parsed.params.buyer_name}`);
@@ -231,7 +237,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           .from('articles')
           .update(updateData)
           .ilike('title', `%${titleFilter}%`);
-        if (error) throw error;
+        if (error) return { success: false, message: supaErrMsg(error) };
         return {
           success: true,
           message: `Article réservé${parsed.params?.buyer_name ? ` pour ${parsed.params.buyer_name}` : ''}`,
@@ -246,7 +252,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           .from('articles')
           .update({ status: 'scheduled', scheduled_for: parsed.params.scheduled_date })
           .ilike('title', `%${titleFilter}%`);
-        if (error) throw error;
+        if (error) return { success: false, message: supaErrMsg(error) };
         return {
           success: true,
           message: `Article programmé pour le ${new Date(parsed.params.scheduled_date).toLocaleDateString('fr-FR')}`,
@@ -262,7 +268,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           query = query.eq('status', parsed.params.target_status_filter);
         }
         const { data, count, error } = await query;
-        if (error) throw error;
+        if (error) return { success: false, message: supaErrMsg(error) };
         const statusLabel = parsed.params?.target_status_filter
           ? ` "${parsed.params.target_status_filter}"`
           : '';
@@ -284,7 +290,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           .from('articles')
           .update({ publish_mode: parsed.params.publish_mode })
           .ilike('title', `%${titleFilter}%`);
-        if (error) throw error;
+        if (error) return { success: false, message: supaErrMsg(error) };
         return { success: true, message: `Mode de publication → ${parsed.params.publish_mode}` };
       }
 
@@ -351,7 +357,12 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
             return;
           }
         } catch (execErr) {
-          const errMsg = execErr instanceof Error ? execErr.message : String(execErr);
+          const errMsg =
+            execErr instanceof Error
+              ? execErr.message
+              : typeof execErr === 'object' && execErr !== null && 'message' in execErr
+              ? String((execErr as { message: unknown }).message)
+              : JSON.stringify(execErr);
           await updateTaskStatus(taskRow.id, 'error', errMsg);
           taskRow = { ...taskRow, status: 'error', result_message: errMsg };
         }
@@ -373,12 +384,18 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
 
       setTasks(prev => [taskRow, ...prev.slice(0, 19)]);
     } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : typeof err === 'object' && err !== null && 'message' in err
+          ? String((err as { message: unknown }).message)
+          : JSON.stringify(err);
       setMessages(prev => [
         ...prev,
         {
           id: `err-${Date.now()}`,
           role: 'error',
-          content: `Erreur : ${err instanceof Error ? err.message : String(err)}`,
+          content: `Erreur : ${msg}`,
           timestamp: new Date().toISOString(),
         },
       ]);

@@ -7,7 +7,15 @@ export type CommandType =
   | 'list_articles'
   | 'publish_all_ready_draft'
   | 'publish_all_ready_live'
-  | 'change_status';
+  | 'change_status'
+  | 'update_price'
+  | 'update_condition'
+  | 'update_season'
+  | 'mark_sold'
+  | 'mark_reserved'
+  | 'schedule_article'
+  | 'count_articles'
+  | 'update_publish_mode';
 
 export type TaskStatus = 'pending' | 'running' | 'done' | 'error';
 
@@ -34,6 +42,13 @@ export interface ParsedCommand {
   params: {
     target_status?: string;
     publish_mode?: 'draft' | 'live';
+    new_price?: number;
+    new_condition?: string;
+    new_season?: string;
+    sold_price?: number;
+    buyer_name?: string;
+    scheduled_date?: string;
+    target_status_filter?: string;
   };
   confidence: number;
   error?: string;
