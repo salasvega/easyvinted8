@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   Copy, RefreshCw, Zap, ChevronDown, ChevronUp,
   Package, ShoppingBag, Calendar, CheckCircle2,
@@ -141,7 +141,7 @@ export default function AgentRunnerPage() {
   const [customInstructions, setCustomInstructions] = useState<string>('');
   const [copied, setCopied] = useState(false);
 
-  async function pollTasks() {
+  const pollTasks = useCallback(async () => {
     if (!session?.access_token) return;
     setPolling(true);
     try {
@@ -156,54 +156,57 @@ export default function AgentRunnerPage() {
     } finally {
       setPolling(false);
     }
-  }
+  }, [session?.access_token]);
 
   useEffect(() => {
     pollTasks();
-  }, [session?.access_token]);
+  }, [pollTasks]);
 
-  const allItems: ReadyItem[] = pollResult ? [
-    ...(pollResult.ready_articles ?? []).map((a) => ({
-      id: a.id as string,
-      type: 'article' as const,
-      title: a.title as string,
-      price: a.price as number,
-      status: a.status as string,
-      brand: a.brand as string | undefined,
-      size: a.size as string | undefined,
-      isOverdue: false,
-    })),
-    ...(pollResult.ready_lots ?? []).map((l) => ({
-      id: l.id as string,
-      type: 'lot' as const,
-      title: l.name as string,
-      price: l.price as number,
-      status: l.status as string,
-      reference_number: l.reference_number as string | undefined,
-      isOverdue: false,
-    })),
-    ...(pollResult.overdue_scheduled_articles ?? []).map((a) => ({
-      id: a.id as string,
-      type: 'article' as const,
-      title: a.title as string,
-      price: a.price as number,
-      status: a.status as string,
-      scheduled_for: a.scheduled_for as string | null,
-      brand: a.brand as string | undefined,
-      size: a.size as string | undefined,
-      isOverdue: true,
-    })),
-    ...(pollResult.overdue_scheduled_lots ?? []).map((l) => ({
-      id: l.id as string,
-      type: 'lot' as const,
-      title: l.name as string,
-      price: l.price as number,
-      status: l.status as string,
-      scheduled_for: l.scheduled_for as string | null,
-      reference_number: l.reference_number as string | undefined,
-      isOverdue: true,
-    })),
-  ] : [];
+  const allItems = useMemo<ReadyItem[]>(() => {
+    if (!pollResult) return [];
+    return [
+      ...(pollResult.ready_articles ?? []).map((a) => ({
+        id: a.id as string,
+        type: 'article' as const,
+        title: a.title as string,
+        price: a.price as number,
+        status: a.status as string,
+        brand: a.brand as string | undefined,
+        size: a.size as string | undefined,
+        isOverdue: false,
+      })),
+      ...(pollResult.ready_lots ?? []).map((l) => ({
+        id: l.id as string,
+        type: 'lot' as const,
+        title: l.name as string,
+        price: l.price as number,
+        status: l.status as string,
+        reference_number: l.reference_number as string | undefined,
+        isOverdue: false,
+      })),
+      ...(pollResult.overdue_scheduled_articles ?? []).map((a) => ({
+        id: a.id as string,
+        type: 'article' as const,
+        title: a.title as string,
+        price: a.price as number,
+        status: a.status as string,
+        scheduled_for: a.scheduled_for as string | null,
+        brand: a.brand as string | undefined,
+        size: a.size as string | undefined,
+        isOverdue: true,
+      })),
+      ...(pollResult.overdue_scheduled_lots ?? []).map((l) => ({
+        id: l.id as string,
+        type: 'lot' as const,
+        title: l.name as string,
+        price: l.price as number,
+        status: l.status as string,
+        scheduled_for: l.scheduled_for as string | null,
+        reference_number: l.reference_number as string | undefined,
+        isOverdue: true,
+      })),
+    ];
+  }, [pollResult]);
 
   const toggleMode = useCallback((itemId: string) => {
     setItemModes(prev => ({
@@ -212,15 +215,20 @@ export default function AgentRunnerPage() {
     }));
   }, []);
 
-  const setAllModes = (mode: PublishMode) => {
+  const setAllModes = useCallback((mode: PublishMode) => {
     const newModes: ItemModeMap = {};
     allItems.forEach(item => { newModes[item.id] = mode; });
     setItemModes(newModes);
-  };
+  }, [allItems]);
 
-  const getMode = (itemId: string): PublishMode => itemModes[itemId] ?? 'draft';
+  const getMode = useCallback((itemId: string): PublishMode => itemModes[itemId] ?? 'draft', [itemModes]);
 
-  const generateInstructions = () => {
+  const { draftCount, liveCount } = useMemo(() => ({
+    draftCount: allItems.filter(i => (itemModes[i.id] ?? 'draft') === 'draft').length,
+    liveCount: allItems.filter(i => (itemModes[i.id] ?? 'draft') === 'live').length,
+  }), [allItems, itemModes]);
+
+  const generateInstructions = useCallback(() => {
     if (!pollResult) return;
     const instructions = buildCustomInstructions(
       allItems,
@@ -230,16 +238,13 @@ export default function AgentRunnerPage() {
     );
     setCustomInstructions(instructions);
     setShowInstructions(true);
-  };
+  }, [pollResult, allItems, itemModes]);
 
-  async function copyText(text: string) {
+  const copyText = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }
-
-  const draftCount = allItems.filter(i => getMode(i.id) === 'draft').length;
-  const liveCount = allItems.filter(i => getMode(i.id) === 'live').length;
+  }, []);
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
