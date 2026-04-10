@@ -47,8 +47,9 @@ function buildCustomInstructions(
 ): string {
   const lines: string[] = [];
 
-  const draftItems = items.filter(i => itemModes[i.id] === 'draft');
-  const liveItems = items.filter(i => itemModes[i.id] === 'live');
+  const getItemMode = (id: string): PublishMode => itemModes[id] ?? 'draft';
+  const draftItems = items.filter(i => getItemMode(i.id) === 'draft');
+  const liveItems = items.filter(i => getItemMode(i.id) === 'live');
 
   lines.push('# INSTRUCTIONS POUR L\'AGENT EASYVINTED');
   lines.push('');
@@ -217,7 +218,7 @@ export default function AgentRunnerPage() {
     setItemModes(newModes);
   };
 
-  const getMode = (itemId: string): PublishMode => itemModes[itemId] ?? 'live';
+  const getMode = (itemId: string): PublishMode => itemModes[itemId] ?? 'draft';
 
   const generateInstructions = () => {
     if (!pollResult) return;
