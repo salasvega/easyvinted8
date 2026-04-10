@@ -4,6 +4,8 @@ export interface UserProfile {
   name: string;
   persona_id: string;
   writing_style: string;
+  vinted_email?: string;
+  vinted_password?: string;
 }
 
 export interface FamilyMember {

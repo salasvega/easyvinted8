@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil } from 'lucide-react';
+import { Pencil, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Toast } from '../components/ui/Toast';
 import { supabase } from '../lib/supabase';
@@ -22,7 +22,12 @@ export function ProfilePage() {
     name: '',
     persona_id: 'vinted_expert',
     writing_style: '',
+    vinted_email: '',
+    vinted_password: '',
   });
+
+  const [showVintedPassword, setShowVintedPassword] = useState(false);
+  const [savingVintedCredentials, setSavingVintedCredentials] = useState(false);
 
   const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
   const [customPersonaData, setCustomPersonaData] = useState<CustomPersonaData | null>(null);
@@ -39,6 +44,8 @@ export function ProfilePage() {
         name: profileData.name || '',
         persona_id: profileData.persona_id || 'vinted_expert',
         writing_style: profileData.writing_style || '',
+        vinted_email: (profileData as any).vinted_email || '',
+        vinted_password: (profileData as any).vinted_password || '',
       });
     }
   }, [profileData]);
@@ -56,6 +63,27 @@ export function ProfilePage() {
     } catch (error) {
       console.error('Error saving profile:', error);
       setToast({ type: 'error', text: 'Erreur lors de l\'enregistrement du profil' });
+    }
+  };
+
+  const handleVintedCredentialsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setSavingVintedCredentials(true);
+    setToast(null);
+
+    try {
+      await profileMutation.mutateAsync({
+        vinted_email: profile.vinted_email,
+        vinted_password: profile.vinted_password,
+      });
+      setToast({ type: 'success', text: 'Identifiants Vinted enregistrés' });
+    } catch (error) {
+      console.error('Error saving Vinted credentials:', error);
+      setToast({ type: 'error', text: 'Erreur lors de l\'enregistrement' });
+    } finally {
+      setSavingVintedCredentials(false);
     }
   };
 
@@ -174,6 +202,63 @@ export function ProfilePage() {
           </form>
         </div>
 
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Mes identifiants Vinted</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Optionnel — utilisés pour la publication automatique</p>
+            </div>
+            <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Optionnel</span>
+          </div>
+
+          <form onSubmit={handleVintedCredentialsSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="vinted_email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email Vinted
+              </label>
+              <input
+                type="email"
+                id="vinted_email"
+                value={profile.vinted_email || ''}
+                onChange={(e) => setProfile({ ...profile, vinted_email: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                placeholder="votre@email.com"
+                autoComplete="off"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="vinted_password" className="block text-sm font-medium text-gray-700 mb-1">
+                Mot de passe Vinted
+              </label>
+              <div className="relative">
+                <input
+                  type={showVintedPassword ? 'text' : 'password'}
+                  id="vinted_password"
+                  value={profile.vinted_password || ''}
+                  onChange={(e) => setProfile({ ...profile, vinted_password: e.target.value })}
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  placeholder="Votre mot de passe Vinted"
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowVintedPassword(!showVintedPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showVintedPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button type="submit" disabled={savingVintedCredentials}>
+                {savingVintedCredentials ? 'Enregistrement...' : 'Enregistrer'}
+              </Button>
+            </div>
+          </form>
+        </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-4">Modifier le mot de passe</h2>
