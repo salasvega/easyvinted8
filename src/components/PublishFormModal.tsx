@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Copy, CheckCircle, ShoppingBag, Package } from 'lucide-react';
+import { X, Copy, CheckCircle, ShoppingBag, Package, ExternalLink } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Toast } from './ui/Toast';
 import { supabase } from '../lib/supabase';
@@ -188,11 +188,20 @@ export function PublishFormModal({ isOpen, onClose, itemId, itemType, onPublishe
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start justify-between gap-4">
             <p className="text-sm text-blue-800">
               Copiez les informations ci-dessous et collez-les dans le formulaire Vinted.
               Une fois publié sur Vinted, cliquez sur "Marquer comme publié" en bas de page.
             </p>
+            <a
+              href="https://www.vinted.fr/items/new"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors whitespace-nowrap"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Publier sur Vinted
+            </a>
           </div>
 
           {itemType === 'article' ? (
