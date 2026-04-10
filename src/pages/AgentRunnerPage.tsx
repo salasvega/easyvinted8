@@ -80,7 +80,7 @@ type PollResult = {
 function buildCustomInstructions(
   items: ReadyItem[],
   itemModes: ItemModeMap,
-  runnerEndpoint: string,
+  _runnerEndpoint: string,
   pendingCount: number
 ): string {
   const lines: string[] = [];
@@ -89,83 +89,49 @@ function buildCustomInstructions(
   const draftItems = items.filter(i => getItemMode(i.id) === 'draft');
   const liveItems = items.filter(i => getItemMode(i.id) === 'live');
 
-  lines.push('# INSTRUCTIONS POUR L\'AGENT EASYVINTED');
-  lines.push('');
-  lines.push(`Runner endpoint: ${runnerEndpoint}`);
-  lines.push(`Header requis: Authorization: Bearer <user_jwt>`);
-  lines.push('');
-
   if (pendingCount > 0) {
-    lines.push(`⚠️  ${pendingCount} tâche(s) en file d'attente — à exécuter en priorité.`);
+    lines.push(`Il y a ${pendingCount} tâche(s) en file d'attente — traite-les en priorité avant de commencer.`);
     lines.push('');
   }
 
-  lines.push(`## RÉSUMÉ DE LA SESSION`);
-  lines.push(`- Total items à traiter : ${items.length}`);
-  lines.push(`- À sauvegarder en brouillon Vinted : ${draftItems.length}`);
-  lines.push(`- À mettre en vente sur Vinted : ${liveItems.length}`);
-  lines.push('');
+  const parts: string[] = [];
 
   if (liveItems.length > 0) {
-    lines.push('## ITEMS À METTRE EN VENTE (publish_mode: live)');
-    lines.push('Pour chaque item ci-dessous, tu dois :');
-    lines.push('1. Ouvrir Vinted et créer l\'annonce');
-    lines.push('2. Remplir tous les champs (titre, description, prix, photos, taille, marque, état, catégorie)');
-    lines.push('3. Cliquer sur "Mettre en vente" (PAS "Enregistrer en brouillon")');
-    lines.push('4. Appeler le runner avec command_type: "change_status", target_status: "published"');
-    lines.push('');
-
-    liveItems.forEach((item, i) => {
-      lines.push(`### [LIVE ${i + 1}] ${item.type === 'lot' ? 'LOT' : 'ARTICLE'}: ${item.title}`);
-      lines.push(`- id: ${item.id}`);
-      lines.push(`- prix: ${item.price}€`);
-      if (item.brand) lines.push(`- marque: ${item.brand}`);
-      if (item.size) lines.push(`- taille: ${item.size}`);
-      if (item.reference_number) lines.push(`- référence: ${item.reference_number}`);
-      if (item.isOverdue && item.scheduled_for) lines.push(`- ⚠️  planifié pour: ${item.scheduled_for} (dépassé)`);
-      lines.push(`- Action après publication: POST ${runnerEndpoint}`);
-      lines.push(`  Body: { "command_type": "change_status", "article_id": "${item.id}", "params": { "target_status": "published" } }`);
-      lines.push('');
+    const names = liveItems.map(i => {
+      let label = i.title;
+      if (i.reference_number) label += ` (#${i.reference_number})`;
+      if (i.isOverdue) label += ' [EN RETARD]';
+      return label;
     });
+    if (liveItems.length === 1) {
+      parts.push(`publie en live : ${names[0]}`);
+    } else {
+      parts.push(`publie en live : ${names.join(', ')}`);
+    }
   }
 
   if (draftItems.length > 0) {
-    lines.push('## ITEMS À SAUVEGARDER EN BROUILLON (publish_mode: draft)');
-    lines.push('Pour chaque item ci-dessous, tu dois :');
-    lines.push('1. Ouvrir Vinted et créer l\'annonce');
-    lines.push('2. Remplir tous les champs (titre, description, prix, photos, taille, marque, état, catégorie)');
-    lines.push('3. Cliquer sur "Enregistrer en brouillon" (PAS "Mettre en vente")');
-    lines.push('4. Appeler le runner avec command_type: "change_status", target_status: "vinted_draft"');
-    lines.push('');
-
-    draftItems.forEach((item, i) => {
-      lines.push(`### [DRAFT ${i + 1}] ${item.type === 'lot' ? 'LOT' : 'ARTICLE'}: ${item.title}`);
-      lines.push(`- id: ${item.id}`);
-      lines.push(`- prix: ${item.price}€`);
-      if (item.brand) lines.push(`- marque: ${item.brand}`);
-      if (item.size) lines.push(`- taille: ${item.size}`);
-      if (item.reference_number) lines.push(`- référence: ${item.reference_number}`);
-      if (item.isOverdue && item.scheduled_for) lines.push(`- ⚠️  planifié pour: ${item.scheduled_for} (dépassé)`);
-      lines.push(`- Action après sauvegarde: POST ${runnerEndpoint}`);
-      lines.push(`  Body: { "command_type": "change_status", "article_id": "${item.id}", "params": { "target_status": "vinted_draft" } }`);
-      lines.push('');
+    const names = draftItems.map(i => {
+      let label = i.title;
+      if (i.reference_number) label += ` (#${i.reference_number})`;
+      if (i.isOverdue) label += ' [EN RETARD]';
+      return label;
     });
+    if (draftItems.length === 1) {
+      parts.push(`sauvegarde en brouillon Vinted : ${names[0]}`);
+    } else {
+      parts.push(`sauvegarde en brouillon Vinted : ${names.join(', ')}`);
+    }
   }
 
-  lines.push('## FORMAT DES APPELS API');
-  lines.push('```');
-  lines.push(`POST ${runnerEndpoint}`);
-  lines.push('Authorization: Bearer <user_jwt>');
-  lines.push('Content-Type: application/json');
-  lines.push('');
-  lines.push('{');
-  lines.push('  "command_type": "change_status",');
-  lines.push('  "article_id": "<id de l\'item>",');
-  lines.push('  "params": {');
-  lines.push('    "target_status": "published"  // ou "vinted_draft"');
-  lines.push('  }');
-  lines.push('}');
-  lines.push('```');
+  if (parts.length === 0) {
+    lines.push('Aucun item à traiter.');
+  } else {
+    const sentence = parts.length === 1
+      ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + '.'
+      : parts.map((p, i) => i === 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p).join('. ') + '.';
+    lines.push(sentence);
+  }
 
   return lines.join('\n');
 }
