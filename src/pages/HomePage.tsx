@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { Sparkles, Calendar, Upload, Camera, TrendingUp, ShoppingBag, Shield, Zap, Check, ArrowRight, BarChart3, Clock, Star, LogOut, Bot, Activity, Users, CircleUser as UserCircle2, ChevronDown, Package, Play, Send, Shirt } from "lucide-react";
+import { Sparkles, Calendar, Upload, Camera, TrendingUp, ShoppingBag, Shield, Zap, Check, ArrowRight, BarChart3, Clock, Star, LogOut, Activity, Users, CircleUser as UserCircle2, ChevronDown, Play, Send, Shirt } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import "../styles/navigation.css";
 import { HomePageSkeleton } from "../components/ui/HomePageSkeleton";
@@ -56,6 +56,53 @@ export function HomePage() {
   const handleSignOut = async () => {
     await signOut();
     navigate("/login");
+  };
+
+  const NAV_SECTIONS = [
+    {
+      key: "planification",
+      label: "Planification",
+      Icon: Calendar,
+      items: [
+        { to: "/timeline", label: "Timeline Planning", Icon: Calendar },
+        { to: "/planner", label: "Planificateur", Icon: Calendar },
+      ],
+    },
+    {
+      key: "publier",
+      label: "Publier",
+      Icon: Send,
+      items: [
+        { to: "/to-publish", label: "À Publier !", Icon: Play },
+        { to: "/admin/agent-runner", label: "Agent Runner", Icon: Zap, iconClassName: "text-amber-500", activeClassName: "bg-amber-50 text-amber-700" },
+        { to: "/admin/publication-monitor", label: "Monitoring", Icon: Activity },
+      ],
+    },
+    {
+      key: "analyse",
+      label: "Analyse",
+      Icon: BarChart3,
+      items: [
+        { to: "/analytics", label: "Statistiques", Icon: BarChart3 },
+      ],
+    },
+    {
+      key: "compte",
+      label: "Mon Compte",
+      Icon: UserCircle2,
+      items: [
+        { to: "/profile", label: "Mon Profil", Icon: UserCircle2 },
+        { to: "/virtual-stylist", label: "Mon Style", Icon: Shirt },
+        { to: "/family", label: "Vendeurs", Icon: Users },
+      ],
+    },
+  ];
+
+  const getActiveClassName = (item: { to: string; activeClassName?: string }) => {
+    if (isActive(item.to)) {
+      return item.activeClassName ?? "bg-emerald-50 text-emerald-700 shadow-sm";
+    }
+    return "text-gray-700 hover:bg-gray-50";
   };
 
   // ✅ CTA styles (harmonisés)
@@ -126,54 +173,19 @@ export function HomePage() {
 
                   {showUserMenu && (
                     <div className={`dropdown-menu dropdown-menu-large ${closingUserMenu ? "closing" : ""}`}>
-                      {[
-                        {
-                          key: "dressing",
-                          label: "Mon Dressing",
-                          Icon: Package,
-                          items: [
-                            { to: "/mon_dressing", label: "Mon dressing", Icon: ShoppingBag },
-                            { to: "/virtual-stylist", label: "Mon style", Icon: Shirt },
-                          ],
-                        },
-                        {
-                          key: "publier",
-                          label: "Publier",
-                          Icon: Send,
-                          items: [
-                            { to: "/to-publish", label: "À Publier !", Icon: Play },
-                            { to: "/admin/agent-publisher-ia", label: "Agent Publisher IA", Icon: Bot },
-                            { to: "/admin/publication-monitor", label: "Monitoring", Icon: Activity },
-                            { to: "/admin/agent-runner", label: "Agent Runner", Icon: Zap },
-                          ],
-                        },
-                        {
-                          key: "planification",
-                          label: "Planification",
-                          Icon: Calendar,
-                          items: [
-                            { to: "/timeline", label: "Timeline Planning", Icon: Calendar },
-                            { to: "/planner", label: "Planificateur", Icon: Calendar },
-                          ],
-                        },
-                        {
-                          key: "analyse",
-                          label: "Analyse",
-                          Icon: BarChart3,
-                          items: [
-                            { to: "/analytics", label: "Statistiques", Icon: BarChart3 },
-                          ],
-                        },
-                        {
-                          key: "compte",
-                          label: "Mon Compte",
-                          Icon: UserCircle2,
-                          items: [
-                            { to: "/profile", label: "Mon Profil", Icon: UserCircle2 },
-                            { to: "/family", label: "Vendeurs", Icon: Users },
-                          ],
-                        },
-                      ].map((section) => {
+
+                      <div className="border-b border-gray-100">
+                        <Link
+                          to="/mon_dressing"
+                          onClick={() => closeMenuWithAnimation()}
+                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group ${isActive("/mon_dressing") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"}`}
+                        >
+                          <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          Mon Dressing
+                        </Link>
+                      </div>
+
+                      {NAV_SECTIONS.map((section) => {
                         const isExpanded = expandedSection === section.key;
                         return (
                           <div key={section.key} className="border-b border-gray-100 last:border-b-0">
@@ -194,12 +206,10 @@ export function HomePage() {
                                   key={item.to}
                                   to={item.to}
                                   onClick={() => closeMenuWithAnimation()}
-                                  className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${
-                                    isActive(item.to) ? "bg-emerald-50 text-emerald-700 shadow-sm" : "text-gray-700 hover:bg-gray-50"
-                                  }`}
+                                  className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group ${getActiveClassName(item)}`}
                                   style={{ animationDelay: showUserMenu && isExpanded ? `${50 + index * 40}ms` : "0ms" }}
                                 >
-                                  <item.Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                  <item.Icon className={`w-5 h-5 group-hover:scale-110 transition-transform ${"iconClassName" in item ? (item as { iconClassName?: string }).iconClassName ?? "" : ""}`} />
                                   {item.label}
                                 </Link>
                               ))}
@@ -209,7 +219,7 @@ export function HomePage() {
                                   <div className="mx-4 my-1 border-t border-gray-100" />
                                   <button
                                     onClick={handleSignOut}
-                                    className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
+                                    className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group text-red-600 hover:bg-red-50 w-full"
                                     style={{ animationDelay: showUserMenu && isExpanded ? "130ms" : "0ms" }}
                                   >
                                     <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
