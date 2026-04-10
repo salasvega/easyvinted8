@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp, Home } from "lucide-react";
+import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp, Home, Key, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -87,6 +87,8 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [kellyInsightsCount, setKellyInsightsCount] = useState(0);
 
   const [headerScrolled, setHeaderScrolled] = useState(false);
+  const [hasGeminiKey, setHasGeminiKey] = useState<boolean | null>(null);
+  const [geminiKeyDismissed, setGeminiKeyDismissed] = useState(false);
 
   const [closingMenu, setClosingMenu] = useState(false);
   const [closingSellerMenu, setClosingSellerMenu] = useState(false);
@@ -102,9 +104,20 @@ export function AppLayout({ children }: AppLayoutProps) {
     if (user) {
       loadDefaultSeller();
       loadFamilyMembers();
+      checkGeminiKey();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  async function checkGeminiKey() {
+    if (!user) return;
+    const { data } = await supabase
+      .from("user_profiles")
+      .select("gemini_api_key")
+      .eq("id", user.id)
+      .maybeSingle();
+    setHasGeminiKey(!!(data as any)?.gemini_api_key);
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -255,6 +268,35 @@ export function AppLayout({ children }: AppLayoutProps) {
         }`}
       >
         <EmailVerificationBanner />
+        {hasGeminiKey === false && !geminiKeyDismissed && (
+          <div className="bg-amber-50 border-b border-amber-200">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                <p className="text-sm text-amber-800 truncate">
+                  <span className="font-medium">Clé API Gemini manquante.</span>
+                  {" "}Les fonctions IA ne sont pas disponibles.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2.5 py-1 rounded-md transition-colors"
+                >
+                  <Key className="w-3 h-3" />
+                  Configurer
+                </Link>
+                <button
+                  onClick={() => setGeminiKeyDismissed(true)}
+                  className="text-amber-500 hover:text-amber-700 transition-colors text-lg leading-none"
+                  aria-label="Fermer"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-8">

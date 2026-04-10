@@ -6,6 +6,7 @@ export interface UserProfile {
   writing_style: string;
   vinted_email?: string;
   vinted_password?: string;
+  gemini_api_key?: string;
 }
 
 export interface FamilyMember {

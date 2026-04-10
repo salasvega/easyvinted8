@@ -8,7 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+const SERVER_GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -19,19 +19,6 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    if (!GEMINI_API_KEY) {
-      console.error("GEMINI_API_KEY is not configured");
-      return new Response(
-        JSON.stringify({
-          error: "La cle API Gemini n'est pas configuree."
-        }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -63,6 +50,26 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({ error: "Utilisateur non authentifie" }),
         {
           status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const { data: userProfile } = await supabase
+      .from("user_profiles")
+      .select("gemini_api_key")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const GEMINI_API_KEY = userProfile?.gemini_api_key || SERVER_GEMINI_API_KEY;
+
+    if (!GEMINI_API_KEY) {
+      return new Response(
+        JSON.stringify({
+          error: "Aucune cle API Gemini configuree. Veuillez renseigner votre cle API dans votre profil."
+        }),
+        {
+          status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );

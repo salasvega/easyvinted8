@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil, Eye, EyeOff } from 'lucide-react';
+import { Pencil, Eye, EyeOff, Key, ExternalLink, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Toast } from '../components/ui/Toast';
 import { supabase } from '../lib/supabase';
@@ -24,10 +24,13 @@ export function ProfilePage() {
     writing_style: '',
     vinted_email: '',
     vinted_password: '',
+    gemini_api_key: '',
   });
 
   const [showVintedPassword, setShowVintedPassword] = useState(false);
   const [savingVintedCredentials, setSavingVintedCredentials] = useState(false);
+  const [showGeminiKey, setShowGeminiKey] = useState(false);
+  const [savingGeminiKey, setSavingGeminiKey] = useState(false);
 
   const [isPersonaModalOpen, setIsPersonaModalOpen] = useState(false);
   const [customPersonaData, setCustomPersonaData] = useState<CustomPersonaData | null>(null);
@@ -46,6 +49,7 @@ export function ProfilePage() {
         writing_style: profileData.writing_style || '',
         vinted_email: (profileData as any).vinted_email || '',
         vinted_password: (profileData as any).vinted_password || '',
+        gemini_api_key: (profileData as any).gemini_api_key || '',
       });
     }
   }, [profileData]);
@@ -138,6 +142,26 @@ export function ProfilePage() {
       setToast({ type: 'error', text: 'Erreur lors de la modification du mot de passe' });
     } finally {
       setSavingPassword(false);
+    }
+  };
+
+  const handleGeminiKeySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    setSavingGeminiKey(true);
+    setToast(null);
+
+    try {
+      await profileMutation.mutateAsync({
+        gemini_api_key: profile.gemini_api_key || null,
+      } as any);
+      setToast({ type: 'success', text: 'Clé API Gemini enregistrée' });
+    } catch (error) {
+      console.error('Error saving Gemini API key:', error);
+      setToast({ type: 'error', text: 'Erreur lors de l\'enregistrement' });
+    } finally {
+      setSavingGeminiKey(false);
     }
   };
 
@@ -259,6 +283,84 @@ export function ProfilePage() {
               >
                 {savingPassword ? 'Modification...' : 'Modifier le mot de passe'}
               </Button>
+            </div>
+          </form>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex items-start justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <Key className="w-4 h-4 text-emerald-600" />
+              <h2 className="text-base font-semibold text-gray-900">Ma clé API Gemini (IA)</h2>
+            </div>
+            <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Requis pour l'IA</span>
+          </div>
+
+          <div className={`flex items-start gap-2 p-3 rounded-lg mb-4 mt-3 ${profile.gemini_api_key ? 'bg-emerald-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200'}`}>
+            {profile.gemini_api_key ? (
+              <CheckCircle className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+            )}
+            <p className={`text-sm ${profile.gemini_api_key ? 'text-emerald-700' : 'text-amber-700'}`}>
+              {profile.gemini_api_key
+                ? 'Votre clé API est configurée. Toutes les fonctions IA utilisent votre propre compte Google.'
+                : 'Aucune clé API configurée. Les fonctions IA (analyse d\'articles, Kelly, Styliste) ne seront pas disponibles.'}
+            </p>
+          </div>
+
+          <form onSubmit={handleGeminiKeySubmit} className="space-y-4">
+            <div>
+              <label htmlFor="gemini_api_key" className="block text-sm font-medium text-gray-700 mb-1">
+                Clé API Google Gemini
+              </label>
+              <p className="text-sm text-gray-500 mb-2">
+                Obtenez votre clé gratuite sur{' '}
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-600 hover:text-emerald-700 inline-flex items-center gap-0.5 font-medium"
+                >
+                  Google AI Studio <ExternalLink className="w-3 h-3" />
+                </a>
+                . Chaque appel IA sera facturé sur votre compte Google.
+              </p>
+              <div className="relative">
+                <input
+                  type={showGeminiKey ? 'text' : 'password'}
+                  id="gemini_api_key"
+                  value={profile.gemini_api_key || ''}
+                  onChange={(e) => setProfile({ ...profile, gemini_api_key: e.target.value })}
+                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 font-mono text-sm"
+                  placeholder="AIzaSy..."
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowGeminiKey(!showGeminiKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showGeminiKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center">
+              {profile.gemini_api_key && (
+                <button
+                  type="button"
+                  onClick={() => setProfile({ ...profile, gemini_api_key: '' })}
+                  className="text-sm text-red-500 hover:text-red-700"
+                >
+                  Supprimer la clé
+                </button>
+              )}
+              <div className="ml-auto">
+                <Button type="submit" disabled={savingGeminiKey}>
+                  {savingGeminiKey ? 'Enregistrement...' : 'Enregistrer'}
+                </Button>
+              </div>
             </div>
           </form>
         </div>
