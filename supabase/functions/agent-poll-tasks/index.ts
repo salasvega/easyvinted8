@@ -70,7 +70,7 @@ Deno.serve(async (req: Request) => {
     // Fetch ready articles
     const { data: readyArticles } = await supabase
       .from("articles")
-      .select("id, title, price, status, description, brand, size, condition, color, material, photos")
+      .select("id, title, price, status, description, brand, size, condition, color, material, photos, publish_mode")
       .eq("user_id", userId)
       .eq("status", "ready")
       .order("created_at", { ascending: true })
@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
     // Fetch scheduled articles whose scheduled_for date has passed
     const { data: overdueArticles } = await supabase
       .from("articles")
-      .select("id, title, price, status, scheduled_for, description, brand, size, condition, color, material, photos")
+      .select("id, title, price, status, scheduled_for, description, brand, size, condition, color, material, photos, publish_mode")
       .eq("user_id", userId)
       .eq("status", "scheduled")
       .lte("scheduled_for", now)
@@ -89,7 +89,7 @@ Deno.serve(async (req: Request) => {
     // Fetch ready lots
     const { data: readyLots } = await supabase
       .from("lots")
-      .select("id, name, price, status, description, reference_number")
+      .select("id, name, price, status, description, reference_number, publish_mode")
       .eq("user_id", userId)
       .eq("status", "ready")
       .order("created_at", { ascending: true })
@@ -98,7 +98,7 @@ Deno.serve(async (req: Request) => {
     // Fetch scheduled lots whose scheduled_for date has passed
     const { data: overdueLotsRaw } = await supabase
       .from("lots")
-      .select("id, name, price, status, scheduled_for, description, reference_number")
+      .select("id, name, price, status, scheduled_for, description, reference_number, publish_mode")
       .eq("user_id", userId)
       .eq("status", "scheduled")
       .lte("scheduled_for", now)

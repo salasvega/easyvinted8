@@ -10,6 +10,25 @@ import { useAuth } from '../contexts/AuthContext';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
+async function savePublishMode(
+  itemId: string,
+  itemType: 'article' | 'lot',
+  mode: PublishMode,
+  token: string
+): Promise<void> {
+  const table = itemType === 'lot' ? 'lots' : 'articles';
+  await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${itemId}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      apikey: SUPABASE_ANON_KEY,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal',
+    },
+    body: JSON.stringify({ publish_mode: mode }),
+  });
+}
+
 type PublishMode = 'draft' | 'live';
 
 interface ReadyItem {
@@ -23,6 +42,7 @@ interface ReadyItem {
   size?: string;
   reference_number?: string;
   isOverdue?: boolean;
+  publish_mode?: 'live' | 'draft' | null;
 }
 
 type ItemModeMap = Record<string, PublishMode>;
@@ -174,6 +194,7 @@ export default function AgentRunnerPage() {
         brand: a.brand as string | undefined,
         size: a.size as string | undefined,
         isOverdue: false,
+        publish_mode: (a.publish_mode as 'live' | 'draft' | null) ?? null,
       })),
       ...(pollResult.ready_lots ?? []).map((l) => ({
         id: l.id as string,
@@ -183,6 +204,7 @@ export default function AgentRunnerPage() {
         status: l.status as string,
         reference_number: l.reference_number as string | undefined,
         isOverdue: false,
+        publish_mode: (l.publish_mode as 'live' | 'draft' | null) ?? null,
       })),
       ...(pollResult.overdue_scheduled_articles ?? []).map((a) => ({
         id: a.id as string,
@@ -194,6 +216,7 @@ export default function AgentRunnerPage() {
         brand: a.brand as string | undefined,
         size: a.size as string | undefined,
         isOverdue: true,
+        publish_mode: (a.publish_mode as 'live' | 'draft' | null) ?? null,
       })),
       ...(pollResult.overdue_scheduled_lots ?? []).map((l) => ({
         id: l.id as string,
@@ -204,22 +227,46 @@ export default function AgentRunnerPage() {
         scheduled_for: l.scheduled_for as string | null,
         reference_number: l.reference_number as string | undefined,
         isOverdue: true,
+        publish_mode: (l.publish_mode as 'live' | 'draft' | null) ?? null,
       })),
     ];
   }, [pollResult]);
 
+  useEffect(() => {
+    if (allItems.length === 0) return;
+    setItemModes(prev => {
+      const next = { ...prev };
+      allItems.forEach(item => {
+        if (!(item.id in next) && item.publish_mode != null) {
+          next[item.id] = item.publish_mode;
+        }
+      });
+      return next;
+    });
+  }, [allItems]);
+
   const toggleMode = useCallback((itemId: string) => {
-    setItemModes(prev => ({
-      ...prev,
-      [itemId]: prev[itemId] === 'draft' ? 'live' : 'draft',
-    }));
-  }, []);
+    setItemModes(prev => {
+      const next = { ...prev, [itemId]: prev[itemId] === 'draft' ? 'live' : 'draft' } as ItemModeMap;
+      const newMode = next[itemId];
+      const item = allItems.find(i => i.id === itemId);
+      if (item && session?.access_token) {
+        savePublishMode(itemId, item.type, newMode, session.access_token);
+      }
+      return next;
+    });
+  }, [allItems, session?.access_token]);
 
   const setAllModes = useCallback((mode: PublishMode) => {
     const newModes: ItemModeMap = {};
     allItems.forEach(item => { newModes[item.id] = mode; });
     setItemModes(newModes);
-  }, [allItems]);
+    if (session?.access_token) {
+      allItems.forEach(item => {
+        savePublishMode(item.id, item.type, mode, session.access_token!);
+      });
+    }
+  }, [allItems, session?.access_token]);
 
   const getMode = useCallback((itemId: string): PublishMode => itemModes[itemId] ?? 'draft', [itemModes]);
 

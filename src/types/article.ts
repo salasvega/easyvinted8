@@ -48,6 +48,8 @@ export interface Article {
   hashtags?: string[];
   search_terms?: string[];
   ai_confidence_score?: number;
+
+  publish_mode?: 'live' | 'draft' | null;
 }
 
 export interface VintedSettings {
