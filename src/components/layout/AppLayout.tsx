@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp } from "lucide-react";
+import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp, Home } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -361,6 +361,17 @@ export function AppLayout({ children }: AppLayoutProps) {
 
                 {mobileMenuOpen && (
                   <div className={`dropdown-menu dropdown-menu-large ${closingMenu ? "closing" : ""}`}>
+
+                    <div className="border-b border-gray-100">
+                      <Link
+                        to="/mon_dressing"
+                        onClick={() => closeMenuWithAnimation("main")}
+                        className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group ${isActive("/mon_dressing") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"}`}
+                      >
+                        <Home className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        Mon Dressing
+                      </Link>
+                    </div>
 
                     {NAV_SECTIONS.map((section) => {
                       const isExpanded = expandedSection === section.key;
