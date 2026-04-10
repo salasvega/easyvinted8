@@ -57,8 +57,8 @@ const NAV_SECTIONS: NavSection[] = [
     icon: Send,
     items: [
       { to: "/to-publish", label: "À Publier !", icon: Play },
-      { to: "/admin/publication-monitor", label: "Monitoring", icon: Activity },
       { to: "/admin/agent-runner", label: "Agent Runner", icon: Zap, iconClassName: "text-amber-500", activeClassName: "bg-amber-50 text-amber-700" },
+      { to: "/admin/publication-monitor", label: "Monitoring", icon: Activity },
     ],
   },
   {
