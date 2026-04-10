@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp } from "lucide-react";
+import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp, Home } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -33,14 +33,6 @@ interface NavItem {
 }
 
 const NAV_SECTIONS: NavSection[] = [
-  {
-    key: "dressing",
-    label: "Mon Dressing",
-    icon: Package,
-    items: [
-      { to: "/mon_dressing", label: "Mon dressing", icon: ShoppingBag },
-    ],
-  },
   {
     key: "planification",
     label: "Planification",
@@ -271,6 +263,14 @@ export function AppLayout({ children }: AppLayoutProps) {
                 <span className="text-base font-semibold text-gray-900">
                   <span className="text-emerald-600">Easy</span>Vinted
                 </span>
+              </Link>
+
+              <Link
+                to="/mon_dressing"
+                className={`p-2 rounded-lg transition-all duration-200 hover:scale-110 ripple-effect ${isActive("/mon_dressing") ? "bg-emerald-50 text-emerald-700" : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
+                title="Mon Dressing"
+              >
+                <Home className="w-5 h-5" />
               </Link>
 
               {familyMembers.length > 1 && (
