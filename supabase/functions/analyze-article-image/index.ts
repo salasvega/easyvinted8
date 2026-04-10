@@ -8,8 +8,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const SERVER_GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-const FUNCTION_VERSION = "3.2.0-GEMINI-2.5-FLASH-USER-KEY";
+const FUNCTION_VERSION = "3.3.0-GEMINI-2.5-FLASH-USER-KEY-ONLY";
 
 interface AnalysisResult {
   title: string;
@@ -82,7 +81,7 @@ Deno.serve(async (req: Request) => {
       .eq("id", user.id)
       .maybeSingle();
 
-    const GEMINI_API_KEY = userProfile?.gemini_api_key || SERVER_GEMINI_API_KEY;
+    const GEMINI_API_KEY = userProfile?.gemini_api_key;
 
     if (!GEMINI_API_KEY) {
       return new Response(
