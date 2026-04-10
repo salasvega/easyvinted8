@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Bot, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp } from "lucide-react";
+import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -43,23 +43,22 @@ const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    key: "publier",
-    label: "Publier",
-    icon: Send,
-    items: [
-      { to: "/to-publish", label: "À Publier !", icon: Play },
-      { to: "/admin/agent-publisher-ia", label: "Agent Publisher IA", icon: Bot },
-      { to: "/admin/publication-monitor", label: "Monitoring", icon: Activity },
-      { to: "/admin/agent-runner", label: "Agent Runner", icon: Zap, iconClassName: "text-amber-500", activeClassName: "bg-amber-50 text-amber-700" },
-    ],
-  },
-  {
     key: "planification",
     label: "Planification",
     icon: Calendar,
     items: [
       { to: "/timeline", label: "Timeline Planning", icon: Calendar },
       { to: "/planner", label: "Planificateur", icon: Calendar },
+    ],
+  },
+  {
+    key: "publier",
+    label: "Publier",
+    icon: Send,
+    items: [
+      { to: "/to-publish", label: "À Publier !", icon: Play },
+      { to: "/admin/publication-monitor", label: "Monitoring", icon: Activity },
+      { to: "/admin/agent-runner", label: "Agent Runner", icon: Zap, iconClassName: "text-amber-500", activeClassName: "bg-amber-50 text-amber-700" },
     ],
   },
   {
@@ -395,7 +394,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                                   key={item.to}
                                   to={item.to}
                                   onClick={() => closeMenuWithAnimation("main")}
-                                  className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group ${getActiveClassName(item)}`}
+                                  className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group ${getActiveClassName(item)}`}
                                   style={{ animationDelay: mobileMenuOpen && isExpanded ? `${50 + index * 40}ms` : "0ms" }}
                                 >
                                   <ItemIcon className={`w-5 h-5 group-hover:scale-110 transition-transform ${item.iconClassName ?? ""}`} />
@@ -409,7 +408,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                                 <div className="mx-4 my-1 border-t border-gray-100" />
                                 <button
                                   onClick={handleSignOut}
-                                  className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium group text-red-600 hover:bg-red-50 w-full"
+                                  className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group text-red-600 hover:bg-red-50 w-full"
                                   style={{ animationDelay: mobileMenuOpen && isExpanded ? "130ms" : "0ms" }}
                                 >
                                   <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
