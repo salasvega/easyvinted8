@@ -39,7 +39,6 @@ const NAV_SECTIONS: NavSection[] = [
     icon: Package,
     items: [
       { to: "/mon_dressing", label: "Mon dressing", icon: ShoppingBag },
-      { to: "/virtual-stylist", label: "Mon style", icon: Shirt },
     ],
   },
   {
@@ -75,6 +74,7 @@ const NAV_SECTIONS: NavSection[] = [
     icon: UserCircle2,
     items: [
       { to: "/profile", label: "Mon Profil", icon: UserCircle2 },
+      { to: "/virtual-stylist", label: "Mon Style", icon: Shirt },
       { to: "/family", label: "Vendeurs", icon: Users },
     ],
   },
