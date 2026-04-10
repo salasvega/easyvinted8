@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { parseUserInstruction, describeCommand, commandToClaudeCodeString } from '../lib/chatbotService';
+import { parseUserInstruction, describeCommand, commandToClaudeCodeString, IMMEDIATE_COMMAND_TYPES } from '../lib/chatbotService';
 import { enqueueTask, loadRecentTasks, updateTaskStatus } from '../lib/taskQueueService';
 import type { ChatMessage, TaskQueueRow, ParsedCommand, TaskStatus } from '../types/taskQueue';
 
@@ -68,9 +68,18 @@ function CommandTypeLabel({ type }: { type: string }) {
     publish_all_ready_draft: 'Tout publier (brouillon)',
     publish_all_ready_live: 'Tout mettre en ligne',
     change_status: 'Changer statut',
+    update_price: 'Modifier prix',
+    update_condition: "Modifier l'état",
+    update_season: 'Modifier saison',
+    mark_sold: 'Marquer vendu',
+    mark_reserved: 'Marquer réservé',
+    schedule_article: 'Programmer',
+    count_articles: 'Compter articles',
+    update_publish_mode: 'Mode publication',
   };
+  const isImmediate = IMMEDIATE_COMMAND_TYPES.has(type);
   return (
-    <span className="text-xs font-medium text-indigo-700">
+    <span className={`text-xs font-medium ${isImmediate ? 'text-emerald-700' : 'text-slate-600'}`}>
       {labels[type] ?? type}
     </span>
   );
@@ -89,7 +98,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
       id: 'welcome',
       role: 'assistant',
       content:
-        'Bonjour ! Dis-moi ce que tu veux que je fasse?\n\nExemple : "Publie le prochain article pour Seb" ou "Finalise et mets en ligne la robe bleue pour Seb"',
+        'Bonjour ! Dis-moi ce que tu veux que je fasse ?\n\nCommandes immédiates :\n• "Passe le pull jacquard à 15€"\n• "Passe la robe bleue en Prêt"\n• "Marque la veste comme vendue à 25€ pour Marie"\n• "Combien d\'articles ready pour Seb ?"\n• "Réserve le pull gris pour Tom"\n\nCommandes avec Claude Code :\n• "Finalise et mets en ligne la robe bleue pour Seb"',
       timestamp: new Date().toISOString(),
     },
   ]);
@@ -134,6 +143,156 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
     if (user) loadRecentTasks(user.id).then(setTasks).catch(console.error);
   }, [user]);
 
+  const executeImmediateCommand = useCallback(async (
+    parsed: ParsedCommand,
+    sellerId: string | null
+  ): Promise<{ success: boolean; message: string }> => {
+    const titleFilter = parsed.article_title;
+
+    switch (parsed.command_type) {
+      case 'change_status': {
+        if (!titleFilter || !parsed.params?.target_status) {
+          return { success: false, message: 'Article ou statut manquant.' };
+        }
+        const { error } = await supabase
+          .from('articles')
+          .update({ status: parsed.params.target_status })
+          .ilike('title', `%${titleFilter}%`);
+        if (error) throw error;
+        return { success: true, message: `Statut mis à jour → ${parsed.params.target_status}` };
+      }
+
+      case 'update_price': {
+        if (!titleFilter || parsed.params?.new_price == null) {
+          return { success: false, message: 'Article ou prix manquant.' };
+        }
+        const updateData: Record<string, unknown> = { price: parsed.params.new_price };
+        if (parsed.params?.target_status) {
+          updateData.status = parsed.params.target_status;
+        }
+        const { error } = await supabase
+          .from('articles')
+          .update(updateData)
+          .ilike('title', `%${titleFilter}%`);
+        if (error) throw error;
+        const parts = [`Prix mis à jour → ${parsed.params.new_price}€`];
+        if (parsed.params?.target_status) parts.push(`Statut → ${parsed.params.target_status}`);
+        return { success: true, message: parts.join(' · ') };
+      }
+
+      case 'update_condition': {
+        if (!titleFilter || !parsed.params?.new_condition) {
+          return { success: false, message: 'Article ou état manquant.' };
+        }
+        const { error } = await supabase
+          .from('articles')
+          .update({ condition: parsed.params.new_condition })
+          .ilike('title', `%${titleFilter}%`);
+        if (error) throw error;
+        return { success: true, message: `État mis à jour → ${parsed.params.new_condition}` };
+      }
+
+      case 'update_season': {
+        if (!titleFilter || !parsed.params?.new_season) {
+          return { success: false, message: 'Article ou saison manquante.' };
+        }
+        const { error } = await supabase
+          .from('articles')
+          .update({ season: parsed.params.new_season })
+          .ilike('title', `%${titleFilter}%`);
+        if (error) throw error;
+        return { success: true, message: `Saison mise à jour → ${parsed.params.new_season}` };
+      }
+
+      case 'mark_sold': {
+        if (!titleFilter) return { success: false, message: 'Article manquant.' };
+        const updateData: Record<string, unknown> = {
+          status: 'sold',
+          sold_at: new Date().toISOString(),
+        };
+        if (parsed.params?.sold_price != null) updateData.sold_price = parsed.params.sold_price;
+        if (parsed.params?.buyer_name) updateData.buyer_name = parsed.params.buyer_name;
+        const { error } = await supabase
+          .from('articles')
+          .update(updateData)
+          .ilike('title', `%${titleFilter}%`);
+        if (error) throw error;
+        const parts = ['Article marqué vendu'];
+        if (parsed.params?.sold_price != null) parts.push(`à ${parsed.params.sold_price}€`);
+        if (parsed.params?.buyer_name) parts.push(`pour ${parsed.params.buyer_name}`);
+        return { success: true, message: parts.join(' ') };
+      }
+
+      case 'mark_reserved': {
+        if (!titleFilter) return { success: false, message: 'Article manquant.' };
+        const updateData: Record<string, unknown> = { status: 'reserved' };
+        if (parsed.params?.buyer_name) updateData.buyer_name = parsed.params.buyer_name;
+        const { error } = await supabase
+          .from('articles')
+          .update(updateData)
+          .ilike('title', `%${titleFilter}%`);
+        if (error) throw error;
+        return {
+          success: true,
+          message: `Article réservé${parsed.params?.buyer_name ? ` pour ${parsed.params.buyer_name}` : ''}`,
+        };
+      }
+
+      case 'schedule_article': {
+        if (!titleFilter || !parsed.params?.scheduled_date) {
+          return { success: false, message: 'Article ou date manquante.' };
+        }
+        const { error } = await supabase
+          .from('articles')
+          .update({ status: 'scheduled', scheduled_for: parsed.params.scheduled_date })
+          .ilike('title', `%${titleFilter}%`);
+        if (error) throw error;
+        return {
+          success: true,
+          message: `Article programmé pour le ${new Date(parsed.params.scheduled_date).toLocaleDateString('fr-FR')}`,
+        };
+      }
+
+      case 'count_articles': {
+        let query = supabase
+          .from('articles')
+          .select('id, title, status', { count: 'exact' });
+        if (sellerId) query = query.eq('seller_id', sellerId);
+        if (parsed.params?.target_status_filter) {
+          query = query.eq('status', parsed.params.target_status_filter);
+        }
+        const { data, count, error } = await query;
+        if (error) throw error;
+        const statusLabel = parsed.params?.target_status_filter
+          ? ` "${parsed.params.target_status_filter}"`
+          : '';
+        const sellerLabel = parsed.seller_name ? ` pour ${parsed.seller_name}` : '';
+        const total = count ?? data?.length ?? 0;
+        const preview = (data ?? []).slice(0, 5).map(a => `• ${a.title}`).join('\n');
+        const suffix = total > 5 ? `\n…et ${total - 5} autre(s)` : '';
+        return {
+          success: true,
+          message: `${total} article(s)${statusLabel}${sellerLabel}${preview ? '\n' + preview + suffix : ''}`,
+        };
+      }
+
+      case 'update_publish_mode': {
+        if (!titleFilter || !parsed.params?.publish_mode) {
+          return { success: false, message: 'Article ou mode de publication manquant.' };
+        }
+        const { error } = await supabase
+          .from('articles')
+          .update({ publish_mode: parsed.params.publish_mode })
+          .ilike('title', `%${titleFilter}%`);
+        if (error) throw error;
+        return { success: true, message: `Mode de publication → ${parsed.params.publish_mode}` };
+      }
+
+      default:
+        return { success: false, message: 'Commande non reconnue.' };
+    }
+  }, []);
+
   const handleSend = useCallback(async () => {
     if (!input.trim() || sending || !user) return;
     const userText = input.trim();
@@ -169,26 +328,32 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
       const seller = resolveSellerByName(parsed.seller_name, familyMembers);
       let taskRow: TaskQueueRow;
 
-      if (
-        parsed.command_type === 'change_status' &&
-        parsed.article_title &&
-        parsed.params?.target_status
-      ) {
+      if (IMMEDIATE_COMMAND_TYPES.has(parsed.command_type)) {
         taskRow = await enqueueTask(user.id, seller.id, seller.name, parsed, userText);
         try {
-          await supabase
-            .from('articles')
-            .update({ status: parsed.params.target_status })
-            .ilike('title', `%${parsed.article_title}%`);
-          await updateTaskStatus(
-            taskRow.id,
-            'done',
-            `Statut mis à jour → ${parsed.params.target_status}`
-          );
-          taskRow = { ...taskRow, status: 'done' };
-        } catch {
-          await updateTaskStatus(taskRow.id, 'error', 'Erreur lors de la mise à jour du statut');
-          taskRow = { ...taskRow, status: 'error' };
+          const result = await executeImmediateCommand(parsed, seller.id);
+          const newStatus = result.success ? 'done' : 'error';
+          await updateTaskStatus(taskRow.id, newStatus, result.message);
+          taskRow = { ...taskRow, status: newStatus, result_message: result.message };
+
+          if (parsed.command_type === 'count_articles') {
+            setMessages(prev => [
+              ...prev,
+              {
+                id: `ast-${Date.now()}`,
+                role: 'assistant',
+                content: result.message,
+                timestamp: new Date().toISOString(),
+                taskId: taskRow.id,
+              },
+            ]);
+            setTasks(prev => [taskRow, ...prev.slice(0, 19)]);
+            return;
+          }
+        } catch (execErr) {
+          const errMsg = execErr instanceof Error ? execErr.message : String(execErr);
+          await updateTaskStatus(taskRow.id, 'error', errMsg);
+          taskRow = { ...taskRow, status: 'error', result_message: errMsg };
         }
       } else {
         taskRow = await enqueueTask(user.id, seller.id, seller.name, parsed, userText);
@@ -202,7 +367,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           content: describeCommand(parsed),
           timestamp: new Date().toISOString(),
           taskId: taskRow.id,
-          parsed,
+          parsed: IMMEDIATE_COMMAND_TYPES.has(parsed.command_type) ? undefined : parsed,
         },
       ]);
 
@@ -220,7 +385,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
     } finally {
       setSending(false);
     }
-  }, [input, sending, user, familyMembers]);
+  }, [input, sending, user, familyMembers, executeImmediateCommand]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -235,24 +400,21 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[61]"
         onClick={onClose}
       />
 
-      {/* Panel */}
       <div className="fixed z-[62] bottom-0 right-0 sm:bottom-4 sm:right-4 w-full sm:w-[400px] h-[85vh] sm:h-[620px] flex flex-col bg-white sm:rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
 
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white flex-shrink-0">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-white/20 rounded-lg">
               <MessageSquare className="w-4 h-4" />
             </div>
             <div>
               <h2 className="font-semibold text-sm">Assistant EasyVinted</h2>
-              <p className="text-xs text-indigo-200">Commandes en langage naturel</p>
+              <p className="text-xs text-slate-300">Commandes en langage naturel</p>
             </div>
           </div>
           <button
@@ -263,13 +425,12 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex border-b border-gray-100 flex-shrink-0 bg-gray-50">
           <button
             onClick={() => setActiveTab('chat')}
             className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
               activeTab === 'chat'
-                ? 'text-indigo-600 border-b-2 border-indigo-500 bg-white'
+                ? 'text-slate-700 border-b-2 border-slate-600 bg-white'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -280,7 +441,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
             onClick={() => { setActiveTab('queue'); refreshTasks(); }}
             className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
               activeTab === 'queue'
-                ? 'text-indigo-600 border-b-2 border-indigo-500 bg-white'
+                ? 'text-slate-700 border-b-2 border-slate-600 bg-white'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -294,7 +455,6 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           </button>
         </div>
 
-        {/* Chat Tab */}
         {activeTab === 'chat' && (
           <>
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
@@ -306,7 +466,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
                   <div
                     className={`max-w-[85%] rounded-2xl px-3 py-2.5 text-sm ${
                       msg.role === 'user'
-                        ? 'bg-indigo-600 text-white rounded-br-sm'
+                        ? 'bg-slate-700 text-white rounded-br-sm'
                         : msg.role === 'error'
                         ? 'bg-red-50 text-red-700 border border-red-200 rounded-bl-sm'
                         : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-sm'
@@ -317,19 +477,19 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
                     {msg.role === 'assistant' && msg.parsed && (
                       <div className="mt-2.5 pt-2.5 border-t border-gray-100">
                         <p className="text-xs text-gray-500 mb-1.5">Commande Claude Code :</p>
-                        <div className="bg-indigo-50 rounded-lg p-2 flex items-start gap-2">
-                          <code className="text-xs text-indigo-800 flex-1 leading-relaxed">
+                        <div className="bg-slate-50 rounded-lg p-2 flex items-start gap-2">
+                          <code className="text-xs text-slate-700 flex-1 leading-relaxed">
                             {commandToClaudeCodeString(msg.parsed)}
                           </code>
                           <button
                             onClick={() => handleCopy(commandToClaudeCodeString(msg.parsed!), msg.id)}
-                            className="flex-shrink-0 p-1 hover:bg-indigo-100 rounded transition-colors"
+                            className="flex-shrink-0 p-1 hover:bg-slate-100 rounded transition-colors"
                             title="Copier la commande"
                           >
                             {copiedId === msg.id ? (
                               <Check className="w-3.5 h-3.5 text-emerald-600" />
                             ) : (
-                              <Copy className="w-3.5 h-3.5 text-indigo-600" />
+                              <Copy className="w-3.5 h-3.5 text-slate-500" />
                             )}
                           </button>
                         </div>
@@ -346,9 +506,18 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
                       </div>
                     )}
 
+                    {msg.role === 'assistant' && !msg.parsed && msg.taskId && (
+                      <div className="mt-1.5 flex items-center gap-1.5">
+                        <StatusBadge
+                          status={tasks.find(t => t.id === msg.taskId)?.status ?? 'done'}
+                        />
+                        <span className="text-xs text-gray-400">exécuté immédiatement</span>
+                      </div>
+                    )}
+
                     <p
                       className={`text-xs mt-1 ${
-                        msg.role === 'user' ? 'text-indigo-200' : 'text-gray-400'
+                        msg.role === 'user' ? 'text-slate-300' : 'text-gray-400'
                       }`}
                     >
                       {new Date(msg.timestamp).toLocaleTimeString('fr-FR', {
@@ -363,7 +532,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
               {sending && (
                 <div className="flex justify-start">
                   <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-gray-100 flex items-center gap-2">
-                    <Loader2 className="w-3.5 h-3.5 text-indigo-500 animate-spin" />
+                    <Loader2 className="w-3.5 h-3.5 text-slate-500 animate-spin" />
                     <span className="text-xs text-gray-500">Analyse en cours…</span>
                   </div>
                 </div>
@@ -372,7 +541,6 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Footer */}
             <div
               className="flex-shrink-0 p-3 bg-white border-t border-gray-100 flex items-end gap-2"
               style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
@@ -382,16 +550,16 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ex: Publie le prochain article pour Seb…"
+                placeholder="Ex: Passe la robe bleue en Prêt à 15€…"
                 rows={1}
                 disabled={sending}
-                className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-400 disabled:opacity-50 overflow-y-auto"
+                className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-slate-400 disabled:opacity-50 overflow-y-auto"
                 style={{ minHeight: '42px', maxHeight: '112px' }}
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || sending}
-                className="flex-shrink-0 p-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white rounded-xl transition-colors"
+                className="flex-shrink-0 p-2.5 bg-slate-700 hover:bg-slate-800 disabled:bg-gray-300 text-white rounded-xl transition-colors"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -399,7 +567,6 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           </>
         )}
 
-        {/* Queue Tab */}
         {activeTab === 'queue' && (
           <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
             {tasks.length === 0 ? (
