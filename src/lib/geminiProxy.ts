@@ -48,29 +48,3 @@ export async function callGeminiProxy(
   return json as GeminiProxyResponse;
 }
 
-export async function callOpenAIProxy(
-  model: string,
-  messages: { role: string; content: string }[],
-  temperature = 0.1,
-  max_tokens = 300
-): Promise<string> {
-  const authHeader = await getAuthHeader();
-
-  const response = await fetch(`${SUPABASE_URL}/functions/v1/openai-proxy`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: authHeader,
-      Apikey: SUPABASE_ANON_KEY,
-    },
-    body: JSON.stringify({ model, messages, temperature, max_tokens }),
-  });
-
-  const json = await response.json();
-
-  if (!response.ok || json.error) {
-    throw new Error(json.error || `OpenAI erreur ${response.status}`);
-  }
-
-  return json.content as string;
-}

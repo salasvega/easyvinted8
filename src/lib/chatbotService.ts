@@ -1,5 +1,5 @@
 import { ParsedCommand } from '../types/taskQueue';
-import { callOpenAIProxy } from './geminiProxy';
+import { callGeminiProxy } from './geminiProxy';
 
 const SYSTEM_PROMPT = `
 Tu es un assistant de commande pour l'application EasyVinted.
@@ -47,21 +47,27 @@ draft, ready, scheduled, published, sold, vinted_draft, reserved
 `.trim();
 
 export async function parseUserInstruction(input: string): Promise<ParsedCommand> {
-  const raw = await callOpenAIProxy(
-    'gpt-4o-mini',
+  const result = await callGeminiProxy(
+    'gemini-2.0-flash-lite',
     [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: input },
+      { role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\nInstruction utilisateur: ${input}` }] },
     ],
-    0.1,
-    300
+    {
+      temperature: 0.1,
+      maxOutputTokens: 300,
+    }
   );
 
-  try {
-    return JSON.parse(raw) as ParsedCommand;
-  } catch {
-    throw new Error(`Réponse GPT non parseable: ${raw}`);
+  if ('text' in result && result.text) {
+    const raw = result.text.trim().replace(/^```json\s*/i, '').replace(/```\s*$/i, '');
+    try {
+      return JSON.parse(raw) as ParsedCommand;
+    } catch {
+      throw new Error(`Réponse Gemini non parseable: ${raw}`);
+    }
   }
+
+  throw new Error('Réponse Gemini invalide ou vide');
 }
 
 export function describeCommand(parsed: ParsedCommand): string {
