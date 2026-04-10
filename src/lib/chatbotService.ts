@@ -48,7 +48,7 @@ draft, ready, scheduled, published, sold, vinted_draft, reserved
 
 export async function parseUserInstruction(input: string): Promise<ParsedCommand> {
   const result = await callGeminiProxy(
-    'gemini-2.5-flash-lite-preview-06-17',
+    'gemini-2.5-flash',
     [
       { role: 'user', parts: [{ text: `${SYSTEM_PROMPT}\n\nInstruction utilisateur: ${input}` }] },
     ],
