@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
-  ChevronDown,
-  ChevronUp,
   Sparkles,
   Euro,
   Calendar,
@@ -19,29 +17,20 @@ import {
   Sun,
   Loader2,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   Search,
-  MessageSquare,
-  Send,
-  Copy,
-  ListTodo,
-  Pencil,
-  Trash2,
-  Save,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { generateProactiveInsights, ProactiveInsight, optimizeArticleSEO } from '../lib/geminiService';
 import { getPricingInsights, dismissPricingInsight, applyPricingSuggestion, PricingInsight, PricingInsightType } from '../lib/kellyPricingService';
 import { generateLotTitleAndDescription } from '../lib/lotAnalysisService';
-import { parseUserInstruction, describeCommand, commandToClaudeCodeString } from '../lib/chatbotService';
-import { enqueueTask, loadRecentTasks, updateTaskStatus, updatePendingTask, deletePendingTask } from '../lib/taskQueueService';
-import type { ChatMessage, TaskQueueRow, ParsedCommand, TaskStatus } from '../types/taskQueue';
 import { Article } from '../types/article';
 import { Lot } from '../types/lot';
 import { LazyImage } from './ui/LazyImage';
 import { Toast } from './ui/Toast';
 import { ScheduleModal } from './ScheduleModal';
-import { useNavigate } from 'react-router-dom';
 
 interface KellyUnifiedModalProps {
   isOpen: boolean;
@@ -51,15 +40,7 @@ interface KellyUnifiedModalProps {
   onInsightsCountChange?: (count: number) => void;
 }
 
-type MainTab = 'coach' | 'commands';
 type CoachSection = 'insights' | 'pricing' | 'planner';
-type CommandsSubTab = 'chat' | 'queue';
-
-interface FamilyMemberCmd {
-  id: string;
-  name: string;
-  user_id: string;
-}
 
 interface Suggestion {
   id: string;
@@ -71,67 +52,6 @@ interface Suggestion {
   status: 'pending' | 'accepted' | 'rejected' | 'scheduled';
   article?: Article;
   lot?: Lot;
-}
-
-function resolveSellerByName(
-  name: string | null,
-  members: FamilyMemberCmd[]
-): { id: string | null; name: string } {
-  if (!name) return { id: null, name: '' };
-  const lower = name.toLowerCase();
-  const match = members.find(m => m.name.toLowerCase().includes(lower));
-  return match ? { id: match.id, name: match.name } : { id: null, name };
-}
-
-function StatusBadge({ status }: { status: TaskStatus }) {
-  const config: Record<TaskStatus, { icon: React.ReactNode; label: string; className: string }> = {
-    pending: {
-      icon: <Clock className="w-3 h-3" />,
-      label: 'En attente',
-      className: 'bg-amber-100 text-amber-700 border-amber-200',
-    },
-    running: {
-      icon: <Loader2 className="w-3 h-3 animate-spin" />,
-      label: 'En cours',
-      className: 'bg-blue-100 text-blue-700 border-blue-200',
-    },
-    done: {
-      icon: <CheckCircle2 className="w-3 h-3" />,
-      label: 'Terminé',
-      className: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-    },
-    error: {
-      icon: <AlertCircle className="w-3 h-3" />,
-      label: 'Erreur',
-      className: 'bg-red-100 text-red-700 border-red-200',
-    },
-  };
-  const { icon, label, className } = config[status];
-  return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${className}`}>
-      {icon}
-      {label}
-    </span>
-  );
-}
-
-function CommandTypeLabel({ type }: { type: string }) {
-  const labels: Record<string, string> = {
-    finalise_and_draft: 'Finaliser → Brouillon',
-    finalise_and_publish: 'Finaliser → En ligne',
-    finalise_only: 'Finaliser fiche',
-    publish_next_draft: 'Publier prochain',
-    publish_next_live: 'Mettre en ligne',
-    list_articles: 'Lister articles',
-    publish_all_ready_draft: 'Tout publier (brouillon)',
-    publish_all_ready_live: 'Tout mettre en ligne',
-    change_status: 'Changer statut',
-  };
-  return (
-    <span className="text-xs font-medium text-emerald-700">
-      {labels[type] ?? type}
-    </span>
-  );
 }
 
 const INSIGHT_CONFIG: Record<string, { icon: typeof TrendingDown; color: string; bg: string; border: string }> = {
@@ -166,11 +86,8 @@ const PRICING_COLORS: Record<PricingInsightType, string> = {
 
 export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefreshData, onInsightsCountChange }: KellyUnifiedModalProps) {
   const { user } = useAuth();
-  const navigate = useNavigate();
 
-  const [mainTab, setMainTab] = useState<MainTab>('coach');
   const [expandedSections, setExpandedSections] = useState<Set<CoachSection>>(new Set(['insights']));
-  const [commandsSubTab, setCommandsSubTab] = useState<CommandsSubTab>('chat');
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
@@ -201,56 +118,13 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
   const [selectedSuggestionId, setSelectedSuggestionId] = useState<string | null>(null);
   const [suggestedDate, setSuggestedDate] = useState<string | null>(null);
 
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerItem, setDrawerItem] = useState<any>(null);
-
-  const [cmdMessages, setCmdMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome',
-      role: 'assistant',
-      content: 'Bonjour ! Dis-moi ce que tu veux que je fasse?\n\nExemple : "Publie le prochain article pour Seb" ou "Change le statut de la robe bleue en ready"',
-      timestamp: new Date().toISOString(),
-    },
-  ]);
-  const [cmdTasks, setCmdTasks] = useState<TaskQueueRow[]>([]);
-  const [cmdInput, setCmdInput] = useState('');
-  const [cmdSending, setCmdSending] = useState(false);
-  const [cmdFamilyMembers, setCmdFamilyMembers] = useState<FamilyMemberCmd[]>([]);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [editDraft, setEditDraft] = useState<{ natural_input: string; seller_name: string; article_title: string }>({ natural_input: '', seller_name: '', article_title: '' });
-  const [savingTask, setSavingTask] = useState(false);
-  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const cmdInputRef = useRef<HTMLTextAreaElement>(null);
   const modalRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && user) {
       loadAllData();
-      supabase
-        .from('family_members')
-        .select('id, name, user_id')
-        .then(({ data }) => setCmdFamilyMembers((data ?? []) as FamilyMemberCmd[]));
     }
   }, [isOpen, user]);
-
-  useEffect(() => {
-    if (commandsSubTab === 'queue' && user) {
-      loadRecentTasks(user.id).then(setCmdTasks).catch(console.error);
-    }
-  }, [commandsSubTab, user]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [cmdMessages]);
-
-  useEffect(() => {
-    if (isOpen && mainTab === 'commands') {
-      setTimeout(() => cmdInputRef.current?.focus(), 100);
-    }
-  }, [isOpen, mainTab]);
 
   useEffect(() => {
     const handleDragMove = (e: MouseEvent) => {
@@ -886,155 +760,9 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     setSelectedSuggestionId(null);
   };
 
-  const handleCopy = useCallback((text: string, id: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    });
-  }, []);
-
-  const refreshCmdTasks = useCallback(() => {
-    if (user) loadRecentTasks(user.id).then(setCmdTasks).catch(console.error);
-  }, [user]);
-
-  const handleCmdSend = useCallback(async () => {
-    if (!cmdInput.trim() || cmdSending || !user) return;
-    const userText = cmdInput.trim();
-    setCmdInput('');
-    setCmdSending(true);
-
-    const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: 'user',
-      content: userText,
-      timestamp: new Date().toISOString(),
-    };
-    setCmdMessages(prev => [...prev, userMsg]);
-
-    try {
-      const parsed: ParsedCommand = await parseUserInstruction(userText);
-
-      if (parsed.error || parsed.confidence < 0.5) {
-        setCmdMessages(prev => [
-          ...prev,
-          {
-            id: `err-${Date.now()}`,
-            role: 'error',
-            content: parsed.error ?? "Je n'ai pas compris cette instruction. Peux-tu reformuler ?",
-            timestamp: new Date().toISOString(),
-          },
-        ]);
-        return;
-      }
-
-      const seller = resolveSellerByName(parsed.seller_name, cmdFamilyMembers);
-      let taskRow: TaskQueueRow;
-
-      if (
-        parsed.command_type === 'change_status' &&
-        parsed.article_title &&
-        parsed.params?.target_status
-      ) {
-        taskRow = await enqueueTask(user.id, seller.id, seller.name, parsed, userText);
-        try {
-          await supabase
-            .from('articles')
-            .update({ status: parsed.params.target_status })
-            .ilike('title', `%${parsed.article_title}%`);
-          await updateTaskStatus(taskRow.id, 'done', `Statut mis à jour → ${parsed.params.target_status}`);
-          taskRow = { ...taskRow, status: 'done' };
-        } catch {
-          await updateTaskStatus(taskRow.id, 'error', 'Erreur lors de la mise à jour du statut');
-          taskRow = { ...taskRow, status: 'error' };
-        }
-      } else {
-        taskRow = await enqueueTask(user.id, seller.id, seller.name, parsed, userText);
-      }
-
-      setCmdMessages(prev => [
-        ...prev,
-        {
-          id: `ast-${Date.now()}`,
-          role: 'assistant',
-          content: describeCommand(parsed),
-          timestamp: new Date().toISOString(),
-          taskId: taskRow.id,
-          parsed,
-        },
-      ]);
-
-      setCmdTasks(prev => [taskRow, ...prev.slice(0, 19)]);
-    } catch (err) {
-      setCmdMessages(prev => [
-        ...prev,
-        {
-          id: `err-${Date.now()}`,
-          role: 'error',
-          content: `Erreur : ${err instanceof Error ? err.message : String(err)}`,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
-    } finally {
-      setCmdSending(false);
-    }
-  }, [cmdInput, cmdSending, user, cmdFamilyMembers]);
-
-  const handleCmdKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleCmdSend();
-    }
-  };
-
-  const startEditTask = (task: TaskQueueRow) => {
-    setEditingTaskId(task.id);
-    setEditDraft({
-      natural_input: task.natural_input,
-      seller_name: task.seller_name ?? '',
-      article_title: task.article_title ?? '',
-    });
-  };
-
-  const cancelEditTask = () => {
-    setEditingTaskId(null);
-    setEditDraft({ natural_input: '', seller_name: '', article_title: '' });
-  };
-
-  const saveEditTask = async (taskId: string) => {
-    setSavingTask(true);
-    try {
-      const updated = await updatePendingTask(taskId, {
-        natural_input: editDraft.natural_input,
-        seller_name: editDraft.seller_name,
-        article_title: editDraft.article_title,
-      });
-      setCmdTasks(prev => prev.map(t => t.id === taskId ? updated : t));
-      setEditingTaskId(null);
-      setToast({ type: 'success', text: 'Tâche modifiée avec succès' });
-    } catch (err) {
-      setToast({ type: 'error', text: 'Erreur lors de la modification' });
-    } finally {
-      setSavingTask(false);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    setDeletingTaskId(taskId);
-    try {
-      await deletePendingTask(taskId);
-      setCmdTasks(prev => prev.filter(t => t.id !== taskId));
-      setToast({ type: 'success', text: 'Tâche supprimée' });
-    } catch (err) {
-      setToast({ type: 'error', text: 'Erreur lors de la suppression' });
-    } finally {
-      setDeletingTaskId(null);
-    }
-  };
-
   const visibleInsights = insights.filter(i => !dismissed.has(i.title));
   const pendingSuggestions = suggestions.filter((s) => s.status === 'pending');
   const totalScheduled = scheduledArticles.length + scheduledLots.length;
-  const pendingCmdCount = cmdTasks.filter(t => t.status === 'pending').length;
 
   useEffect(() => {
     if (onInsightsCountChange) {
@@ -1101,24 +829,19 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                 <div>
                   <h3 className="font-bold text-white text-base">Kelly - Votre Assistante IA</h3>
                   <p className="text-xs text-white/80">
-                    {mainTab === 'coach'
-                      ? `${visibleInsights.length + pricingInsights.length + pendingSuggestions.length} recommandations`
-                      : 'Commandes en langage naturel'
-                    }
+                    {`${visibleInsights.length + pricingInsights.length + pendingSuggestions.length} recommandations`}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                {mainTab === 'coach' && (
-                  <button
-                    onClick={loadAllData}
-                    disabled={loadingInsights || loadingPricing || loadingPlanner}
-                    className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
-                    title="Actualiser tout"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${(loadingInsights || loadingPricing || loadingPlanner) ? 'animate-spin' : ''}`} />
-                  </button>
-                )}
+                <button
+                  onClick={loadAllData}
+                  disabled={loadingInsights || loadingPricing || loadingPlanner}
+                  className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+                  title="Actualiser tout"
+                >
+                  <RefreshCw className={`w-4 h-4 ${(loadingInsights || loadingPricing || loadingPlanner) ? 'animate-spin' : ''}`} />
+                </button>
                 {!isMobile && (
                   <button
                     onMouseDown={handleDragStart}
@@ -1139,45 +862,8 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
             </div>
           </div>
 
-          {/* Main Tabs */}
-          <div className="flex border-b border-gray-200 flex-shrink-0 bg-gray-50">
-            <button
-              onClick={() => setMainTab('coach')}
-              className={`flex-1 py-3 text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                mainTab === 'coach'
-                  ? 'text-emerald-700 border-b-2 border-emerald-500 bg-white'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <Sparkles className="w-4 h-4" />
-              Coach IA
-              {(visibleInsights.length + pricingInsights.length + pendingSuggestions.length) > 0 && (
-                <span className="bg-emerald-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                  {visibleInsights.length + pricingInsights.length + pendingSuggestions.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setMainTab('commands')}
-              className={`flex-1 py-3 text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
-                mainTab === 'commands'
-                  ? 'text-emerald-700 border-b-2 border-emerald-500 bg-white'
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              Commandes
-              {pendingCmdCount > 0 && (
-                <span className="bg-amber-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                  {pendingCmdCount}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Coach Tab Content */}
-          {mainTab === 'coach' && (
-            <div className="flex-1 overflow-y-auto">
+          {/* Coach Content */}
+          <div className="flex-1 overflow-y-auto">
               <div className="divide-y divide-gray-100">
                 <SectionHeader
                   icon={Sparkles}
@@ -1547,275 +1233,8 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                 )}
               </div>
             </div>
-          )}
-
-          {/* Commands Tab Content */}
-          {mainTab === 'commands' && (
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Commands Sub-Tabs */}
-              <div className="flex border-b border-gray-100 flex-shrink-0 bg-gray-50">
-                <button
-                  onClick={() => setCommandsSubTab('chat')}
-                  className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                    commandsSubTab === 'chat'
-                      ? 'text-emerald-700 border-b-2 border-emerald-500 bg-white'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  Chat
-                </button>
-                <button
-                  onClick={() => { setCommandsSubTab('queue'); refreshCmdTasks(); }}
-                  className={`flex-1 py-2.5 text-xs font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                    commandsSubTab === 'queue'
-                      ? 'text-emerald-700 border-b-2 border-emerald-500 bg-white'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <ListTodo className="w-3.5 h-3.5" />
-                  File d'attente
-                  {pendingCmdCount > 0 && (
-                    <span className="bg-amber-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
-                      {pendingCmdCount}
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              {/* Chat Sub-Tab */}
-              {commandsSubTab === 'chat' && (
-                <>
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
-                    {cmdMessages.map(msg => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[85%] rounded-2xl px-3 py-2.5 text-sm ${
-                            msg.role === 'user'
-                              ? 'bg-emerald-600 text-white rounded-br-sm'
-                              : msg.role === 'error'
-                              ? 'bg-red-50 text-red-700 border border-red-200 rounded-bl-sm'
-                              : 'bg-white text-gray-800 shadow-sm border border-gray-100 rounded-bl-sm'
-                          }`}
-                        >
-                          <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-
-                          {msg.role === 'assistant' && msg.parsed && (
-                            <div className="mt-2.5 pt-2.5 border-t border-gray-100">
-                              <p className="text-xs text-gray-500 mb-1.5">Commande Claude Code :</p>
-                              <div className="bg-emerald-50 rounded-lg p-2 flex items-start gap-2">
-                                <code className="text-xs text-emerald-800 flex-1 leading-relaxed">
-                                  {commandToClaudeCodeString(msg.parsed)}
-                                </code>
-                                <button
-                                  onClick={() => handleCopy(commandToClaudeCodeString(msg.parsed!), msg.id)}
-                                  className="flex-shrink-0 p-1 hover:bg-emerald-100 rounded transition-colors"
-                                  title="Copier la commande"
-                                >
-                                  {copiedId === msg.id ? (
-                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                  ) : (
-                                    <Copy className="w-3.5 h-3.5 text-emerald-600" />
-                                  )}
-                                </button>
-                              </div>
-                              {msg.taskId && (
-                                <div className="flex items-center gap-1.5 mt-1.5">
-                                  <StatusBadge
-                                    status={cmdTasks.find(t => t.id === msg.taskId)?.status ?? 'pending'}
-                                  />
-                                  <span className="text-xs text-gray-400">ajouté à la file</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          <p className={`text-xs mt-1 ${msg.role === 'user' ? 'text-emerald-200' : 'text-gray-400'}`}>
-                            {new Date(msg.timestamp).toLocaleTimeString('fr-FR', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-
-                    {cmdSending && (
-                      <div className="flex justify-start">
-                        <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm border border-gray-100 flex items-center gap-2">
-                          <Loader2 className="w-3.5 h-3.5 text-emerald-500 animate-spin" />
-                          <span className="text-xs text-gray-500">Analyse en cours…</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div ref={messagesEndRef} />
-                  </div>
-
-                  <div
-                    className="flex-shrink-0 p-3 bg-white border-t border-gray-100 flex items-end gap-2"
-                    style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
-                  >
-                    <textarea
-                      ref={cmdInputRef}
-                      value={cmdInput}
-                      onChange={e => setCmdInput(e.target.value)}
-                      onKeyDown={handleCmdKeyDown}
-                      placeholder="Ex: Publie le prochain article pour Seb…"
-                      rows={1}
-                      disabled={cmdSending}
-                      className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-400 disabled:opacity-50 overflow-y-auto"
-                      style={{ minHeight: '42px', maxHeight: '112px' }}
-                    />
-                    <button
-                      onClick={handleCmdSend}
-                      disabled={!cmdInput.trim() || cmdSending}
-                      className="flex-shrink-0 p-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white rounded-xl transition-colors"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {/* Queue Sub-Tab */}
-              {commandsSubTab === 'queue' && (
-                <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
-                  {cmdTasks.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 gap-3">
-                      <ListTodo className="w-10 h-10 text-gray-300" />
-                      <p className="text-sm">Aucune tâche dans la file</p>
-                      <p className="text-xs">Envoie une commande dans le chat pour commencer</p>
-                    </div>
-                  ) : (
-                    cmdTasks.map(task => {
-                      const isEditing = editingTaskId === task.id;
-                      const isPending = task.status === 'pending';
-                      const isDeleting = deletingTaskId === task.id;
-                      return (
-                        <div
-                          key={task.id}
-                          className={`bg-white rounded-xl p-3 shadow-sm border transition-colors ${isEditing ? 'border-emerald-300 ring-1 ring-emerald-200' : 'border-gray-100'}`}
-                        >
-                          <div className="flex items-start justify-between gap-2 mb-1.5">
-                            <CommandTypeLabel type={task.command_type} />
-                            <div className="flex items-center gap-1.5">
-                              <StatusBadge status={task.status} />
-                              {isPending && !isEditing && (
-                                <>
-                                  <button
-                                    onClick={() => startEditTask(task)}
-                                    title="Modifier"
-                                    className="p-1 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                                  >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteTask(task.id)}
-                                    disabled={isDeleting}
-                                    title="Supprimer"
-                                    className="p-1 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                                  >
-                                    {isDeleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          {isEditing ? (
-                            <div className="space-y-2 mt-2">
-                              <div>
-                                <label className="text-xs font-medium text-gray-500 mb-1 block">Commande</label>
-                                <textarea
-                                  value={editDraft.natural_input}
-                                  onChange={e => setEditDraft(d => ({ ...d, natural_input: e.target.value }))}
-                                  rows={2}
-                                  className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-400 resize-none"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium text-gray-500 mb-1 block">Vendeur</label>
-                                <input
-                                  type="text"
-                                  value={editDraft.seller_name}
-                                  onChange={e => setEditDraft(d => ({ ...d, seller_name: e.target.value }))}
-                                  className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                                  placeholder="Nom du vendeur"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium text-gray-500 mb-1 block">Article</label>
-                                <input
-                                  type="text"
-                                  value={editDraft.article_title}
-                                  onChange={e => setEditDraft(d => ({ ...d, article_title: e.target.value }))}
-                                  className="w-full text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-emerald-400"
-                                  placeholder="Titre de l'article"
-                                />
-                              </div>
-                              <div className="flex gap-2 pt-1">
-                                <button
-                                  onClick={() => saveEditTask(task.id)}
-                                  disabled={savingTask || !editDraft.natural_input.trim()}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 text-white text-xs font-medium rounded-lg transition-colors"
-                                >
-                                  {savingTask ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                                  Enregistrer
-                                </button>
-                                <button
-                                  onClick={cancelEditTask}
-                                  disabled={savingTask}
-                                  className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 hover:bg-gray-50 text-gray-600 text-xs font-medium rounded-lg transition-colors"
-                                >
-                                  Annuler
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              {task.seller_name && (
-                                <p className="text-xs text-gray-600 mb-0.5">
-                                  Vendeur : <span className="font-medium">{task.seller_name}</span>
-                                </p>
-                              )}
-                              {task.article_title && (
-                                <p className="text-xs text-gray-600 mb-0.5">
-                                  Article : <span className="font-medium">"{task.article_title}"</span>
-                                </p>
-                              )}
-                              <p className="text-xs text-gray-400 italic mt-1 truncate">
-                                "{task.natural_input}"
-                              </p>
-                              {task.result_message && (
-                                <p className={`text-xs mt-1.5 ${task.status === 'error' ? 'text-red-600' : 'text-emerald-600'}`}>
-                                  {task.result_message}
-                                </p>
-                              )}
-                              <p className="text-xs text-gray-300 mt-1.5">
-                                {new Date(task.created_at).toLocaleString('fr-FR', {
-                                  day: '2-digit',
-                                  month: '2-digit',
-                                  hour: '2-digit',
-                                  minute: '2-digit',
-                                })}
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
-
       {(selectedArticle || selectedLot) && (
         <ScheduleModal
           isOpen={scheduleModalOpen}
