@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   Copy, RefreshCw, Zap, ChevronDown, ChevronUp,
   Calendar, CheckCircle2,
-  FileText, Send, ToggleLeft, ToggleRight, AlertCircle,
+  ToggleLeft, ToggleRight, AlertCircle,
   Sparkles, Clock, X, GripVertical
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -352,10 +352,10 @@ export default function AgentRunnerPage() {
           {/* Column headers */}
           <div className="grid grid-cols-12 gap-3 px-5 py-2.5 bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
             <div className="col-span-1"></div>
-            <div className="col-span-4">Item</div>
+            <div className="col-span-5">Item</div>
             <div className="col-span-2">Prix</div>
             <div className="col-span-1">Planif.</div>
-            <div className="col-span-3 text-center">Mode de publication</div>
+            <div className="col-span-2 text-center">Mode</div>
             <div className="col-span-1"></div>
           </div>
 
@@ -418,10 +418,10 @@ export default function AgentRunnerPage() {
                   </div>
 
                   {/* Item info */}
-                  <div className="col-span-4 flex items-center gap-3">
+                  <div className="col-span-5 flex items-center gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-sm text-slate-800 truncate max-w-[160px]">
+                        <span className="font-semibold text-sm text-slate-800 truncate max-w-[220px]">
                           {item.title}
                         </span>
                         {item.isOverdue && (
@@ -468,10 +468,10 @@ export default function AgentRunnerPage() {
                   </div>
 
                   {/* Mode toggle */}
-                  <div className="col-span-3 flex items-center justify-center">
+                  <div className="col-span-2 flex items-center justify-center">
                     <button
                       onClick={() => toggleMode(item.id)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-xl border-2 font-semibold text-xs transition-all w-full justify-center ${
+                      className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border-2 font-semibold text-xs transition-all w-full justify-center ${
                         isLive
                           ? 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                           : 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100'
@@ -479,15 +479,13 @@ export default function AgentRunnerPage() {
                     >
                       {isLive ? (
                         <>
-                          <ToggleRight className="w-4 h-4 flex-shrink-0" />
-                          <Send className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span>Mettre en vente</span>
+                          <ToggleRight className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span>En vente</span>
                         </>
                       ) : (
                         <>
-                          <ToggleLeft className="w-4 h-4 flex-shrink-0" />
-                          <FileText className="w-3.5 h-3.5 flex-shrink-0" />
-                          <span>Brouillon Vinted</span>
+                          <ToggleLeft className="w-3.5 h-3.5 flex-shrink-0" />
+                          <span>Brouillon</span>
                         </>
                       )}
                     </button>
