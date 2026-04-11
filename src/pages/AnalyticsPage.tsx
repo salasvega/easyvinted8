@@ -402,7 +402,7 @@ export function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
 
   // UX state
-  const [timeRange, setTimeRange] = useState<TimeRange>("30d");
+  const [timeRange, setTimeRange] = useState<TimeRange>("all");
 
   const [statusFilters, setStatusFilters] = useState<ItemStatus[]>([]);
   const [sortMode, setSortMode] = useState<SortMode>("profit");
