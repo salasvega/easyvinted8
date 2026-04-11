@@ -11,6 +11,7 @@ import { LotSoldModal } from '../components/LotSoldModal';
 import { LabelModal } from '../components/LabelModal';
 import { Toast } from '../components/ui/Toast';
 import { useAuth } from '../contexts/AuthContext';
+import { useSeller } from '../contexts/SellerContext';
 import { AdminItemCard } from '../components/admin/AdminItemCard';
 import { AdminDetailDrawer } from '../components/admin/AdminDetailDrawer';
 import { ArticleFormDrawer } from '../components/admin/ArticleFormDrawer';
@@ -99,6 +100,7 @@ interface AdminItem {
 export function MonDressingPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { activeSeller, allSellers } = useSeller();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | ArticleStatus>('all');
   const [sellerFilter, setSellerFilter] = useState<string>('all');
@@ -106,7 +108,7 @@ export function MonDressingPage() {
   const [seasonFilter, setSeasonFilter] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('grid');
   const [items, setItems] = useState<AdminItem[]>([]);
-  const [familyMembers, setFamilyMembers] = useState<{ id: string; name: string }[]>([]);
+  const familyMembers = allSellers;
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [selectedItem, setSelectedItem] = useState<AdminItem | null>(null);
@@ -201,6 +203,14 @@ export function MonDressingPage() {
   }, [user]);
 
   useEffect(() => {
+    if (activeSeller) {
+      setSellerFilter(activeSeller.id);
+    } else if (allSellers.length === 0) {
+      setSellerFilter('all');
+    }
+  }, [activeSeller, allSellers.length]);
+
+  useEffect(() => {
     const handleLotCreated = () => {
       fetchAllData();
     };
@@ -246,7 +256,7 @@ export function MonDressingPage() {
     try {
       setLoading(true);
 
-      const [articlesResult, lotsResult, membersResult, articlesInLotsResult] = await Promise.all([
+      const [articlesResult, lotsResult, articlesInLotsResult] = await Promise.all([
         supabase
           .from('articles')
           .select(`
@@ -274,11 +284,6 @@ export function MonDressingPage() {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false }),
         supabase
-          .from('family_members')
-          .select('id, name')
-          .eq('user_id', user.id)
-          .order('name'),
-        supabase
           .from('lot_items')
           .select('article_id, lot_id, lots!inner(status, user_id)')
           .eq('lots.user_id', user.id)
@@ -287,15 +292,11 @@ export function MonDressingPage() {
 
       if (articlesResult.error) throw articlesResult.error;
       if (lotsResult.error) throw lotsResult.error;
-      if (membersResult.error) throw membersResult.error;
       if (articlesInLotsResult.error) throw articlesInLotsResult.error;
 
       const articles = articlesResult.data || [];
       const lots = lotsResult.data || [];
-      const members = membersResult.data || [];
       const articlesInLots = new Set((articlesInLotsResult.data || []).map((row: any) => row.article_id));
-
-      setFamilyMembers(members);
 
       const articleItems: AdminItem[] = articles.map((article: any) => ({
         id: article.id,

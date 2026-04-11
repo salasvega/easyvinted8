@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp, Home, Key, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useSeller } from "../../contexts/SellerContext";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
@@ -77,8 +78,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
 
-  const [defaultSeller, setDefaultSeller] = useState<FamilyMember | null>(null);
-  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const { activeSeller, allSellers, setActiveSeller } = useSeller();
+  const defaultSeller = activeSeller;
+  const familyMembers = allSellers;
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSellerMenu, setShowSellerMenu] = useState(false);
@@ -102,8 +104,6 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   useEffect(() => {
     if (user) {
-      loadDefaultSeller();
-      loadFamilyMembers();
       checkGeminiKey();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -163,59 +163,6 @@ export function AppLayout({ children }: AppLayoutProps) {
     };
   }, [mobileMenuOpen, showSellerMenu, closingMenu, closingSellerMenu]);
 
-  async function loadDefaultSeller() {
-    if (!user) return;
-
-    try {
-      const { data: profileData, error: profileError } = await supabase
-        .from("user_profiles")
-        .select("default_seller_id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (profileError) throw profileError;
-
-      if (profileData?.default_seller_id) {
-        const { data: sellerData, error: sellerError } = await supabase
-          .from("family_members")
-          .select("id, name")
-          .eq("id", profileData.default_seller_id)
-          .maybeSingle();
-
-        if (!sellerError && sellerData) setDefaultSeller(sellerData);
-      } else {
-        const { data: firstSeller } = await supabase
-          .from("family_members")
-          .select("id, name")
-          .eq("user_id", user.id)
-          .order("name")
-          .limit(1)
-          .maybeSingle();
-
-        if (firstSeller) setDefaultSeller(firstSeller);
-      }
-    } catch (error) {
-      console.error("Error loading default seller:", error);
-    }
-  }
-
-  async function loadFamilyMembers() {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("family_members")
-        .select("id, name")
-        .eq("user_id", user.id)
-        .order("name");
-
-      if (error) throw error;
-      setFamilyMembers(data || []);
-    } catch (error) {
-      console.error("Error loading family members:", error);
-    }
-  }
-
   async function setDefaultSellerHandler(sellerId: string) {
     if (!user) return;
 
@@ -236,7 +183,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       if (error) throw error;
 
       const selectedSeller = familyMembers.find((m) => m.id === sellerId);
-      if (selectedSeller) setDefaultSeller(selectedSeller);
+      if (selectedSeller) setActiveSeller(selectedSeller);
 
       closeMenuWithAnimation("seller");
     } catch (error) {
