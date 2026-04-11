@@ -341,16 +341,16 @@ export default function AgentRunnerPage() {
             </h2>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => setAllModes('live')}
-                className="text-xs px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 font-semibold hover:bg-emerald-200 transition-colors"
-              >
-                Tout mettre en vente
-              </button>
-              <button
                 onClick={() => setAllModes('draft')}
                 className="text-xs px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition-colors"
               >
                 Tout en brouillon
+              </button>
+              <button
+                onClick={() => setAllModes('live')}
+                className="text-xs px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-700 font-semibold hover:bg-emerald-200 transition-colors"
+              >
+                Tout mettre en vente
               </button>
             </div>
           </div>
