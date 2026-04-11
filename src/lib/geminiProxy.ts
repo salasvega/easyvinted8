@@ -54,6 +54,18 @@ export async function callGeminiProxy(
     if (response.status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
       throw new Error('QUOTA_EXCEEDED:' + msg);
     }
+    if (
+      response.status === 401 ||
+      response.status === 403 ||
+      msg.includes('API_KEY_INVALID') ||
+      msg.includes('API key') ||
+      msg.includes('api key') ||
+      msg.includes('invalid key') ||
+      msg.includes('Cle API Gemini invalide') ||
+      msg.includes('Aucune cle API')
+    ) {
+      throw new Error('API_KEY_INVALID:' + msg);
+    }
     throw new Error(msg);
   }
 

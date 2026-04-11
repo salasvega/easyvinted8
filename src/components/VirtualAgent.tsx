@@ -205,8 +205,15 @@ const VirtualAgent: React.FC<VirtualAgentProps> = ({ article, activePhoto, onApp
       setHasAnalysis(true);
 
       speak(advice.generalAdvice);
-    } catch (e) {
-      const errorMessage = "Désolé, j'ai eu un souci technique. Réessayez ?";
+    } catch (e: any) {
+      const isApiKeyError =
+        e?.message?.includes('API_KEY_INVALID') ||
+        e?.message?.includes('API key') ||
+        e?.message?.includes('Cle API Gemini invalide') ||
+        e?.message?.includes('Aucune cle API');
+      const errorMessage = isApiKeyError
+        ? "Cle API Gemini invalide ou manquante. Rendez-vous dans Parametres > Profil pour renseigner une cle API Gemini valide."
+        : "Desole, j'ai eu un souci technique. Reessayez ?";
       setMessages(prev => [...prev, { role: 'assistant', content: errorMessage, timestamp: Date.now() }]);
       speak(errorMessage);
     }
@@ -267,9 +274,19 @@ const VirtualAgent: React.FC<VirtualAgentProps> = ({ article, activePhoto, onApp
       };
       setMessages(prev => [...prev, answerMessage]);
       speak(result.answer);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error asking question:', error);
-      const errorMessage = "Désolée, je n'ai pas pu répondre. Peux-tu reformuler ta question ?";
+      const errMsg = error?.message || '';
+      const isApiKeyError =
+        errMsg.includes('API_KEY_INVALID') ||
+        errMsg.includes('API key') ||
+        errMsg.includes('Cle API Gemini invalide') ||
+        errMsg.includes('Aucune cle API') ||
+        errMsg.includes('cle API') ||
+        errMsg.includes('api_key');
+      const errorMessage = isApiKeyError
+        ? "Cle API Gemini invalide ou manquante. Rendez-vous dans Parametres > Profil pour renseigner une cle API Gemini valide."
+        : "Desolee, je n'ai pas pu repondre. Peux-tu reformuler ta question ?";
       setMessages(prev => [...prev, { role: 'assistant', content: errorMessage, timestamp: Date.now() }]);
       speak(errorMessage);
     }

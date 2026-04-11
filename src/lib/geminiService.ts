@@ -348,6 +348,9 @@ Format your response in French with clear sections using **bold headers** for re
     if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
       throw new Error("Quota Gemini dépassé. Veuillez réessayer plus tard.");
     }
+    if (error?.message?.includes("API_KEY_INVALID") || error?.message?.includes("API key") || error?.message?.includes("cle API") || error?.message?.includes("Aucune cle")) {
+      throw new Error("API_KEY_INVALID:" + error.message);
+    }
     throw new Error("Impossible d'analyser l'annonce pour le moment.");
   }
 };
@@ -422,6 +425,9 @@ IMPORTANT:
     console.error("Structured coach analysis failed:", error);
     if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
       throw new Error("Quota Gemini dépassé. Veuillez réessayer plus tard.");
+    }
+    if (error?.message?.includes("API_KEY_INVALID") || error?.message?.includes("API key") || error?.message?.includes("cle API") || error?.message?.includes("Aucune cle")) {
+      throw new Error("API_KEY_INVALID:" + error.message);
     }
     throw new Error("Impossible d'analyser l'annonce pour le moment.");
   }
