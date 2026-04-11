@@ -107,6 +107,9 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
   const [loadingPricing, setLoadingPricing] = useState(false);
   const [loadingPlanner, setLoadingPlanner] = useState(false);
 
+  const [insightsApiKeyError, setInsightsApiKeyError] = useState(false);
+  const [pricingApiKeyError, setPricingApiKeyError] = useState(false);
+
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [executingAction, setExecutingAction] = useState<string | null>(null);
   const [applyingPrice, setApplyingPrice] = useState<string | null>(null);
@@ -206,6 +209,7 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     if (!user || loadingInsights) return;
 
     setLoadingInsights(true);
+    setInsightsApiKeyError(false);
     try {
       if (!forceRefresh) {
         const cachedInsights = await loadCachedInsights();
@@ -251,8 +255,11 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
 
       await saveCachedInsights(enrichedInsights);
       setInsights(enrichedInsights.filter(i => !dismissed.has(i.title)));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading insights:', error);
+      if (error?.message?.includes('API_KEY_INVALID') || error?.message?.includes('API key') || error?.message?.includes('cle API') || error?.message?.includes('Aucune cle')) {
+        setInsightsApiKeyError(true);
+      }
     } finally {
       setLoadingInsights(false);
     }
@@ -328,11 +335,15 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     if (!user || loadingPricing) return;
 
     setLoadingPricing(true);
+    setPricingApiKeyError(false);
     try {
       const data = await getPricingInsights(user.id, forceRefresh);
       setPricingInsights(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading pricing insights:', error);
+      if (error?.message?.includes('API_KEY_INVALID') || error?.message?.includes('API key') || error?.message?.includes('cle API') || error?.message?.includes('Aucune cle')) {
+        setPricingApiKeyError(true);
+      }
     } finally {
       setLoadingPricing(false);
     }
@@ -883,6 +894,14 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                           <p className="text-sm text-gray-500">Kelly analyse...</p>
                         </div>
                       </div>
+                    ) : insightsApiKeyError ? (
+                      <div className="p-4 rounded-xl border border-red-200 bg-red-50 flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-red-700">Clé API Gemini invalide ou manquante</p>
+                          <p className="text-xs text-red-600 mt-1">Les conseils ne peuvent pas être générés. Renseignez une clé API Gemini valide dans <span className="font-medium">Paramètres &gt; Profil</span>.</p>
+                        </div>
+                      </div>
                     ) : visibleInsights.length === 0 ? (
                       <div className="text-center py-8">
                         <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
@@ -969,6 +988,14 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                         <div className="flex flex-col items-center gap-2">
                           <div className="w-8 h-8 border-2 border-green-200 border-t-green-500 rounded-full animate-spin" />
                           <p className="text-sm text-gray-500">Analyse des prix...</p>
+                        </div>
+                      </div>
+                    ) : pricingApiKeyError ? (
+                      <div className="p-4 rounded-xl border border-red-200 bg-red-50 flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-red-700">Clé API Gemini invalide ou manquante</p>
+                          <p className="text-xs text-red-600 mt-1">L'optimisation des prix ne peut pas fonctionner. Renseignez une clé API Gemini valide dans <span className="font-medium">Paramètres &gt; Profil</span>.</p>
                         </div>
                       </div>
                     ) : pricingInsights.length === 0 ? (

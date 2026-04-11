@@ -198,8 +198,11 @@ async function generatePricingInsightsWithAI(
       createdAt: now.toISOString(),
       expiresAt: expiresAt.toISOString(),
     }));
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error generating pricing insights:', error);
+    if (error?.message?.includes('API_KEY_INVALID') || error?.message?.includes('API key') || error?.message?.includes('cle API') || error?.message?.includes('Aucune cle')) {
+      throw new Error('API_KEY_INVALID:' + error.message);
+    }
     throw new Error('Impossible de générer les insights de prix. Réessaie dans quelques instants.');
   }
 }
