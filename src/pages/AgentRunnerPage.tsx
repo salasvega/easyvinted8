@@ -486,8 +486,8 @@ export default function AgentRunnerPage() {
           <div className="px-5 py-4 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-slate-50">
             <div className="flex items-center justify-between gap-4">
               <div className="text-sm text-slate-500">
-                <span className="font-semibold text-emerald-600">{liveCount}</span> en vente ·{' '}
-                <span className="font-semibold text-blue-600">{draftCount}</span> en brouillon
+                <span className="font-semibold text-blue-600">{draftCount}</span> en brouillon ·{' '}
+                <span className="font-semibold text-emerald-600">{liveCount}</span> en vente
               </div>
               <button
                 onClick={generateInstructions}
@@ -530,7 +530,7 @@ export default function AgentRunnerPage() {
             </button>
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400">
-                {liveCount} en vente · {draftCount} en brouillon
+                {draftCount} en brouillon · {liveCount} en vente
               </span>
               <button
                 onClick={() => copyText(customInstructions)}
