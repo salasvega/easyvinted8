@@ -33,6 +33,7 @@ import { determineSizeType, getSizeFromMember } from '../../lib/sizeHelpers';
 import { LabelModal } from '../LabelModal';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { useGemini } from '../../contexts/GeminiContext';
 import { COLORS, MATERIALS } from '../../constants/articleAttributes';
 import VirtualAgent from '../VirtualAgent';
 import { Hash, Search, TrendingUp, Zap } from 'lucide-react';
@@ -123,6 +124,7 @@ interface ArticleFormDrawerProps {
 
 export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggestions }: ArticleFormDrawerProps) {
   const { user } = useAuth();
+  const { hasGeminiKey } = useGemini();
 
   const [loading, setLoading] = useState(false);
   const [analyzingWithAI, setAnalyzingWithAI] = useState(false);
@@ -1246,7 +1248,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                         <Maximize2 className="w-5 h-5" />
                       </button>
 
-                      <button
+                      {hasGeminiKey && <button
                         type="button"
                         onClick={() => handleEditImage(selectedPhotoIndex)}
                         className="absolute top-3 right-3 px-4 py-2.5 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 text-white rounded-2xl shadow-xl hover:shadow-2xl backdrop-blur-sm transition-all duration-300 transform hover:scale-105 hover:-translate-y-0.5 flex items-center gap-2.5 z-10 border border-white/20 hover:border-white/40 group"
@@ -1255,7 +1257,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                         <Wand2 className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
                         <span className="font-bold text-sm tracking-wide">Éditer</span>
                         <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
-                      </button>
+                      </button>}
 
                       {formData.photos.length > 1 && (
                         <>
@@ -1312,7 +1314,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                           <div className="p-0.5 bg-slate-900/70 text-white rounded">
                             <GripVertical className="w-3 h-3" />
                           </div>
-                          <button
+                          {hasGeminiKey && <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1322,7 +1324,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                             title="Editer avec IA"
                           >
                             <Wand2 className="w-3 h-3" />
-                          </button>
+                          </button>}
                         </div>
                         <button
                           type="button"
@@ -1456,8 +1458,8 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                               </div>
                             )}
 
-                            {/* Bouton Analyser - s'affiche seulement si un mode d'analyse est sélectionné */}
-                            {analysisMode && (
+                            {/* Bouton Analyser - s'affiche seulement si un mode d'analyse est sélectionné et si la clé Gemini est configurée */}
+                            {analysisMode && hasGeminiKey && (
                               <button
                                 type="button"
                                 onClick={handleAnalyzeWithAI}
@@ -2023,7 +2025,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
         />
       )}
 
-      {isOpen && (
+      {isOpen && hasGeminiKey && (
         <VirtualAgent
           article={{
             title: formData.title,

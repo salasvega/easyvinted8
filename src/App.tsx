@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import { SellerProvider } from './contexts/SellerContext';
+import { GeminiProvider } from './contexts/GeminiContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AppLayout } from './components/layout/AppLayout';
 import { NotificationBanner } from './components/NotificationBanner';
@@ -71,6 +72,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <GeminiProvider>
         <SellerProvider>
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
@@ -131,6 +133,7 @@ function App() {
           </Routes>
         </Suspense>
         </SellerProvider>
+        </GeminiProvider>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -1,8 +1,9 @@
-import { X, Package, ClipboardEdit, Upload, Calendar, DollarSign, Trash2, FileText, CheckCircle2, Clock, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, ExternalLink, ChevronLeft, ChevronRight, Tag, Layers, TrendingDown, ArrowLeft, Hash, Search, TrendingUp, Zap, ChevronDown, Loader, AlertCircle, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Package, Clipboard as ClipboardEdit, Upload, Calendar, DollarSign, Trash2, FileText, CheckCircle2, Clock, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, ExternalLink, ChevronLeft, ChevronRight, Tag, Layers, TrendingDown, ArrowLeft, Hash, Search, TrendingUp, Zap, ChevronDown, Loader, AlertCircle, Maximize2, Minimize2 } from 'lucide-react';
 import { ArticleStatus, Season } from '../../types/article';
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import VirtualAgent from '../VirtualAgent';
+import { useGemini } from '../../contexts/GeminiContext';
 import { Toast } from '../ui/Toast';
 
 interface LotArticle {
@@ -170,6 +171,7 @@ export function AdminDetailDrawer({
   onLabelOpen,
   formatDate,
 }: AdminDetailDrawerProps) {
+  const { hasGeminiKey } = useGemini();
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [selectedArticle, setSelectedArticle] = useState<FullArticleDetails | null>(null);
   const [articlePhotoIndex, setArticlePhotoIndex] = useState(0);
@@ -1262,7 +1264,7 @@ export function AdminDetailDrawer({
         </>
       )}
 
-      {isOpen && item && item.type === 'article' && (
+      {isOpen && item && item.type === 'article' && hasGeminiKey && (
         <VirtualAgent
           article={{
             title: item.title,

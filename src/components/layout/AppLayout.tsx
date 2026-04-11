@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Package, Settings, BarChart3, Menu, X, LogOut, Users, ChevronDown, Activity, Check, CircleUser as UserCircle2, Calendar, Play, Zap, Shirt, Send, TrendingUp, Home, Key, AlertTriangle } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSeller } from "../../contexts/SellerContext";
+import { useGemini } from "../../contexts/GeminiContext";
 import { ShoppingBag } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../../lib/supabase";
@@ -89,7 +90,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [kellyInsightsCount, setKellyInsightsCount] = useState(0);
 
   const [headerScrolled, setHeaderScrolled] = useState(false);
-  const [hasGeminiKey, setHasGeminiKey] = useState<boolean | null>(null);
+  const { hasGeminiKey } = useGemini();
   const [geminiKeyDismissed, setGeminiKeyDismissed] = useState(false);
 
   const [closingMenu, setClosingMenu] = useState(false);
@@ -101,23 +102,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const sellerMenuRef = useRef<HTMLDivElement>(null);
 
   const MENU_CLOSE_MS = 520;
-
-  useEffect(() => {
-    if (user) {
-      checkGeminiKey();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  async function checkGeminiKey() {
-    if (!user) return;
-    const { data } = await supabase
-      .from("user_profiles")
-      .select("gemini_api_key")
-      .eq("id", user.id)
-      .maybeSingle();
-    setHasGeminiKey(!!(data as any)?.gemini_api_key);
-  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -304,7 +288,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             </div>
 
             <div className="flex items-center gap-3">
-              <button
+              {hasGeminiKey && <button
                 onClick={() => setShowKellyPanel(!showKellyPanel)}
                 className="relative p-1 hover:bg-emerald-50 rounded-full transition-all duration-300 hover:scale-110 ripple-effect group"
                 title="Kelly - Votre assistante IA"
@@ -330,7 +314,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     </span>
                   )}
                 </div>
-              </button>
+              </button>}
 
               <div className="relative" ref={menuRef}>
                 <button
