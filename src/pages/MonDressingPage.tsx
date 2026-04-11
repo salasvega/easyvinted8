@@ -1,11 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Eye, ClipboardEdit, MoreVertical, Copy, Trash2, DollarSign, Calendar, Clock,
-  CheckCircle2, FileText, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, Upload,
-  Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen, TrendingUp,
-  CheckSquare, Euro
-} from 'lucide-react';
+import { Eye, Clipboard as ClipboardEdit, MoreVertical, Copy, Trash2, DollarSign, Calendar, Clock, CheckCircle2, FileText, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, Upload, Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen, TrendingUp, CheckSquare, Euro } from 'lucide-react';
 import { Article, ArticleStatus, Season } from '../types/article';
 import { supabase } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
@@ -885,7 +880,7 @@ export function MonDressingPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="hidden sm:flex items-center gap-2 flex-wrap">
               <select
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as 'all' | 'article' | 'lot')}
