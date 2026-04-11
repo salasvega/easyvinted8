@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   Copy, RefreshCw, Zap, ChevronDown, ChevronUp,
-  Package, ShoppingBag, Calendar, CheckCircle2,
+  Calendar, CheckCircle2,
   FileText, Send, ToggleLeft, ToggleRight, AlertCircle,
   Sparkles, Clock, X, GripVertical
 } from 'lucide-react';
@@ -419,16 +419,6 @@ export default function AgentRunnerPage() {
 
                   {/* Item info */}
                   <div className="col-span-4 flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                      item.type === 'lot'
-                        ? 'bg-slate-100 text-slate-500'
-                        : 'bg-teal-50 text-teal-600'
-                    }`}>
-                      {item.type === 'lot'
-                        ? <Package className="w-4 h-4" />
-                        : <ShoppingBag className="w-4 h-4" />
-                      }
-                    </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-sm text-slate-800 truncate max-w-[160px]">
