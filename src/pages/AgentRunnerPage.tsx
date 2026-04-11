@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   Copy, RefreshCw, Zap, ChevronDown, ChevronUp,
   Package, ShoppingBag, Calendar, CheckCircle2,
   FileText, Send, ToggleLeft, ToggleRight, AlertCircle,
-  Sparkles, Clock, X
+  Sparkles, Clock, X, GripVertical
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -86,52 +86,29 @@ function buildCustomInstructions(
   const lines: string[] = [];
 
   const getItemMode = (id: string): PublishMode => itemModes[id] ?? 'draft';
-  const draftItems = items.filter(i => getItemMode(i.id) === 'draft');
-  const liveItems = items.filter(i => getItemMode(i.id) === 'live');
 
   if (pendingCount > 0) {
     lines.push(`Il y a ${pendingCount} tâche(s) en file d'attente — traite-les en priorité avant de commencer.`);
     lines.push('');
   }
 
-  const parts: string[] = [];
-
-  if (liveItems.length > 0) {
-    const names = liveItems.map(i => {
-      let label = i.title;
-      if (i.reference_number) label += ` (#${i.reference_number})`;
-      if (i.isOverdue) label += ' [EN RETARD]';
-      return label;
-    });
-    if (liveItems.length === 1) {
-      parts.push(`publie en live : ${names[0]}`);
-    } else {
-      parts.push(`publie en live : ${names.join(', ')}`);
-    }
-  }
-
-  if (draftItems.length > 0) {
-    const names = draftItems.map(i => {
-      let label = i.title;
-      if (i.reference_number) label += ` (#${i.reference_number})`;
-      if (i.isOverdue) label += ' [EN RETARD]';
-      return label;
-    });
-    if (draftItems.length === 1) {
-      parts.push(`sauvegarde en brouillon Vinted : ${names[0]}`);
-    } else {
-      parts.push(`sauvegarde en brouillon Vinted : ${names.join(', ')}`);
-    }
-  }
-
-  if (parts.length === 0) {
+  if (items.length === 0) {
     lines.push('Aucun item à traiter.');
-  } else {
-    const sentence = parts.length === 1
-      ? parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + '.'
-      : parts.map((p, i) => i === 0 ? p.charAt(0).toUpperCase() + p.slice(1) : p).join('. ') + '.';
-    lines.push(sentence);
+    return lines.join('\n');
   }
+
+  lines.push(`Traite les ${items.length} item(s) suivants dans l'ordre indiqué :`);
+  lines.push('');
+
+  items.forEach((item, idx) => {
+    const mode = getItemMode(item.id);
+    const action = mode === 'live' ? 'Mettre en vente (live)' : 'Sauvegarder en brouillon Vinted';
+    let label = item.title;
+    if (item.reference_number) label += ` (#${item.reference_number})`;
+    if (item.isOverdue) label += ' [EN RETARD]';
+    const typeLabel = item.type === 'lot' ? 'Lot' : 'Article';
+    lines.push(`${idx + 1}. [${typeLabel}] ${label} — ${item.price}€ → ${action}`);
+  });
 
   return lines.join('\n');
 }
@@ -146,6 +123,9 @@ export default function AgentRunnerPage() {
   const [copied, setCopied] = useState(false);
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [orderedIds, setOrderedIds] = useState<string[]>([]);
+  const dragItem = useRef<number | null>(null);
+  const dragOverItem = useRef<number | null>(null);
 
   const pollTasks = useCallback(async () => {
     if (!session?.access_token) return;
@@ -267,10 +247,24 @@ export default function AgentRunnerPage() {
     }
   }, [session?.access_token]);
 
-  const visibleItems = useMemo(
-    () => allItems.filter(i => !removedIds.has(i.id)),
-    [allItems, removedIds]
-  );
+  useEffect(() => {
+    if (allItems.length === 0) return;
+    setOrderedIds(prev => {
+      const existingIds = new Set(prev);
+      const newIds = allItems.map(i => i.id).filter(id => !existingIds.has(id));
+      const pruned = prev.filter(id => allItems.some(i => i.id === id));
+      return [...pruned, ...newIds];
+    });
+  }, [allItems]);
+
+  const visibleItems = useMemo(() => {
+    const base = allItems.filter(i => !removedIds.has(i.id));
+    if (orderedIds.length === 0) return base;
+    const idToItem = new Map(base.map(i => [i.id, i]));
+    const ordered = orderedIds.filter(id => idToItem.has(id)).map(id => idToItem.get(id)!);
+    const rest = base.filter(i => !orderedIds.includes(i.id));
+    return [...ordered, ...rest];
+  }, [allItems, removedIds, orderedIds]);
 
   const { draftCount, liveCount } = useMemo(() => ({
     draftCount: visibleItems.filter(i => (itemModes[i.id] ?? 'draft') === 'draft').length,
@@ -357,26 +351,72 @@ export default function AgentRunnerPage() {
 
           {/* Column headers */}
           <div className="grid grid-cols-12 gap-3 px-5 py-2.5 bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <div className="col-span-1"></div>
             <div className="col-span-4">Item</div>
             <div className="col-span-2">Prix</div>
-            <div className="col-span-2">Planification</div>
+            <div className="col-span-1">Planif.</div>
             <div className="col-span-3 text-center">Mode de publication</div>
             <div className="col-span-1"></div>
           </div>
 
           <div className="divide-y divide-slate-100">
-            {visibleItems.map((item) => {
+            {visibleItems.map((item, index) => {
               const mode = getMode(item.id);
               const isLive = mode === 'live';
               const isRemoving = removingId === item.id;
 
+              const handleDragStart = (e: React.DragEvent) => {
+                dragItem.current = index;
+                e.dataTransfer.effectAllowed = 'move';
+              };
+
+              const handleDragEnter = (e: React.DragEvent) => {
+                e.preventDefault();
+                dragOverItem.current = index;
+              };
+
+              const handleDragOver = (e: React.DragEvent) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+              };
+
+              const handleDrop = (e: React.DragEvent) => {
+                e.preventDefault();
+                if (dragItem.current === null || dragOverItem.current === null) return;
+                if (dragItem.current === dragOverItem.current) return;
+                const ids = visibleItems.map(i => i.id);
+                const reordered = [...ids];
+                const [moved] = reordered.splice(dragItem.current, 1);
+                reordered.splice(dragOverItem.current, 0, moved);
+                setOrderedIds(reordered);
+                dragItem.current = null;
+                dragOverItem.current = null;
+              };
+
+              const handleDragEnd = () => {
+                dragItem.current = null;
+                dragOverItem.current = null;
+              };
+
               return (
                 <div
                   key={item.id}
-                  className={`grid grid-cols-12 gap-3 px-5 py-4 items-center transition-colors ${
+                  draggable
+                  onDragStart={handleDragStart}
+                  onDragEnter={handleDragEnter}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
+                  className={`grid grid-cols-12 gap-3 px-5 py-4 items-center transition-colors cursor-grab active:cursor-grabbing select-none ${
                     isLive ? 'hover:bg-emerald-50/40' : 'hover:bg-blue-50/40'
                   }`}
                 >
+                  {/* Drag handle + order number */}
+                  <div className="col-span-1 flex items-center gap-1.5">
+                    <GripVertical className="w-4 h-4 text-slate-300 flex-shrink-0" />
+                    <span className="text-xs font-bold text-slate-300 tabular-nums">{index + 1}</span>
+                  </div>
+
                   {/* Item info */}
                   <div className="col-span-4 flex items-center gap-3">
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
@@ -391,7 +431,7 @@ export default function AgentRunnerPage() {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-sm text-slate-800 truncate max-w-[180px]">
+                        <span className="font-semibold text-sm text-slate-800 truncate max-w-[160px]">
                           {item.title}
                         </span>
                         {item.isOverdue && (
@@ -421,10 +461,10 @@ export default function AgentRunnerPage() {
                   </div>
 
                   {/* Schedule */}
-                  <div className="col-span-2">
+                  <div className="col-span-1">
                     {item.scheduled_for ? (
-                      <div className="flex items-center gap-1.5 text-xs text-amber-600">
-                        <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+                      <div className="flex items-center gap-1 text-xs text-amber-600">
+                        <Clock className="w-3 h-3 flex-shrink-0" />
                         <span className="font-medium">
                           {new Date(item.scheduled_for).toLocaleDateString('fr-FR', {
                             day: 'numeric',
@@ -433,7 +473,7 @@ export default function AgentRunnerPage() {
                         </span>
                       </div>
                     ) : (
-                      <span className="text-xs text-slate-400 italic">Non planifié</span>
+                      <span className="text-xs text-slate-300">—</span>
                     )}
                   </div>
 
