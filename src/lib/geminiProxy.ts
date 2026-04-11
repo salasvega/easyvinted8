@@ -37,8 +37,20 @@ export async function callGeminiProxy(
 
   const json = await response.json();
 
+  if (import.meta.env.DEV && (json.error || !response.ok)) {
+    console.error('[gemini-proxy] raw error response:', JSON.stringify(json));
+  }
+
   if (!response.ok || json.error) {
-    const msg = json.error || `Erreur HTTP ${response.status}`;
+    const rawErr = json.error;
+    const msg =
+      typeof rawErr === 'string'
+        ? rawErr
+        : typeof rawErr === 'object' && rawErr !== null && 'message' in rawErr
+        ? String(rawErr.message)
+        : rawErr != null
+        ? JSON.stringify(rawErr)
+        : `Erreur HTTP ${response.status}`;
     if (response.status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
       throw new Error('QUOTA_EXCEEDED:' + msg);
     }
