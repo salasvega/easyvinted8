@@ -860,7 +860,7 @@ export function MonDressingPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="hidden sm:flex items-center gap-2 flex-wrap">
                 <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
                   <button
                     onClick={() => setViewMode('grid')}
