@@ -1017,7 +1017,7 @@ export function AnalyticsPage() {
               title="Exporter les données en CSV"
             >
               <Download className="w-4 h-4 text-gray-600" />
-              Export des données
+              Export
             </button>
           </div>
         </div>
