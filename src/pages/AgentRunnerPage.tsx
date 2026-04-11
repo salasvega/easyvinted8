@@ -320,11 +320,7 @@ export default function AgentRunnerPage() {
       </div>
 
       {/* Status cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-          <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Tâches en attente</p>
-          <p className="text-3xl font-bold text-slate-800">{pollResult?.pending_count ?? '—'}</p>
-        </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
           <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">À mettre en vente</p>
           <p className="text-3xl font-bold text-emerald-600">{polling ? '—' : liveCount}</p>
