@@ -1010,24 +1010,6 @@ export function AnalyticsPage() {
           <div className="flex flex-wrap items-center gap-2">
             <PeriodSelector timeRange={timeRange} setTimeRange={setTimeRange} />
 
-            <button
-              onClick={() => {
-                if (statusFilters.includes("error")) {
-                  setStatusFilters(statusFilters.filter((f) => f !== "error"));
-                } else {
-                  setStatusFilters([...statusFilters, "error"]);
-                }
-              }}
-              className={`inline-flex items-center gap-2 px-3 py-2 rounded-xl ring-1 ring-gray-200 shadow-sm text-sm font-semibold ${
-                statusFilters.includes("error")
-                  ? "bg-red-50 text-red-800 hover:bg-red-100"
-                  : "bg-white text-gray-800 hover:bg-gray-50"
-              }`}
-              title="Filtrer sur les erreurs"
-            >
-              <AlertTriangle className="w-4 h-4 text-red-600" />
-              Erreurs
-            </button>
 
             <button
               onClick={exportToCSV}
