@@ -73,7 +73,11 @@ draft, live
 - article_title doit reprendre les mots clés de l'article mentionné, pas une invention.
 - Pour count_articles, article_title = null.
 - Pour schedule_article, convertir la date en format ISO 8601 (YYYY-MM-DDTHH:mm:ss).
-- "Passe [article] en Prêt" signifie change_status avec target_status = "ready".
+- "Passe [article] en Prêt" ou "en Pret" signifie change_status avec target_status = "ready".
+- "ready", "Prêt", "Pret", "prêt", "pret" → target_status = "ready".
+- "draft", "Brouillon", "brouillon" → target_status = "draft".
+- "published", "En ligne", "en ligne" → target_status = "published".
+- "sold", "Vendu", "vendu" → target_status = "sold".
 - "Passe [article] à [X]€" signifie update_price avec new_price = X.
 - Si l'instruction contient à la fois un changement de statut ET un changement de prix, privilégie update_price pour le prix et génère une commande change_status séparée — mais puisque tu ne peux retourner qu'une seule commande, retourne update_price ET note dans article_title le contexte complet.
 `.trim();

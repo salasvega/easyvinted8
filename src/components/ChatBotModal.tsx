@@ -147,11 +147,14 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
     parsed: ParsedCommand,
     sellerId: string | null
   ): Promise<{ success: boolean; message: string }> => {
+    if (!user) return { success: false, message: 'Utilisateur non authentifié.' };
+    const uid = user.id;
     const titleFilter = parsed.article_title;
 
     const supaErrMsg = (e: unknown): string => {
       if (!e) return 'Erreur inconnue';
       if (typeof e === 'object' && 'message' in e) return String((e as { message: unknown }).message);
+      if (typeof e === 'object' && 'details' in e) return String((e as { details: unknown }).details);
       return JSON.stringify(e);
     };
 
@@ -163,6 +166,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
         const { error } = await supabase
           .from('articles')
           .update({ status: parsed.params.target_status })
+          .eq('user_id', uid)
           .ilike('title', `%${titleFilter}%`);
         if (error) return { success: false, message: supaErrMsg(error) };
         return { success: true, message: `Statut mis à jour → ${parsed.params.target_status}` };
@@ -179,6 +183,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
         const { error } = await supabase
           .from('articles')
           .update(updateData)
+          .eq('user_id', uid)
           .ilike('title', `%${titleFilter}%`);
         if (error) return { success: false, message: supaErrMsg(error) };
         const parts = [`Prix mis à jour → ${parsed.params.new_price}€`];
@@ -193,6 +198,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
         const { error } = await supabase
           .from('articles')
           .update({ condition: parsed.params.new_condition })
+          .eq('user_id', uid)
           .ilike('title', `%${titleFilter}%`);
         if (error) return { success: false, message: supaErrMsg(error) };
         return { success: true, message: `État mis à jour → ${parsed.params.new_condition}` };
@@ -205,6 +211,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
         const { error } = await supabase
           .from('articles')
           .update({ season: parsed.params.new_season })
+          .eq('user_id', uid)
           .ilike('title', `%${titleFilter}%`);
         if (error) return { success: false, message: supaErrMsg(error) };
         return { success: true, message: `Saison mise à jour → ${parsed.params.new_season}` };
@@ -221,6 +228,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
         const { error } = await supabase
           .from('articles')
           .update(updateData)
+          .eq('user_id', uid)
           .ilike('title', `%${titleFilter}%`);
         if (error) return { success: false, message: supaErrMsg(error) };
         const parts = ['Article marqué vendu'];
@@ -236,6 +244,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
         const { error } = await supabase
           .from('articles')
           .update(updateData)
+          .eq('user_id', uid)
           .ilike('title', `%${titleFilter}%`);
         if (error) return { success: false, message: supaErrMsg(error) };
         return {
@@ -251,6 +260,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
         const { error } = await supabase
           .from('articles')
           .update({ status: 'scheduled', scheduled_for: parsed.params.scheduled_date })
+          .eq('user_id', uid)
           .ilike('title', `%${titleFilter}%`);
         if (error) return { success: false, message: supaErrMsg(error) };
         return {
@@ -262,7 +272,8 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
       case 'count_articles': {
         let query = supabase
           .from('articles')
-          .select('id, title, status', { count: 'exact' });
+          .select('id, title, status', { count: 'exact', head: false })
+          .eq('user_id', uid);
         if (sellerId) query = query.eq('seller_id', sellerId);
         if (parsed.params?.target_status_filter) {
           query = query.eq('status', parsed.params.target_status_filter);
@@ -289,6 +300,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
         const { error } = await supabase
           .from('articles')
           .update({ publish_mode: parsed.params.publish_mode })
+          .eq('user_id', uid)
           .ilike('title', `%${titleFilter}%`);
         if (error) return { success: false, message: supaErrMsg(error) };
         return { success: true, message: `Mode de publication → ${parsed.params.publish_mode}` };
@@ -297,7 +309,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
       default:
         return { success: false, message: 'Commande non reconnue.' };
     }
-  }, []);
+  }, [user]);
 
   const handleSend = useCallback(async () => {
     if (!input.trim() || sending || !user) return;
