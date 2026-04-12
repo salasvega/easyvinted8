@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   MessageSquare, X, Send, Copy, Check, Clock,
-  Loader2, CheckCircle, AlertCircle, ListTodo
+  Loader2, CheckCircle, AlertCircle, ListTodo, Package
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
@@ -71,11 +71,19 @@ function CommandTypeLabel({ type }: { type: string }) {
     update_price: 'Modifier prix',
     update_condition: "Modifier l'état",
     update_season: 'Modifier saison',
+    update_brand: 'Modifier marque',
+    update_title: 'Modifier titre',
+    update_description: 'Modifier description',
     mark_sold: 'Marquer vendu',
     mark_reserved: 'Marquer réservé',
     schedule_article: 'Programmer',
     count_articles: 'Compter articles',
     update_publish_mode: 'Mode publication',
+    create_lot: 'Créer un lot',
+    update_lot_price: 'Prix du lot',
+    update_lot_status: 'Statut du lot',
+    schedule_lot: 'Programmer lot',
+    mark_lot_sold: 'Lot vendu',
   };
   const isImmediate = IMMEDIATE_COMMAND_TYPES.has(type);
   return (
@@ -98,7 +106,7 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
       id: 'welcome',
       role: 'assistant',
       content:
-        'Bonjour ! Dis-moi ce que tu veux que je fasse ?\n\nCommandes immédiates :\n• "Passe le pull jacquard à 15€"\n• "Passe la robe bleue en Prêt"\n• "Marque la veste comme vendue à 25€ pour Marie"\n• "Combien d\'articles ready pour Seb ?"\n• "Réserve le pull gris pour Tom"\n\nCommandes avec Claude Code :\n• "Finalise et mets en ligne la robe bleue pour Seb"',
+        'Bonjour ! Dis-moi ce que tu veux que je fasse ?\n\nArticles :\n• "Passe le pull jacquard à 15€"\n• "Passe la robe bleue en Prêt"\n• "Change la marque du manteau en Zara"\n• "Marque la veste vendue à 25€ pour Marie"\n• "Réserve le pull gris pour Tom"\n• "Programme le jean pour le 15 janvier"\n\nLots :\n• "Crée un lot avec la robe florale et le pull rose"\n• "Passe le lot robes en Prêt"\n\nStats :\n• "Combien d\'articles ready pour Seb ?"',
       timestamp: new Date().toISOString(),
     },
   ]);
@@ -306,6 +314,187 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
         return { success: true, message: `Mode de publication → ${parsed.params.publish_mode}` };
       }
 
+      case 'update_brand': {
+        if (!titleFilter || !parsed.params?.new_brand) {
+          return { success: false, message: 'Article ou marque manquant.' };
+        }
+        const { error } = await supabase
+          .from('articles')
+          .update({ brand: parsed.params.new_brand })
+          .eq('user_id', uid)
+          .ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Marque mise à jour → ${parsed.params.new_brand}` };
+      }
+
+      case 'update_title': {
+        if (!titleFilter || !parsed.params?.new_title) {
+          return { success: false, message: 'Article ou nouveau titre manquant.' };
+        }
+        const { error } = await supabase
+          .from('articles')
+          .update({ title: parsed.params.new_title })
+          .eq('user_id', uid)
+          .ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Titre mis à jour → "${parsed.params.new_title}"` };
+      }
+
+      case 'update_description': {
+        if (!titleFilter || !parsed.params?.new_description) {
+          return { success: false, message: 'Article ou description manquante.' };
+        }
+        const { error } = await supabase
+          .from('articles')
+          .update({ description: parsed.params.new_description })
+          .eq('user_id', uid)
+          .ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Description mise à jour` };
+      }
+
+      case 'create_lot': {
+        const articleTitles = parsed.params?.lot_article_titles ?? [];
+        if (articleTitles.length < 2) {
+          return { success: false, message: 'Merci de mentionner au moins 2 articles pour créer un lot.' };
+        }
+        const lotName = parsed.params?.lot_name ?? `Lot du ${new Date().toLocaleDateString('fr-FR')}`;
+
+        const articlePromises = articleTitles.map(title =>
+          supabase
+            .from('articles')
+            .select('id, title, price, photos')
+            .eq('user_id', uid)
+            .ilike('title', `%${title}%`)
+            .limit(1)
+            .maybeSingle()
+        );
+
+        const articleResults = await Promise.all(articlePromises);
+        const foundArticles = articleResults
+          .filter(r => r.data != null)
+          .map(r => r.data!);
+
+        if (foundArticles.length < 2) {
+          const notFound = articleTitles.filter((_, i) => articleResults[i].data == null);
+          return {
+            success: false,
+            message: `Articles introuvables : ${notFound.join(', ')}. Vérifie les titres.`,
+          };
+        }
+
+        const totalPrice = foundArticles.reduce((sum, a) => sum + (a.price ?? 0), 0);
+        const discount = parsed.params?.lot_discount ?? 10;
+        const lotPrice = parsed.params?.lot_price ?? Math.round(totalPrice * (1 - discount / 100));
+        const coverPhoto = foundArticles[0].photos?.[0] ?? null;
+        const allPhotos = foundArticles.flatMap(a => a.photos ?? []).slice(0, 10);
+
+        const { data: newLot, error: lotError } = await supabase
+          .from('lots')
+          .insert({
+            user_id: uid,
+            seller_id: sellerId,
+            name: lotName,
+            price: lotPrice,
+            original_total_price: totalPrice,
+            discount_percentage: discount,
+            status: 'draft',
+            cover_photo: coverPhoto,
+            photos: allPhotos,
+          })
+          .select('id')
+          .single();
+
+        if (lotError || !newLot) {
+          return { success: false, message: supaErrMsg(lotError ?? 'Erreur lors de la création du lot') };
+        }
+
+        const lotItems = foundArticles.map(a => ({
+          lot_id: newLot.id,
+          article_id: a.id,
+        }));
+
+        const { error: itemsError } = await supabase.from('lot_items').insert(lotItems);
+        if (itemsError) {
+          return { success: false, message: `Lot créé mais erreur lors de l'ajout des articles : ${supaErrMsg(itemsError)}` };
+        }
+
+        const articleNames = foundArticles.map(a => `• ${a.title}`).join('\n');
+        return {
+          success: true,
+          message: `Lot "${lotName}" créé avec succès !\n${articleNames}\nPrix : ${lotPrice}€ (remise ${discount}% sur ${totalPrice}€)`,
+        };
+      }
+
+      case 'update_lot_price': {
+        const lotNameFilter = parsed.params?.lot_name;
+        const newLotPrice = parsed.params?.lot_price;
+        if (!lotNameFilter || newLotPrice == null) {
+          return { success: false, message: 'Nom du lot ou prix manquant.' };
+        }
+        const { error } = await supabase
+          .from('lots')
+          .update({ price: newLotPrice })
+          .eq('user_id', uid)
+          .ilike('name', `%${lotNameFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Prix du lot mis à jour → ${newLotPrice}€` };
+      }
+
+      case 'update_lot_status': {
+        const lotNameFilter = parsed.params?.lot_name;
+        if (!lotNameFilter || !parsed.params?.target_status) {
+          return { success: false, message: 'Nom du lot ou statut manquant.' };
+        }
+        const { error } = await supabase
+          .from('lots')
+          .update({ status: parsed.params.target_status })
+          .eq('user_id', uid)
+          .ilike('name', `%${lotNameFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Statut du lot mis à jour → ${parsed.params.target_status}` };
+      }
+
+      case 'schedule_lot': {
+        const lotNameFilter = parsed.params?.lot_name;
+        if (!lotNameFilter || !parsed.params?.scheduled_date) {
+          return { success: false, message: 'Nom du lot ou date manquante.' };
+        }
+        const { error } = await supabase
+          .from('lots')
+          .update({ status: 'scheduled', scheduled_for: parsed.params.scheduled_date })
+          .eq('user_id', uid)
+          .ilike('name', `%${lotNameFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return {
+          success: true,
+          message: `Lot programmé pour le ${new Date(parsed.params.scheduled_date).toLocaleDateString('fr-FR')}`,
+        };
+      }
+
+      case 'mark_lot_sold': {
+        const lotNameFilter = parsed.params?.lot_name;
+        if (!lotNameFilter) {
+          return { success: false, message: 'Nom du lot manquant.' };
+        }
+        const updateData: Record<string, unknown> = {
+          status: 'sold',
+          sold_at: new Date().toISOString(),
+        };
+        if (parsed.params?.sold_price != null) updateData.sold_price = parsed.params.sold_price;
+        if (parsed.params?.buyer_name) updateData.buyer_name = parsed.params.buyer_name;
+        const { error } = await supabase
+          .from('lots')
+          .update(updateData)
+          .eq('user_id', uid)
+          .ilike('name', `%${lotNameFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        const parts = ['Lot marqué vendu'];
+        if (parsed.params?.sold_price != null) parts.push(`à ${parsed.params.sold_price}€`);
+        if (parsed.params?.buyer_name) parts.push(`pour ${parsed.params.buyer_name}`);
+        return { success: true, message: parts.join(' ') };
+      }
+
       default:
         return { success: false, message: 'Commande non reconnue.' };
     }
@@ -354,12 +543,13 @@ export function ChatBotModal({ isOpen, onClose }: Props) {
           await updateTaskStatus(taskRow.id, newStatus, result.message);
           taskRow = { ...taskRow, status: newStatus, result_message: result.message };
 
-          if (parsed.command_type === 'count_articles') {
+          const SHOW_RESULT_COMMANDS = new Set(['count_articles', 'create_lot', 'update_title', 'update_description']);
+          if (SHOW_RESULT_COMMANDS.has(parsed.command_type)) {
             setMessages(prev => [
               ...prev,
               {
                 id: `ast-${Date.now()}`,
-                role: 'assistant',
+                role: result.success ? 'assistant' : 'error',
                 content: result.message,
                 timestamp: new Date().toISOString(),
                 taskId: taskRow.id,

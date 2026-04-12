@@ -30,6 +30,7 @@ import { supabase } from '../lib/supabase';
 import { generateProactiveInsights, ProactiveInsight, optimizeArticleSEO, chatWithKellyGlobal, KellyChatMessage, KellyChatContext } from '../lib/geminiService';
 import { getPricingInsights, dismissPricingInsight, applyPricingSuggestion, PricingInsight, PricingInsightType } from '../lib/kellyPricingService';
 import { generateLotTitleAndDescription } from '../lib/lotAnalysisService';
+import { parseUserInstruction, describeCommand, IMMEDIATE_COMMAND_TYPES } from '../lib/chatbotService';
 import { Article } from '../types/article';
 import { Lot } from '../types/lot';
 import { LazyImage } from './ui/LazyImage';
@@ -549,12 +550,173 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     }
   };
 
+  const executeKellyAction = async (parsed: ReturnType<typeof parseUserInstruction> extends Promise<infer T> ? T : never, sellerId: string | null): Promise<{ success: boolean; message: string }> => {
+    if (!user) return { success: false, message: 'Utilisateur non authentifié.' };
+    const uid = user.id;
+    const titleFilter = parsed.article_title;
+
+    const supaErrMsg = (e: unknown): string => {
+      if (!e) return 'Erreur inconnue';
+      if (typeof e === 'object' && 'message' in e) return String((e as { message: unknown }).message);
+      return JSON.stringify(e);
+    };
+
+    switch (parsed.command_type) {
+      case 'change_status': {
+        if (!titleFilter || !parsed.params?.target_status) return { success: false, message: 'Article ou statut manquant.' };
+        const { error } = await supabase.from('articles').update({ status: parsed.params.target_status }).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Statut mis à jour → ${parsed.params.target_status}` };
+      }
+      case 'update_price': {
+        if (!titleFilter || parsed.params?.new_price == null) return { success: false, message: 'Article ou prix manquant.' };
+        const { error } = await supabase.from('articles').update({ price: parsed.params.new_price }).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Prix mis à jour → ${parsed.params.new_price}€` };
+      }
+      case 'update_condition': {
+        if (!titleFilter || !parsed.params?.new_condition) return { success: false, message: 'Article ou état manquant.' };
+        const { error } = await supabase.from('articles').update({ condition: parsed.params.new_condition }).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `État mis à jour → ${parsed.params.new_condition}` };
+      }
+      case 'update_season': {
+        if (!titleFilter || !parsed.params?.new_season) return { success: false, message: 'Article ou saison manquante.' };
+        const { error } = await supabase.from('articles').update({ season: parsed.params.new_season }).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Saison mise à jour → ${parsed.params.new_season}` };
+      }
+      case 'update_brand': {
+        if (!titleFilter || !parsed.params?.new_brand) return { success: false, message: 'Article ou marque manquant.' };
+        const { error } = await supabase.from('articles').update({ brand: parsed.params.new_brand }).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Marque mise à jour → ${parsed.params.new_brand}` };
+      }
+      case 'update_title': {
+        if (!titleFilter || !parsed.params?.new_title) return { success: false, message: 'Article ou titre manquant.' };
+        const { error } = await supabase.from('articles').update({ title: parsed.params.new_title }).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Titre mis à jour → "${parsed.params.new_title}"` };
+      }
+      case 'update_description': {
+        if (!titleFilter || !parsed.params?.new_description) return { success: false, message: 'Article ou description manquante.' };
+        const { error } = await supabase.from('articles').update({ description: parsed.params.new_description }).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Description mise à jour` };
+      }
+      case 'mark_sold': {
+        if (!titleFilter) return { success: false, message: 'Article manquant.' };
+        const soldData: Record<string, unknown> = { status: 'sold', sold_at: new Date().toISOString() };
+        if (parsed.params?.sold_price != null) soldData.sold_price = parsed.params.sold_price;
+        if (parsed.params?.buyer_name) soldData.buyer_name = parsed.params.buyer_name;
+        const { error } = await supabase.from('articles').update(soldData).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        const parts = ['Article marqué vendu'];
+        if (parsed.params?.sold_price != null) parts.push(`à ${parsed.params.sold_price}€`);
+        if (parsed.params?.buyer_name) parts.push(`pour ${parsed.params.buyer_name}`);
+        return { success: true, message: parts.join(' ') };
+      }
+      case 'mark_reserved': {
+        if (!titleFilter) return { success: false, message: 'Article manquant.' };
+        const reservedData: Record<string, unknown> = { status: 'reserved' };
+        if (parsed.params?.buyer_name) reservedData.buyer_name = parsed.params.buyer_name;
+        const { error } = await supabase.from('articles').update(reservedData).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Article réservé${parsed.params?.buyer_name ? ` pour ${parsed.params.buyer_name}` : ''}` };
+      }
+      case 'schedule_article': {
+        if (!titleFilter || !parsed.params?.scheduled_date) return { success: false, message: 'Article ou date manquante.' };
+        const { error } = await supabase.from('articles').update({ status: 'scheduled', scheduled_for: parsed.params.scheduled_date }).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Article programmé pour le ${new Date(parsed.params.scheduled_date).toLocaleDateString('fr-FR')}` };
+      }
+      case 'count_articles': {
+        let query = supabase.from('articles').select('id, title, status', { count: 'exact', head: false }).eq('user_id', uid);
+        if (sellerId) query = query.eq('seller_id', sellerId);
+        if (parsed.params?.target_status_filter) query = query.eq('status', parsed.params.target_status_filter);
+        const { data, count, error } = await query;
+        if (error) return { success: false, message: supaErrMsg(error) };
+        const total = count ?? data?.length ?? 0;
+        const preview = (data ?? []).slice(0, 5).map((a: { title: string }) => `• ${a.title}`).join('\n');
+        const suffix = total > 5 ? `\n…et ${total - 5} autre(s)` : '';
+        return { success: true, message: `${total} article(s)${parsed.params?.target_status_filter ? ` "${parsed.params.target_status_filter}"` : ''}${parsed.seller_name ? ` pour ${parsed.seller_name}` : ''}${preview ? '\n' + preview + suffix : ''}` };
+      }
+      case 'update_publish_mode': {
+        if (!titleFilter || !parsed.params?.publish_mode) return { success: false, message: 'Article ou mode de publication manquant.' };
+        const { error } = await supabase.from('articles').update({ publish_mode: parsed.params.publish_mode }).eq('user_id', uid).ilike('title', `%${titleFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Mode de publication → ${parsed.params.publish_mode}` };
+      }
+      case 'create_lot': {
+        const articleTitles = parsed.params?.lot_article_titles ?? [];
+        if (articleTitles.length < 2) return { success: false, message: 'Merci de mentionner au moins 2 articles pour créer un lot.' };
+        const lotName = parsed.params?.lot_name ?? `Lot du ${new Date().toLocaleDateString('fr-FR')}`;
+        const articleResults = await Promise.all(
+          articleTitles.map(title => supabase.from('articles').select('id, title, price, photos').eq('user_id', uid).ilike('title', `%${title}%`).limit(1).maybeSingle())
+        );
+        const foundArticles = articleResults.filter(r => r.data != null).map(r => r.data!);
+        if (foundArticles.length < 2) {
+          const notFound = articleTitles.filter((_, i) => articleResults[i].data == null);
+          return { success: false, message: `Articles introuvables : ${notFound.join(', ')}. Vérifie les titres.` };
+        }
+        const totalPrice = foundArticles.reduce((sum: number, a: { price?: number }) => sum + (a.price ?? 0), 0);
+        const discount = parsed.params?.lot_discount ?? 10;
+        const lotPrice = parsed.params?.lot_price ?? Math.round(totalPrice * (1 - discount / 100));
+        const { data: newLot, error: lotError } = await supabase.from('lots').insert({
+          user_id: uid, seller_id: sellerId, name: lotName, price: lotPrice,
+          original_total_price: totalPrice, discount_percentage: discount, status: 'draft',
+          cover_photo: (foundArticles[0] as { photos?: string[] }).photos?.[0] ?? null,
+          photos: foundArticles.flatMap((a: { photos?: string[] }) => a.photos ?? []).slice(0, 10),
+        }).select('id').single();
+        if (lotError || !newLot) return { success: false, message: supaErrMsg(lotError ?? 'Erreur création lot') };
+        const { error: itemsError } = await supabase.from('lot_items').insert(foundArticles.map((a: { id: string }) => ({ lot_id: newLot.id, article_id: a.id })));
+        if (itemsError) return { success: false, message: `Lot créé mais erreur articles : ${supaErrMsg(itemsError)}` };
+        const articleNames = foundArticles.map((a: { title: string }) => `• ${a.title}`).join('\n');
+        return { success: true, message: `Lot "${lotName}" créé !\n${articleNames}\nPrix : ${lotPrice}€ (remise ${discount}%)` };
+      }
+      case 'update_lot_price': {
+        const lotNameFilter = parsed.params?.lot_name;
+        if (!lotNameFilter || parsed.params?.lot_price == null) return { success: false, message: 'Nom du lot ou prix manquant.' };
+        const { error } = await supabase.from('lots').update({ price: parsed.params.lot_price }).eq('user_id', uid).ilike('name', `%${lotNameFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Prix du lot mis à jour → ${parsed.params.lot_price}€` };
+      }
+      case 'update_lot_status': {
+        const lotNameFilter = parsed.params?.lot_name;
+        if (!lotNameFilter || !parsed.params?.target_status) return { success: false, message: 'Nom du lot ou statut manquant.' };
+        const { error } = await supabase.from('lots').update({ status: parsed.params.target_status }).eq('user_id', uid).ilike('name', `%${lotNameFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Statut du lot mis à jour → ${parsed.params.target_status}` };
+      }
+      case 'schedule_lot': {
+        const lotNameFilter = parsed.params?.lot_name;
+        if (!lotNameFilter || !parsed.params?.scheduled_date) return { success: false, message: 'Nom du lot ou date manquante.' };
+        const { error } = await supabase.from('lots').update({ status: 'scheduled', scheduled_for: parsed.params.scheduled_date }).eq('user_id', uid).ilike('name', `%${lotNameFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Lot programmé pour le ${new Date(parsed.params.scheduled_date).toLocaleDateString('fr-FR')}` };
+      }
+      case 'mark_lot_sold': {
+        const lotNameFilter = parsed.params?.lot_name;
+        if (!lotNameFilter) return { success: false, message: 'Nom du lot manquant.' };
+        const lotSoldData: Record<string, unknown> = { status: 'sold', sold_at: new Date().toISOString() };
+        if (parsed.params?.sold_price != null) lotSoldData.sold_price = parsed.params.sold_price;
+        if (parsed.params?.buyer_name) lotSoldData.buyer_name = parsed.params.buyer_name;
+        const { error } = await supabase.from('lots').update(lotSoldData).eq('user_id', uid).ilike('name', `%${lotNameFilter}%`);
+        if (error) return { success: false, message: supaErrMsg(error) };
+        return { success: true, message: `Lot marqué vendu${parsed.params?.sold_price != null ? ` à ${parsed.params.sold_price}€` : ''}` };
+      }
+      default:
+        return { success: false, message: 'Commande non reconnue.' };
+    }
+  };
+
   const handleSendChatMessage = async () => {
     if (!chatInput.trim() || chatLoading) return;
 
+    const userText = chatInput.trim();
     const userMsg: KellyChatMessage = {
       role: 'user',
-      content: chatInput.trim(),
+      content: userText,
       timestamp: new Date(),
     };
 
@@ -563,32 +725,67 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     setChatLoading(true);
 
     try {
+      const parsed = await parseUserInstruction(userText);
+
+      if (!parsed.error && parsed.confidence >= 0.7 && IMMEDIATE_COMMAND_TYPES.has(parsed.command_type)) {
+        let familyMembersData: { id: string; name: string }[] = [];
+        try {
+          const { data } = await supabase.from('family_members').select('id, name').eq('user_id', user!.id);
+          familyMembersData = data ?? [];
+        } catch {}
+
+        let sellerId: string | null = null;
+        if (parsed.seller_name) {
+          const lower = parsed.seller_name.toLowerCase();
+          const match = familyMembersData.find(m => m.name.toLowerCase().includes(lower));
+          sellerId = match?.id ?? null;
+        }
+
+        const actionDescription = describeCommand(parsed);
+        const result = await executeKellyAction(parsed, sellerId);
+
+        const responseMsg: KellyChatMessage = {
+          role: 'assistant',
+          content: result.success
+            ? `Action effectuée : ${actionDescription}\n\n${result.message}`
+            : `Erreur : ${result.message}`,
+          timestamp: new Date(),
+        };
+        setChatMessages(prev => [...prev, responseMsg]);
+
+        if (result.success && onRefreshData) {
+          onRefreshData();
+        }
+        return;
+      }
+
       let ctx = chatContext;
       if (!ctx.articles || ctx.articles.length === 0) {
         ctx = await buildChatContext();
         setChatContext(ctx);
       }
 
-      const response = await chatWithKellyGlobal(
-        userMsg.content,
-        chatMessages,
-        ctx
-      );
+      const response = await chatWithKellyGlobal(userText, chatMessages, ctx);
 
       const assistantMsg: KellyChatMessage = {
         role: 'assistant',
         content: response,
         timestamp: new Date(),
       };
-
       setChatMessages(prev => [...prev, assistantMsg]);
-    } catch (err: any) {
-      const errorMsg: KellyChatMessage = {
-        role: 'assistant',
-        content: err?.message || 'Désolée, je rencontre un problème. Réessayez dans un moment.',
-        timestamp: new Date(),
-      };
-      setChatMessages(prev => [...prev, errorMsg]);
+    } catch (err: unknown) {
+      try {
+        let ctx = chatContext;
+        if (!ctx.articles || ctx.articles.length === 0) {
+          ctx = await buildChatContext();
+          setChatContext(ctx);
+        }
+        const response = await chatWithKellyGlobal(userText, chatMessages, ctx);
+        setChatMessages(prev => [...prev, { role: 'assistant', content: response, timestamp: new Date() }]);
+      } catch (fallbackErr: unknown) {
+        const msg = fallbackErr instanceof Error ? fallbackErr.message : 'Désolée, je rencontre un problème. Réessayez dans un moment.';
+        setChatMessages(prev => [...prev, { role: 'assistant', content: msg, timestamp: new Date() }]);
+      }
     } finally {
       setChatLoading(false);
     }
@@ -1418,14 +1615,28 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                     <div className="overflow-y-auto px-4 py-3 space-y-3 max-h-72 min-h-[120px]">
                       {chatMessages.length === 0 && (
                         <div className="space-y-2">
+                          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mb-1">Actions rapides</p>
                           {[
-                            'Quels sont mes articles les plus susceptibles de se vendre ?',
-                            'Quelles sont les tendances mode printemps 2025 ?',
-                            'Comment optimiser mes prix sur Vinted ?',
-                            'Quelles marques sont les plus recherchées ?',
+                            'Crée un lot avec [article 1] et [article 2]',
+                            'Passe [mon article] à 15€',
+                            'Change la marque de [mon article] en Zara',
+                            'Programme [mon article] pour le 20 janvier',
                           ].map((suggestion, i) => (
                             <button
                               key={i}
+                              onClick={() => setChatInput(suggestion)}
+                              className="w-full text-left text-xs text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-2 transition-all"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                          <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wide mt-2 mb-1">Conseils</p>
+                          {[
+                            'Quels sont mes articles les plus susceptibles de se vendre ?',
+                            'Comment optimiser mes prix sur Vinted ?',
+                          ].map((suggestion, i) => (
+                            <button
+                              key={`advice-${i}`}
                               onClick={() => setChatInput(suggestion)}
                               className="w-full text-left text-xs text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-2 transition-all"
                             >

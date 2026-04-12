@@ -15,7 +15,15 @@ export type CommandType =
   | 'mark_reserved'
   | 'schedule_article'
   | 'count_articles'
-  | 'update_publish_mode';
+  | 'update_publish_mode'
+  | 'update_brand'
+  | 'update_title'
+  | 'update_description'
+  | 'create_lot'
+  | 'update_lot_price'
+  | 'update_lot_status'
+  | 'schedule_lot'
+  | 'mark_lot_sold';
 
 export type TaskStatus = 'pending' | 'running' | 'done' | 'error';
 
@@ -49,6 +57,13 @@ export interface ParsedCommand {
     buyer_name?: string;
     scheduled_date?: string;
     target_status_filter?: string;
+    new_brand?: string;
+    new_title?: string;
+    new_description?: string;
+    lot_name?: string;
+    lot_article_titles?: string[];
+    lot_price?: number;
+    lot_discount?: number;
   };
   confidence: number;
   error?: string;
