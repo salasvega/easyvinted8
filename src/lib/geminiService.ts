@@ -853,6 +853,47 @@ export interface KellyChatMessage {
   timestamp: Date;
 }
 
+export interface KellyArticleData {
+  id: string;
+  title?: string;
+  category?: string;
+  brand?: string;
+  size?: string;
+  price?: number;
+  sold_price?: number;
+  condition?: string;
+  color?: string;
+  material?: string;
+  status?: string;
+  seller_name?: string;
+  season?: string;
+  reference_number?: string;
+  scheduled_for?: string;
+  vinted_url?: string;
+}
+
+export interface KellyLotData {
+  id: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  sold_price?: number;
+  status?: string;
+  reference_number?: string;
+  seller_id?: string;
+  scheduled_for?: string;
+}
+
+export interface KellyFamilyMemberData {
+  id: string;
+  name?: string;
+  gender?: string;
+  age?: number;
+  size_top?: string;
+  size_bottom?: string;
+  size_shoes?: string;
+}
+
 export interface KellyChatContext {
   articlesCount?: number;
   lotsCount?: number;
@@ -860,22 +901,132 @@ export interface KellyChatContext {
   totalRevenue?: number;
   topCategories?: string[];
   recentActivity?: string;
+  articles?: KellyArticleData[];
+  soldArticles?: KellyArticleData[];
+  lots?: KellyLotData[];
+  soldLots?: KellyLotData[];
+  familyMembers?: KellyFamilyMemberData[];
+  sellerName?: string;
+  pendingCount?: number;
+  scheduledCount?: number;
+  categoryBreakdown?: Record<string, number>;
+  brandBreakdown?: Record<string, number>;
+  avgPrice?: number;
+  avgSoldPrice?: number;
 }
+
+const buildKellyContextSummary = (ctx: KellyChatContext): string => {
+  const lines: string[] = [];
+
+  if (ctx.sellerName) lines.push(`Nom du dressing : ${ctx.sellerName}`);
+
+  lines.push(`\n=== INVENTAIRE ACTIF (${ctx.articlesCount ?? 0} articles, ${ctx.lotsCount ?? 0} lots) ===`);
+  lines.push(`- En cours / brouillon : ${ctx.pendingCount ?? 0}`);
+  lines.push(`- Programmés : ${ctx.scheduledCount ?? 0}`);
+  lines.push(`- Prix moyen des articles actifs : ${ctx.avgPrice ? ctx.avgPrice.toFixed(2) + '€' : 'N/A'}`);
+
+  if (ctx.categoryBreakdown && Object.keys(ctx.categoryBreakdown).length > 0) {
+    const sorted = Object.entries(ctx.categoryBreakdown).sort((a, b) => b[1] - a[1]);
+    lines.push(`- Répartition par catégorie : ${sorted.map(([cat, n]) => `${cat}(${n})`).join(', ')}`);
+  }
+
+  if (ctx.brandBreakdown && Object.keys(ctx.brandBreakdown).length > 0) {
+    const sorted = Object.entries(ctx.brandBreakdown).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    lines.push(`- Marques présentes : ${sorted.map(([b, n]) => `${b}(${n})`).join(', ')}`);
+  }
+
+  if (ctx.articles && ctx.articles.length > 0) {
+    lines.push(`\n--- ARTICLES ACTIFS DÉTAILLÉS ---`);
+    ctx.articles.forEach(a => {
+      const parts = [
+        a.title || '(sans titre)',
+        a.category,
+        a.brand,
+        a.size,
+        a.condition,
+        a.color,
+        a.material,
+        a.season,
+        a.price ? `${a.price}€` : null,
+        a.status,
+        a.scheduled_for ? `programmé le ${new Date(a.scheduled_for).toLocaleDateString('fr-FR')}` : null,
+        a.vinted_url ? `publié` : null,
+        a.reference_number ? `ref:${a.reference_number}` : null,
+      ].filter(Boolean);
+      lines.push(`  • ${parts.join(' | ')}`);
+    });
+  }
+
+  if (ctx.lots && ctx.lots.length > 0) {
+    lines.push(`\n--- LOTS ACTIFS ---`);
+    ctx.lots.forEach(l => {
+      const parts = [
+        l.title || '(sans titre)',
+        l.price ? `${l.price}€` : null,
+        l.status,
+        l.reference_number ? `ref:${l.reference_number}` : null,
+        l.scheduled_for ? `programmé le ${new Date(l.scheduled_for).toLocaleDateString('fr-FR')}` : null,
+      ].filter(Boolean);
+      lines.push(`  • ${parts.join(' | ')}`);
+    });
+  }
+
+  lines.push(`\n=== HISTORIQUE DES VENTES (${ctx.soldCount ?? 0} articles vendus) ===`);
+  lines.push(`- Revenus totaux : ${ctx.totalRevenue != null ? ctx.totalRevenue.toFixed(2) + '€' : 'N/A'}`);
+  lines.push(`- Prix moyen de vente : ${ctx.avgSoldPrice ? ctx.avgSoldPrice.toFixed(2) + '€' : 'N/A'}`);
+
+  if (ctx.soldArticles && ctx.soldArticles.length > 0) {
+    lines.push(`\n--- ARTICLES VENDUS ---`);
+    ctx.soldArticles.slice(0, 50).forEach(a => {
+      const parts = [
+        a.title || '(sans titre)',
+        a.category,
+        a.brand,
+        a.size,
+        a.color,
+        a.sold_price ? `vendu ${a.sold_price}€` : a.price ? `prix ${a.price}€` : null,
+        a.reference_number ? `ref:${a.reference_number}` : null,
+      ].filter(Boolean);
+      lines.push(`  • ${parts.join(' | ')}`);
+    });
+  }
+
+  if (ctx.soldLots && ctx.soldLots.length > 0) {
+    lines.push(`\n--- LOTS VENDUS ---`);
+    ctx.soldLots.forEach(l => {
+      const parts = [
+        l.title || '(sans titre)',
+        l.sold_price ? `vendu ${l.sold_price}€` : l.price ? `prix ${l.price}€` : null,
+        l.reference_number ? `ref:${l.reference_number}` : null,
+      ].filter(Boolean);
+      lines.push(`  • ${parts.join(' | ')}`);
+    });
+  }
+
+  if (ctx.familyMembers && ctx.familyMembers.length > 0) {
+    lines.push(`\n=== MEMBRES DE LA FAMILLE ===`);
+    ctx.familyMembers.forEach(m => {
+      const parts = [
+        m.name || '(sans nom)',
+        m.gender,
+        m.age ? `${m.age} ans` : null,
+        m.size_top ? `haut:${m.size_top}` : null,
+        m.size_bottom ? `bas:${m.size_bottom}` : null,
+        m.size_shoes ? `chaussures:${m.size_shoes}` : null,
+      ].filter(Boolean);
+      lines.push(`  • ${parts.join(' | ')}`);
+    });
+  }
+
+  return lines.join('\n');
+};
 
 export const chatWithKellyGlobal = async (
   userMessage: string,
   conversationHistory: KellyChatMessage[],
   siteContext: KellyChatContext
 ): Promise<string> => {
-  const contextSummary = `
-Contexte du dressing de l'utilisateur :
-- Articles actifs : ${siteContext.articlesCount ?? 'N/A'}
-- Lots créés : ${siteContext.lotsCount ?? 'N/A'}
-- Articles vendus : ${siteContext.soldCount ?? 'N/A'}
-- Revenus générés : ${siteContext.totalRevenue != null ? siteContext.totalRevenue.toFixed(2) + '€' : 'N/A'}
-- Catégories principales : ${siteContext.topCategories?.join(', ') || 'N/A'}
-- Activité récente : ${siteContext.recentActivity || 'N/A'}
-`.trim();
+  const contextSummary = buildKellyContextSummary(siteContext);
 
   const historyText = conversationHistory.slice(-10).map(m =>
     `${m.role === 'user' ? 'Utilisateur' : 'Kelly'}: ${m.content}`
@@ -883,7 +1034,7 @@ Contexte du dressing de l'utilisateur :
 
   const prompt = `Tu es Kelly, une assistante IA experte en mode, vente de vêtements d'occasion et optimisation de dressing. Tu travailles sur une plateforme de gestion de dressing pour vendre sur Vinted et autres plateformes.
 
-Tu as accès au contexte du dressing de l'utilisateur ET à tes connaissances générales sur la mode, les tendances, les prix du marché, les conseils de vente, et tout ce qui concerne le secteur de la mode d'occasion. Tu peux aussi donner des informations générales sur internet si l'utilisateur le demande.
+Tu as accès à l'intégralité des données du dressing de l'utilisateur ci-dessous. Utilise ces données pour répondre de façon précise, chiffrée et personnalisée. Quand l'utilisateur pose une question sur ses articles, ses ventes, ses lots ou ses membres de famille, base-toi EXCLUSIVEMENT sur les données fournies et donne des réponses exactes avec les titres, prix, marques, tailles, statuts réels.
 
 ${contextSummary}
 
@@ -891,7 +1042,7 @@ ${historyText ? `Historique de la conversation :\n${historyText}\n` : ''}
 
 Question de l'utilisateur : ${userMessage}
 
-Réponds de façon naturelle, bienveillante et experte. Sois précise et pratique. Tu peux te baser à la fois sur le contexte du dressing fourni ET sur tes connaissances générales (tendances mode, prix marché Vinted, conseils styling, etc.). Si l'utilisateur demande des infos générales (tendances, marques, conseils), réponds pleinement. Limite ta réponse à 250 mots maximum.`;
+Réponds de façon naturelle, bienveillante et experte. Sois précise et cite des données concrètes quand disponibles (noms d'articles, prix exacts, quantités réelles). Si la question porte sur les données du dressing, réponds avec les vrais chiffres. Si la question est générale (tendances, conseils, marques), utilise aussi tes connaissances générales. Limite ta réponse à 350 mots maximum.`;
 
   try {
     const result = await callGeminiProxy(
