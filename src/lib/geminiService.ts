@@ -895,7 +895,7 @@ Réponds de façon naturelle, bienveillante et experte. Sois précise et pratiqu
 
   try {
     const result = await callGeminiProxy(
-      "gemini-2.0-flash",
+      "gemini-2.5-flash",
       { parts: [{ text: prompt }] },
       {}
     );
