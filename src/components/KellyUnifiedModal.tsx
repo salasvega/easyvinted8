@@ -724,10 +724,19 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     setChatInput('');
     setChatLoading(true);
 
-    try {
-      const parsed = await parseUserInstruction(userText);
+    let parsed: Awaited<ReturnType<typeof parseUserInstruction>> | null = null;
 
-      if (!parsed.error && parsed.confidence >= 0.7 && IMMEDIATE_COMMAND_TYPES.has(parsed.command_type)) {
+    try {
+      parsed = await parseUserInstruction(userText);
+    } catch (parseErr: unknown) {
+      const msg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: `Désolée, je n'ai pas pu analyser ta demande : ${msg}`, timestamp: new Date() }]);
+      setChatLoading(false);
+      return;
+    }
+
+    try {
+      if (!parsed.error && parsed.confidence >= 0.5 && IMMEDIATE_COMMAND_TYPES.has(parsed.command_type)) {
         let familyMembersData: { id: string; name: string }[] = [];
         try {
           const { data } = await supabase.from('family_members').select('id, name').eq('user_id', user!.id);
@@ -741,21 +750,28 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
           sellerId = match?.id ?? null;
         }
 
-        const actionDescription = describeCommand(parsed);
         const result = await executeKellyAction(parsed, sellerId);
 
-        const responseMsg: KellyChatMessage = {
+        setChatMessages(prev => [...prev, {
           role: 'assistant',
-          content: result.success
-            ? `Action effectuée : ${actionDescription}\n\n${result.message}`
-            : `Erreur : ${result.message}`,
+          content: result.success ? result.message : `Je n'ai pas pu effectuer l'action : ${result.message}`,
           timestamp: new Date(),
-        };
-        setChatMessages(prev => [...prev, responseMsg]);
+        }]);
 
         if (result.success && onRefreshData) {
           onRefreshData();
         }
+        return;
+      }
+
+      if (parsed.error || parsed.confidence < 0.5) {
+        let ctx = chatContext;
+        if (!ctx.articles || ctx.articles.length === 0) {
+          ctx = await buildChatContext();
+          setChatContext(ctx);
+        }
+        const response = await chatWithKellyGlobal(userText, chatMessages, ctx);
+        setChatMessages(prev => [...prev, { role: 'assistant', content: response, timestamp: new Date() }]);
         return;
       }
 
@@ -764,28 +780,11 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
         ctx = await buildChatContext();
         setChatContext(ctx);
       }
-
       const response = await chatWithKellyGlobal(userText, chatMessages, ctx);
-
-      const assistantMsg: KellyChatMessage = {
-        role: 'assistant',
-        content: response,
-        timestamp: new Date(),
-      };
-      setChatMessages(prev => [...prev, assistantMsg]);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: response, timestamp: new Date() }]);
     } catch (err: unknown) {
-      try {
-        let ctx = chatContext;
-        if (!ctx.articles || ctx.articles.length === 0) {
-          ctx = await buildChatContext();
-          setChatContext(ctx);
-        }
-        const response = await chatWithKellyGlobal(userText, chatMessages, ctx);
-        setChatMessages(prev => [...prev, { role: 'assistant', content: response, timestamp: new Date() }]);
-      } catch (fallbackErr: unknown) {
-        const msg = fallbackErr instanceof Error ? fallbackErr.message : 'Désolée, je rencontre un problème. Réessayez dans un moment.';
-        setChatMessages(prev => [...prev, { role: 'assistant', content: msg, timestamp: new Date() }]);
-      }
+      const msg = err instanceof Error ? err.message : 'Désolée, je rencontre un problème. Réessayez dans un moment.';
+      setChatMessages(prev => [...prev, { role: 'assistant', content: msg, timestamp: new Date() }]);
     } finally {
       setChatLoading(false);
     }
