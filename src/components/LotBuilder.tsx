@@ -1133,52 +1133,6 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
             )}
           </Card>
 
-          {/* 4) Style rédactionnel */}
-          {familyMembers.length > 0 && lotData.selectedArticles.length >= 2 && (
-            <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
-              <div className="flex items-center gap-2 mb-2">
-                <FileText className="w-4 h-4 text-purple-700" />
-                <h3 className="text-sm font-semibold text-purple-900">Sélectionner un vendeur</h3>
-              </div>
-              <p className="text-xs text-purple-600 mb-3">
-                Les informations du lot seront rédigées selon le style du vendeur sélectionné
-              </p>
-              <select
-                value={lotData.seller_id || 'all'}
-                onChange={(e) => setLotData((p) => ({ ...p, seller_id: e.target.value === 'all' ? null : e.target.value }))}
-                className="w-full text-sm font-medium text-slate-900 bg-white border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 px-3 py-2"
-              >
-                <option value="all">Sélectionner un vendeur</option>
-                {familyMembers.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-
-              {lotData.seller_id && (
-                <button
-                  type="button"
-                  onClick={handleGenerateLotText}
-                  disabled={generatingText}
-                  className="w-full mt-3 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {generatingText ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                      Génération en cours...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-5 h-5" />
-                      Analyser le Lot
-                    </>
-                  )}
-                </button>
-              )}
-            </Card>
-          )}
-
           {/* 6) Formulaire du lot */}
           <Card>
             <div className="flex items-center gap-2 mb-4">
@@ -1507,6 +1461,52 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
                 </div>
               )}
             </div>
+          )}
+
+          {/* 8b) Section Sélection du Vendeur */}
+          {familyMembers.length > 0 && lotData.selectedArticles.length > 0 && (
+            <Card className="border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50">
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="w-4 h-4 text-rose-700" />
+                <h3 className="text-sm font-semibold text-rose-900">Vendeur</h3>
+              </div>
+              <p className="text-xs text-rose-600 mb-3">
+                Au moment de la vente, le montant sera attribué aux statistiques du vendeur sélectionné.
+              </p>
+              <select
+                value={lotData.seller_id || 'all'}
+                onChange={(e) => setLotData((p) => ({ ...p, seller_id: e.target.value === 'all' ? null : e.target.value }))}
+                className="w-full text-sm font-medium text-slate-900 bg-white border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-400 focus:border-rose-400 px-3 py-2"
+              >
+                <option value="all">Sélectionner un vendeur</option>
+                {familyMembers.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+
+              {lotData.seller_id && lotData.selectedArticles.length >= 2 && (
+                <button
+                  type="button"
+                  onClick={handleGenerateLotText}
+                  disabled={generatingText}
+                  className="w-full mt-3 px-4 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-medium rounded-xl hover:from-rose-600 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {generatingText ? (
+                    <>
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                      Génération en cours...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-5 h-5" />
+                      Analyser le Lot
+                    </>
+                  )}
+                </button>
+              )}
+            </Card>
           )}
 
           {/* 9) Section Statut */}

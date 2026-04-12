@@ -1372,29 +1372,6 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                       <div className="bg-white rounded-2xl border border-slate-200 p-4">
                         {familyMembers.length > 0 && formData.photos.length > 0 && (
                           <div className="space-y-3">
-                            {/* Section Sélection du Vendeur */}
-                            <div className="p-3 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
-                              <h4 className="text-xs uppercase tracking-wide text-purple-800 font-semibold mb-1 flex items-center gap-2">
-                                <FileText className="w-3.5 h-3.5" />
-                                Sélectionnez un Vendeur
-                              </h4>
-                              <p className="text-xs text-purple-600 mb-2">
-                                Au moment de la vente de l'article son montant sera attribué aux statistiques du vendeur sélectionné.
-                              </p>
-                              <select
-                                value={formData.seller_id || ''}
-                                onChange={(e) => handleSellerChange(e.target.value || null)}
-                                className="w-full text-sm font-medium text-slate-900 bg-white border border-purple-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 px-3 py-2"
-                              >
-                                <option value="">Sélectionner un vendeur</option>
-                                {familyMembers.map((member) => (
-                                  <option key={member.id} value={member.id}>
-                                    {member.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-
                             {/* Section Analyse de l'article - MASQUÉE (logique conservée) */}
                             {formData.seller_id && false && (
                               <div className="p-3 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200">
@@ -1906,6 +1883,31 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
                         </div>
                       )}
                     </div>
+
+                    {/* Section Sélection du Vendeur */}
+                    {familyMembers.length > 0 && (
+                      <div className={`p-4 bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl border border-rose-200 ${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 7 } as React.CSSProperties}>
+                        <h4 className="text-[10px] uppercase tracking-wide text-rose-800 font-semibold mb-1 flex items-center gap-2">
+                          <FileText className="w-3.5 h-3.5" />
+                          Vendeur
+                        </h4>
+                        <p className="text-xs text-rose-600 mb-2">
+                          Au moment de la vente, le montant sera attribué aux statistiques du vendeur sélectionné.
+                        </p>
+                        <select
+                          value={formData.seller_id || ''}
+                          onChange={(e) => handleSellerChange(e.target.value || null)}
+                          className="w-full text-sm font-medium text-slate-900 bg-white border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-400 focus:border-rose-400 px-3 py-2"
+                        >
+                          <option value="">Sélectionner un vendeur</option>
+                          {familyMembers.map((member) => (
+                            <option key={member.id} value={member.id}>
+                              {member.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
 
                     {/* Status Section */}
                     <div className={`bg-slate-50 rounded-2xl p-4 border border-slate-200 ${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 8 } as React.CSSProperties}>
