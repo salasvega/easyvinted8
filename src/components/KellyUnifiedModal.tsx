@@ -476,12 +476,12 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     if (!sessionData?.session) return {};
 
     const [articlesRes, lotsRes, soldArticlesRes, soldLotsRes, familyRes, profileRes] = await Promise.all([
-      supabase.from('articles').select('id, title, category, brand, size, price, condition, color, material, status, season, reference_number, scheduled_for, vinted_url').eq('user_id', user.id).in('status', ['draft', 'ready', 'published', 'scheduled', 'vinted_draft', 'reserved', 'on_hold', 'processing']).order('created_at', { ascending: false }),
-      supabase.from('lots').select('id, title, description, price, status, reference_number, scheduled_for').eq('user_id', user.id).neq('status', 'sold').order('created_at', { ascending: false }),
-      supabase.from('articles').select('id, title, category, brand, size, price, sold_price, condition, color, material, season, reference_number, vinted_url').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
-      supabase.from('lots').select('id, title, price, sold_price, status, reference_number').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
-      supabase.from('family_members').select('id, name, gender, age, size_top, size_bottom, size_shoes').eq('user_id', user.id),
-      supabase.from('user_profiles').select('dressing_name').eq('user_id', user.id).maybeSingle(),
+      supabase.from('articles').select('id, title, subcategory, item_category, brand, size, price, condition, color, material, status, season, reference_number, scheduled_for, vinted_url').eq('user_id', user.id).in('status', ['draft', 'ready', 'published', 'scheduled', 'vinted_draft', 'reserved', 'on_hold', 'processing']).order('created_at', { ascending: false }),
+      supabase.from('lots').select('id, name, description, price, status, reference_number, scheduled_for').eq('user_id', user.id).neq('status', 'sold').order('created_at', { ascending: false }),
+      supabase.from('articles').select('id, title, subcategory, item_category, brand, size, price, sold_price, condition, color, material, season, reference_number, vinted_url').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
+      supabase.from('lots').select('id, name, price, sold_price, status, reference_number').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
+      supabase.from('family_members').select('id, name, age, top_size, bottom_size, shoe_size').eq('user_id', user.id),
+      supabase.from('user_profiles').select('dressing_name').eq('id', user.id).maybeSingle(),
     ]);
 
     const articles = articlesRes.data || [];
@@ -495,7 +495,8 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
 
     const categoryBreakdown: Record<string, number> = {};
     articles.forEach(a => {
-      if (a.category) categoryBreakdown[a.category] = (categoryBreakdown[a.category] || 0) + 1;
+      const cat = a.item_category || a.subcategory;
+      if (cat) categoryBreakdown[cat] = (categoryBreakdown[cat] || 0) + 1;
     });
 
     const brandBreakdown: Record<string, number> = {};
