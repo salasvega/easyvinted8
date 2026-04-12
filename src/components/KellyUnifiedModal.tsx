@@ -728,15 +728,12 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
 
     try {
       parsed = await parseUserInstruction(userText);
-    } catch (parseErr: unknown) {
-      const msg = parseErr instanceof Error ? parseErr.message : String(parseErr);
-      setChatMessages(prev => [...prev, { role: 'assistant', content: `Désolée, je n'ai pas pu analyser ta demande : ${msg}`, timestamp: new Date() }]);
-      setChatLoading(false);
-      return;
+    } catch {
+      parsed = null;
     }
 
     try {
-      if (!parsed.error && parsed.confidence >= 0.5 && IMMEDIATE_COMMAND_TYPES.has(parsed.command_type)) {
+      if (parsed && !parsed.error && parsed.confidence >= 0.5 && IMMEDIATE_COMMAND_TYPES.has(parsed.command_type)) {
         let familyMembersData: { id: string; name: string }[] = [];
         try {
           const { data } = await supabase.from('family_members').select('id, name').eq('user_id', user!.id);
@@ -764,7 +761,7 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
         return;
       }
 
-      if (parsed.error || parsed.confidence < 0.5) {
+      if (!parsed || parsed.error || parsed.confidence < 0.5) {
         let ctx = chatContext;
         if (!ctx.articles || ctx.articles.length === 0) {
           ctx = await buildChatContext();
