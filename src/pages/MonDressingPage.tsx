@@ -285,14 +285,14 @@ export function MonDressingPage() {
           .order('created_at', { ascending: false }),
         supabase
           .from('lot_items')
-          .select('article_id, lot_id, lots!inner(status, user_id)')
+          .select('article_id, lot_id, lots!inner(id, status, user_id)')
           .eq('lots.user_id', user.id)
           .neq('lots.status', 'sold')
+          .neq('lots.status', 'vendu_en_lot')
       ]);
 
       if (articlesResult.error) throw articlesResult.error;
       if (lotsResult.error) throw lotsResult.error;
-      if (articlesInLotsResult.error) throw articlesInLotsResult.error;
 
       const articles = articlesResult.data || [];
       const lots = lotsResult.data || [];
