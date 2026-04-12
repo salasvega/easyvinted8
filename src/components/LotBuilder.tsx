@@ -1133,6 +1133,28 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
             )}
           </Card>
 
+          {/* 5b) Bouton Analyser le Lot */}
+          {familyMembers.length > 0 && lotData.seller_id && lotData.selectedArticles.length >= 2 && (
+            <button
+              type="button"
+              onClick={handleGenerateLotText}
+              disabled={generatingText}
+              className="w-full px-4 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-medium rounded-xl hover:from-rose-600 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {generatingText ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                  Génération en cours...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-5 h-5" />
+                  Analyser le Lot
+                </>
+              )}
+            </button>
+          )}
+
           {/* 6) Formulaire du lot */}
           <Card>
             <div className="flex items-center gap-2 mb-4">
@@ -1486,26 +1508,6 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
                 ))}
               </select>
 
-              {lotData.seller_id && lotData.selectedArticles.length >= 2 && (
-                <button
-                  type="button"
-                  onClick={handleGenerateLotText}
-                  disabled={generatingText}
-                  className="w-full mt-3 px-4 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white font-medium rounded-xl hover:from-rose-600 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {generatingText ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
-                      Génération en cours...
-                    </>
-                  ) : (
-                    <>
-                      <FileText className="w-5 h-5" />
-                      Analyser le Lot
-                    </>
-                  )}
-                </button>
-              )}
             </Card>
           )}
 
