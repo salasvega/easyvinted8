@@ -847,6 +847,75 @@ export const generateSpeech = async (text: string): Promise<ArrayBuffer> => {
   }
 };
 
+export interface KellyChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+export interface KellyChatContext {
+  articlesCount?: number;
+  lotsCount?: number;
+  soldCount?: number;
+  totalRevenue?: number;
+  topCategories?: string[];
+  recentActivity?: string;
+}
+
+export const chatWithKellyGlobal = async (
+  userMessage: string,
+  conversationHistory: KellyChatMessage[],
+  siteContext: KellyChatContext
+): Promise<string> => {
+  const contextSummary = `
+Contexte du dressing de l'utilisateur :
+- Articles actifs : ${siteContext.articlesCount ?? 'N/A'}
+- Lots créés : ${siteContext.lotsCount ?? 'N/A'}
+- Articles vendus : ${siteContext.soldCount ?? 'N/A'}
+- Revenus générés : ${siteContext.totalRevenue != null ? siteContext.totalRevenue.toFixed(2) + '€' : 'N/A'}
+- Catégories principales : ${siteContext.topCategories?.join(', ') || 'N/A'}
+- Activité récente : ${siteContext.recentActivity || 'N/A'}
+`.trim();
+
+  const historyText = conversationHistory.slice(-10).map(m =>
+    `${m.role === 'user' ? 'Utilisateur' : 'Kelly'}: ${m.content}`
+  ).join('\n');
+
+  const prompt = `Tu es Kelly, une assistante IA experte en mode, vente de vêtements d'occasion et optimisation de dressing. Tu travailles sur une plateforme de gestion de dressing pour vendre sur Vinted et autres plateformes.
+
+Tu as accès au contexte du dressing de l'utilisateur ET à tes connaissances générales sur la mode, les tendances, les prix du marché, les conseils de vente, et tout ce qui concerne le secteur de la mode d'occasion. Tu peux aussi donner des informations générales sur internet si l'utilisateur le demande.
+
+${contextSummary}
+
+${historyText ? `Historique de la conversation :\n${historyText}\n` : ''}
+
+Question de l'utilisateur : ${userMessage}
+
+Réponds de façon naturelle, bienveillante et experte. Sois précise et pratique. Tu peux te baser à la fois sur le contexte du dressing fourni ET sur tes connaissances générales (tendances mode, prix marché Vinted, conseils styling, etc.). Si l'utilisateur demande des infos générales (tendances, marques, conseils), réponds pleinement. Limite ta réponse à 250 mots maximum.`;
+
+  try {
+    const result = await callGeminiProxy(
+      "gemini-2.0-flash",
+      { parts: [{ text: prompt }] },
+      {}
+    );
+
+    if ('text' in result && result.text) {
+      return result.text;
+    }
+    throw new Error("Pas de réponse de Kelly");
+  } catch (error: any) {
+    console.error("Kelly chat error:", error);
+    if (error?.message?.includes("API_KEY_INVALID") || error?.message?.includes("API key")) {
+      throw new Error("Clé API Gemini invalide. Configurez-la dans Paramètres > Profil.");
+    }
+    if (error?.message?.includes("QUOTA_EXCEEDED") || error?.message?.includes("quota")) {
+      throw new Error("Quota Gemini dépassé. Réessayez plus tard.");
+    }
+    throw new Error("Kelly n'est pas disponible pour le moment. Réessayez.");
+  }
+};
+
 export const POSE_VARIATIONS = [
   { id: "frontal", label: "Vue Frontale", instruction: "Full frontal view, hands on hips" },
   { id: "three_quarter", label: "Vue 3/4", instruction: "Slightly turned, 3/4 view" },

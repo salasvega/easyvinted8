@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Sparkles,
@@ -20,10 +20,14 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
+  MessageCircle,
+  Send,
+  Bot,
+  User,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
-import { generateProactiveInsights, ProactiveInsight, optimizeArticleSEO } from '../lib/geminiService';
+import { generateProactiveInsights, ProactiveInsight, optimizeArticleSEO, chatWithKellyGlobal, KellyChatMessage, KellyChatContext } from '../lib/geminiService';
 import { getPricingInsights, dismissPricingInsight, applyPricingSuggestion, PricingInsight, PricingInsightType } from '../lib/kellyPricingService';
 import { generateLotTitleAndDescription } from '../lib/lotAnalysisService';
 import { Article } from '../types/article';
@@ -40,7 +44,7 @@ interface KellyUnifiedModalProps {
   onInsightsCountChange?: (count: number) => void;
 }
 
-type CoachSection = 'insights' | 'pricing' | 'planner';
+type CoachSection = 'insights' | 'pricing' | 'planner' | 'chat';
 
 interface Suggestion {
   id: string;
@@ -121,13 +125,24 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
   const [selectedSuggestionId, setSelectedSuggestionId] = useState<string | null>(null);
   const [suggestedDate, setSuggestedDate] = useState<string | null>(null);
 
+  const [chatMessages, setChatMessages] = useState<KellyChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatContext, setChatContext] = useState<KellyChatContext>({});
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   const modalRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen && user) {
       loadAllData();
+      loadChatContext();
     }
   }, [isOpen, user]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
 
   useEffect(() => {
     const handleDragMove = (e: MouseEvent) => {
@@ -452,6 +467,82 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
       setScheduledLots(scheduledLotsData || []);
     } catch (error) {
       console.error('Error loading scheduled items:', error);
+    }
+  };
+
+  const loadChatContext = async () => {
+    if (!user) return;
+    try {
+      const [articlesRes, lotsRes, soldRes] = await Promise.all([
+        supabase.from('articles').select('id, category, price').eq('user_id', user.id).in('status', ['draft', 'ready', 'published', 'scheduled']),
+        supabase.from('lots').select('id').eq('user_id', user.id).neq('status', 'sold'),
+        supabase.from('articles').select('id, price, sold_price').eq('user_id', user.id).eq('status', 'sold'),
+      ]);
+
+      const articles = articlesRes.data || [];
+      const lots = lotsRes.data || [];
+      const sold = soldRes.data || [];
+
+      const totalRevenue = sold.reduce((sum, a) => sum + (Number(a.sold_price) || Number(a.price) || 0), 0);
+
+      const categoryCounts: Record<string, number> = {};
+      articles.forEach(a => {
+        if (a.category) categoryCounts[a.category] = (categoryCounts[a.category] || 0) + 1;
+      });
+      const topCategories = Object.entries(categoryCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([cat]) => cat);
+
+      setChatContext({
+        articlesCount: articles.length,
+        lotsCount: lots.length,
+        soldCount: sold.length,
+        totalRevenue,
+        topCategories,
+        recentActivity: `${articles.length} articles en cours de vente, ${sold.length} vendus`,
+      });
+    } catch (err) {
+      console.error('Error loading chat context:', err);
+    }
+  };
+
+  const handleSendChatMessage = async () => {
+    if (!chatInput.trim() || chatLoading) return;
+
+    const userMsg: KellyChatMessage = {
+      role: 'user',
+      content: chatInput.trim(),
+      timestamp: new Date(),
+    };
+
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput('');
+    setChatLoading(true);
+
+    try {
+      const response = await chatWithKellyGlobal(
+        userMsg.content,
+        chatMessages,
+        chatContext
+      );
+
+      const assistantMsg: KellyChatMessage = {
+        role: 'assistant',
+        content: response,
+        timestamp: new Date(),
+      };
+
+      setChatMessages(prev => [...prev, assistantMsg]);
+    } catch (err: any) {
+      const errorMsg: KellyChatMessage = {
+        role: 'assistant',
+        content: err?.message || 'Désolée, je rencontre un problème. Réessayez dans un moment.',
+        timestamp: new Date(),
+      };
+      setChatMessages(prev => [...prev, errorMsg]);
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -1258,6 +1349,122 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
                     )}
                   </div>
                 )}
+
+                <SectionHeader
+                  icon={MessageCircle}
+                  title="Discuter avec Kelly"
+                  count={0}
+                  color="chat"
+                  isExpanded={expandedSections.has('chat')}
+                  onToggle={() => toggleSection('chat')}
+                  loading={false}
+                />
+                {expandedSections.has('chat') && (
+                  <div className="flex flex-col bg-gradient-to-br from-slate-50/50 to-gray-50/50">
+                    <div className="px-4 pt-3 pb-1">
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        Posez vos questions sur votre dressing, les tendances mode, les prix Vinted, les conseils de vente...
+                      </p>
+                    </div>
+
+                    <div className="overflow-y-auto px-4 py-3 space-y-3 max-h-72 min-h-[120px]">
+                      {chatMessages.length === 0 && (
+                        <div className="space-y-2">
+                          {[
+                            'Quels sont mes articles les plus susceptibles de se vendre ?',
+                            'Quelles sont les tendances mode printemps 2025 ?',
+                            'Comment optimiser mes prix sur Vinted ?',
+                            'Quelles marques sont les plus recherchées ?',
+                          ].map((suggestion, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setChatInput(suggestion)}
+                              className="w-full text-left text-xs text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-300 rounded-lg px-3 py-2 transition-all"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      {chatMessages.map((msg, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                        >
+                          <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-slate-700' : 'bg-gradient-to-br from-emerald-400 to-teal-500'}`}>
+                            {msg.role === 'user' ? (
+                              <User className="w-3.5 h-3.5 text-white" />
+                            ) : (
+                              <Bot className="w-3.5 h-3.5 text-white" />
+                            )}
+                          </div>
+                          <div
+                            className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
+                              msg.role === 'user'
+                                ? 'bg-slate-700 text-white rounded-tr-sm'
+                                : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-sm'
+                            }`}
+                          >
+                            {msg.content}
+                          </div>
+                        </div>
+                      ))}
+
+                      {chatLoading && (
+                        <div className="flex gap-2 flex-row">
+                          <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-emerald-400 to-teal-500">
+                            <Bot className="w-3.5 h-3.5 text-white" />
+                          </div>
+                          <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-3 py-2 shadow-sm">
+                            <div className="flex gap-1 items-center h-4">
+                              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                              <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      <div ref={chatEndRef} />
+                    </div>
+
+                    <div className="px-4 pb-4 pt-2">
+                      <div className="flex gap-2 items-end">
+                        <textarea
+                          value={chatInput}
+                          onChange={(e) => setChatInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              handleSendChatMessage();
+                            }
+                          }}
+                          placeholder="Posez une question à Kelly..."
+                          rows={1}
+                          className="flex-1 resize-none text-xs border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:border-emerald-300 bg-white placeholder-gray-400 leading-relaxed"
+                          style={{ maxHeight: '80px', overflowY: 'auto' }}
+                          disabled={chatLoading}
+                        />
+                        <button
+                          onClick={handleSendChatMessage}
+                          disabled={!chatInput.trim() || chatLoading}
+                          className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-500 text-white rounded-xl flex items-center justify-center hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex-shrink-0 shadow-sm"
+                        >
+                          <Send className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {chatMessages.length > 0 && (
+                        <button
+                          onClick={() => setChatMessages([])}
+                          className="mt-2 text-[10px] text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          Effacer la conversation
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
         </div>
@@ -1295,7 +1502,7 @@ interface SectionHeaderProps {
   count: number;
   secondaryCount?: number;
   secondaryLabel?: string;
-  color: 'emerald' | 'green' | 'blue';
+  color: 'emerald' | 'green' | 'blue' | 'chat';
   isExpanded: boolean;
   onToggle: () => void;
   loading?: boolean;
@@ -1316,12 +1523,14 @@ function SectionHeader({
     emerald: 'from-emerald-400 to-teal-500',
     green: 'from-green-400 to-emerald-500',
     blue: 'from-blue-400 to-sky-500',
+    chat: 'from-slate-500 to-gray-600',
   };
 
   const badgeClasses = {
     emerald: 'bg-emerald-100 text-emerald-700',
     green: 'bg-green-100 text-green-700',
     blue: 'bg-blue-100 text-blue-700',
+    chat: 'bg-slate-100 text-slate-600',
   };
 
   return (
@@ -1337,7 +1546,7 @@ function SectionHeader({
           <h3 className="font-semibold text-gray-900 text-sm">{title}</h3>
           <div className="flex items-center gap-2 mt-0.5">
             <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${badgeClasses[color]}`}>
-              {count} {count === 1 ? 'nouveau' : 'nouveaux'}
+              {color === 'chat' ? 'Questions libres' : `${count} ${count === 1 ? 'nouveau' : 'nouveaux'}`}
             </span>
             {secondaryCount !== undefined && (
               <span className="text-xs text-gray-500">
