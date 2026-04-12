@@ -236,7 +236,7 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
       }
 
       const [articlesResult, soldResult] = await Promise.all([
-        supabase.from('articles').select('*').eq('user_id', user.id).in('status', ['draft', 'ready', 'published', 'scheduled']),
+        supabase.from('articles').select('*').eq('user_id', user.id).in('status', ['draft', 'ready', 'published', 'scheduled', 'vinted_draft', 'reserved', 'on_hold', 'processing']),
         supabase.from('articles').select('*').eq('user_id', user.id).eq('status', 'sold'),
       ]);
 
@@ -476,7 +476,7 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     if (!sessionData?.session) return {};
 
     const [articlesRes, lotsRes, soldArticlesRes, soldLotsRes, familyRes, profileRes] = await Promise.all([
-      supabase.from('articles').select('id, title, category, brand, size, price, condition, color, material, status, season, reference_number, scheduled_for, vinted_url').eq('user_id', user.id).in('status', ['draft', 'ready', 'published', 'scheduled']).order('created_at', { ascending: false }),
+      supabase.from('articles').select('id, title, category, brand, size, price, condition, color, material, status, season, reference_number, scheduled_for, vinted_url').eq('user_id', user.id).in('status', ['draft', 'ready', 'published', 'scheduled', 'vinted_draft', 'reserved', 'on_hold', 'processing']).order('created_at', { ascending: false }),
       supabase.from('lots').select('id, title, description, price, status, reference_number, scheduled_for').eq('user_id', user.id).neq('status', 'sold').order('created_at', { ascending: false }),
       supabase.from('articles').select('id, title, category, brand, size, price, sold_price, condition, color, material, season, reference_number, vinted_url').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
       supabase.from('lots').select('id, title, price, sold_price, status, reference_number').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
