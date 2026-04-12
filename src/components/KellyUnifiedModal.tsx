@@ -470,71 +470,79 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     }
   };
 
+  const buildChatContext = async (): Promise<KellyChatContext> => {
+    if (!user) return {};
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session) return {};
+
+    const [articlesRes, lotsRes, soldArticlesRes, soldLotsRes, familyRes, profileRes] = await Promise.all([
+      supabase.from('articles').select('id, title, category, brand, size, price, condition, color, material, status, season, reference_number, scheduled_for, vinted_url').eq('user_id', user.id).in('status', ['draft', 'ready', 'published', 'scheduled']).order('created_at', { ascending: false }),
+      supabase.from('lots').select('id, title, description, price, status, reference_number, scheduled_for').eq('user_id', user.id).neq('status', 'sold').order('created_at', { ascending: false }),
+      supabase.from('articles').select('id, title, category, brand, size, price, sold_price, condition, color, material, season, reference_number, vinted_url').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
+      supabase.from('lots').select('id, title, price, sold_price, status, reference_number').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
+      supabase.from('family_members').select('id, name, gender, age, size_top, size_bottom, size_shoes').eq('user_id', user.id),
+      supabase.from('user_profiles').select('dressing_name').eq('user_id', user.id).maybeSingle(),
+    ]);
+
+    const articles = articlesRes.data || [];
+    const lots = lotsRes.data || [];
+    const soldArticles = soldArticlesRes.data || [];
+    const soldLots = soldLotsRes.data || [];
+    const familyMembers = familyRes.data || [];
+
+    const totalRevenue = soldArticles.reduce((sum, a) => sum + (Number(a.sold_price) || Number(a.price) || 0), 0)
+      + soldLots.reduce((sum, l) => sum + (Number(l.sold_price) || Number(l.price) || 0), 0);
+
+    const categoryBreakdown: Record<string, number> = {};
+    articles.forEach(a => {
+      if (a.category) categoryBreakdown[a.category] = (categoryBreakdown[a.category] || 0) + 1;
+    });
+
+    const brandBreakdown: Record<string, number> = {};
+    articles.forEach(a => {
+      if (a.brand) brandBreakdown[a.brand] = (brandBreakdown[a.brand] || 0) + 1;
+    });
+
+    const topCategories = Object.entries(categoryBreakdown)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([cat]) => cat);
+
+    const allPrices = articles.map(a => Number(a.price)).filter(p => p > 0);
+    const avgPrice = allPrices.length > 0 ? allPrices.reduce((s, p) => s + p, 0) / allPrices.length : 0;
+
+    const soldPrices = soldArticles.map(a => Number(a.sold_price) || Number(a.price)).filter(p => p > 0);
+    const avgSoldPrice = soldPrices.length > 0 ? soldPrices.reduce((s, p) => s + p, 0) / soldPrices.length : 0;
+
+    const scheduledCount = articles.filter(a => a.status === 'scheduled').length;
+    const pendingCount = articles.filter(a => a.status === 'draft' || a.status === 'ready').length;
+
+    return {
+      articlesCount: articles.length,
+      lotsCount: lots.length,
+      soldCount: soldArticles.length,
+      totalRevenue,
+      topCategories,
+      recentActivity: `${articles.length} articles en cours de vente, ${soldArticles.length} vendus`,
+      articles,
+      soldArticles,
+      lots,
+      soldLots,
+      familyMembers,
+      sellerName: profileRes.data?.dressing_name || undefined,
+      pendingCount,
+      scheduledCount,
+      categoryBreakdown,
+      brandBreakdown,
+      avgPrice,
+      avgSoldPrice,
+    };
+  };
+
   const loadChatContext = async () => {
-    if (!user) return;
     try {
-      const [articlesRes, lotsRes, soldArticlesRes, soldLotsRes, familyRes, profileRes] = await Promise.all([
-        supabase.from('articles').select('id, title, category, brand, size, price, condition, color, material, status, season, reference_number, scheduled_for, vinted_url').eq('user_id', user.id).in('status', ['draft', 'ready', 'published', 'scheduled']).order('created_at', { ascending: false }),
-        supabase.from('lots').select('id, title, description, price, status, reference_number, scheduled_for').eq('user_id', user.id).neq('status', 'sold').order('created_at', { ascending: false }),
-        supabase.from('articles').select('id, title, category, brand, size, price, sold_price, condition, color, material, season, reference_number, vinted_url').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
-        supabase.from('lots').select('id, title, price, sold_price, status, reference_number').eq('user_id', user.id).eq('status', 'sold').order('sold_at', { ascending: false }),
-        supabase.from('family_members').select('id, name, gender, age, size_top, size_bottom, size_shoes').eq('user_id', user.id),
-        supabase.from('user_profiles').select('dressing_name').eq('user_id', user.id).maybeSingle(),
-      ]);
-
-      const articles = articlesRes.data || [];
-      const lots = lotsRes.data || [];
-      const soldArticles = soldArticlesRes.data || [];
-      const soldLots = soldLotsRes.data || [];
-      const familyMembers = familyRes.data || [];
-
-      const totalRevenue = soldArticles.reduce((sum, a) => sum + (Number(a.sold_price) || Number(a.price) || 0), 0)
-        + soldLots.reduce((sum, l) => sum + (Number(l.sold_price) || Number(l.price) || 0), 0);
-
-      const categoryBreakdown: Record<string, number> = {};
-      articles.forEach(a => {
-        if (a.category) categoryBreakdown[a.category] = (categoryBreakdown[a.category] || 0) + 1;
-      });
-
-      const brandBreakdown: Record<string, number> = {};
-      articles.forEach(a => {
-        if (a.brand) brandBreakdown[a.brand] = (brandBreakdown[a.brand] || 0) + 1;
-      });
-
-      const topCategories = Object.entries(categoryBreakdown)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([cat]) => cat);
-
-      const allPrices = articles.map(a => Number(a.price)).filter(p => p > 0);
-      const avgPrice = allPrices.length > 0 ? allPrices.reduce((s, p) => s + p, 0) / allPrices.length : 0;
-
-      const soldPrices = soldArticles.map(a => Number(a.sold_price) || Number(a.price)).filter(p => p > 0);
-      const avgSoldPrice = soldPrices.length > 0 ? soldPrices.reduce((s, p) => s + p, 0) / soldPrices.length : 0;
-
-      const scheduledCount = articles.filter(a => a.status === 'scheduled').length;
-      const pendingCount = articles.filter(a => a.status === 'draft' || a.status === 'ready').length;
-
-      setChatContext({
-        articlesCount: articles.length,
-        lotsCount: lots.length,
-        soldCount: soldArticles.length,
-        totalRevenue,
-        topCategories,
-        recentActivity: `${articles.length} articles en cours de vente, ${soldArticles.length} vendus`,
-        articles,
-        soldArticles,
-        lots,
-        soldLots,
-        familyMembers,
-        sellerName: profileRes.data?.dressing_name || undefined,
-        pendingCount,
-        scheduledCount,
-        categoryBreakdown,
-        brandBreakdown,
-        avgPrice,
-        avgSoldPrice,
-      });
+      const ctx = await buildChatContext();
+      setChatContext(ctx);
     } catch (err) {
       console.error('Error loading chat context:', err);
     }
@@ -554,10 +562,16 @@ export function KellyUnifiedModal({ isOpen, onClose, onNavigateToArticle, onRefr
     setChatLoading(true);
 
     try {
+      let ctx = chatContext;
+      if (!ctx.articles || ctx.articles.length === 0) {
+        ctx = await buildChatContext();
+        setChatContext(ctx);
+      }
+
       const response = await chatWithKellyGlobal(
         userMsg.content,
         chatMessages,
-        chatContext
+        ctx
       );
 
       const assistantMsg: KellyChatMessage = {
