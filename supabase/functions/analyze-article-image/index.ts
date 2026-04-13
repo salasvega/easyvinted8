@@ -14,9 +14,6 @@ interface AnalysisResult {
   title: string;
   description: string;
   brand: string;
-  sub_category?: string;
-  category: string;
-  subcategory?: string;
   color: string;
   material?: string;
   size?: string;
@@ -211,27 +208,24 @@ Deno.serve(async (req: Request) => {
 ${usefulInfo ? `🚨 INFORMATIONS IMPORTANTES DU VENDEUR 🚨
 "${usefulInfo}"
 
-Ces informations du vendeur sont a prendre en compte pour l'analyse !
+Ces informations du vendeur sont prioritaires et doivent guider l'integralite de l'analyse.
 
-` : ''}Analyse ces ${imageUrls.length} photo(s) et retourne un JSON avec:
+` : ''}Analyse ces ${imageUrls.length} photo(s) et retourne un JSON avec les champs suivants:
 
 - title: Titre accrocheur max 60 caracteres
-- description: Description attractive 80-120 mots (style: ${writingStyle})
-- brand: Marque ou "Sans marque"
-- sub_category: Sous-categorie (ex: "Vetements", "Chaussures", "Sacs")
-- category: Type general (ex: "Veste", "Pantalon", "Robe")
-- subcategory: Type precis (ex: "Veste en jean bleue")
+- description: Description de l'article en respectant strictement ce style de redaction : "${writingStyle}". Ne pas imposer de longueur fixe — la description doit etre naturelle et coherente avec le style. Mettre en valeur les points forts de l'article (matiere, etat, coupe, usage) sans inventer d'informations non visibles sur les photos.
+- brand: Marque visible sur l'article ou "Sans marque"
 - color: Couleur principale
-- material: Matiere principale
-- size: Taille si visible
-- condition: "new_with_tags", "new_without_tags", "very_good", "good", "satisfactory"
-- season: "spring", "summer", "autumn", "winter", "all-seasons"
-- suggestedPeriod: Meilleure periode de vente
-- estimatedPrice: Prix en euros
-- seoKeywords: 8 mots-cles
-- hashtags: 10 hashtags
-- searchTerms: 5 termes de recherche
-- confidenceScore: Score 0-100`;
+- material: Matiere principale si identifiable
+- size: Taille si visible sur une etiquette ou lisible sur les photos
+- condition: Etat de l'article — retourner exactement l'une de ces valeurs: "new_with_tags", "new_without_tags", "very_good", "good", "satisfactory"
+- season: Saison adaptee — retourner exactement l'une de ces valeurs: "spring", "summer", "autumn", "winter", "all-seasons"
+- suggestedPeriod: Meilleure periode de vente en francais (ex: "Mars - Mai", "Toute l'annee")
+- estimatedPrice: Prix de revente estime en euros (nombre entier)
+- seoKeywords: 8 mots-cles pour le referencement
+- hashtags: 10 hashtags pertinents
+- searchTerms: 5 termes de recherche probables d'un acheteur
+- confidenceScore: Score de confiance de l'analyse entre 0 et 100`;
 
     try {
       const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
@@ -256,9 +250,6 @@ Ces informations du vendeur sont a prendre en compte pour l'analyse !
               title: { type: Type.STRING },
               description: { type: Type.STRING },
               brand: { type: Type.STRING },
-              sub_category: { type: Type.STRING },
-              category: { type: Type.STRING },
-              subcategory: { type: Type.STRING },
               color: { type: Type.STRING },
               material: { type: Type.STRING },
               size: { type: Type.STRING },
@@ -305,9 +296,6 @@ Ces informations du vendeur sont a prendre en compte pour l'analyse !
         title: parsedResponse.title || "Article à vendre",
         description: parsedResponse.description || "Article en bon état",
         brand: parsedResponse.brand || "Sans marque",
-        sub_category: parsedResponse.sub_category,
-        category: parsedResponse.category || "Vêtement",
-        subcategory: parsedResponse.subcategory,
         color: parsedResponse.color || "Multicolore",
         material: parsedResponse.material,
         size: parsedResponse.size,
