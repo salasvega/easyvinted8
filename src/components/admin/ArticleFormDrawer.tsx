@@ -500,23 +500,41 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
               confidenceScore: cachedArticle.image_analysis_confidence || rawResult['QUALITE']?.confidenceScore || rawResult.confidenceScore,
             };
 
-            setFormData((prev) => ({
-              ...prev,
-              title: result.title || prev.title,
-              description: result.description || prev.description,
-              brand: result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand,
-              color: result.color || prev.color,
-              material: result.material || prev.material,
-              size: result.size || prev.size,
-              price: result.estimatedPrice?.toString() || prev.price,
-              condition: result.condition || prev.condition,
-              season: result.season || prev.season,
-              suggested_period: result.suggestedPeriod || prev.suggested_period,
-              seo_keywords: result.seoKeywords || prev.seo_keywords,
-              hashtags: result.hashtags || prev.hashtags,
-              search_terms: result.searchTerms || prev.search_terms,
-              ai_confidence_score: result.confidenceScore || prev.ai_confidence_score,
-            }));
+            setFormData((prev) => {
+              const cachedTitle = result.title || prev.title;
+              const cachedDescription = result.description || prev.description;
+              const cachedBrand = result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand;
+
+              let cachedSize = result.size || prev.size;
+              if (!result.size) {
+                const selectedMember = familyMembers.find(m => m.id === prev.seller_id);
+                if (selectedMember) {
+                  const sizeType = determineSizeType('', cachedBrand, `${cachedTitle} ${cachedDescription}`);
+                  const defaultSize = getSizeFromMember(selectedMember, sizeType);
+                  if (defaultSize) {
+                    cachedSize = defaultSize;
+                  }
+                }
+              }
+
+              return {
+                ...prev,
+                title: cachedTitle,
+                description: cachedDescription,
+                brand: cachedBrand,
+                color: result.color || prev.color,
+                material: result.material || prev.material,
+                size: cachedSize,
+                price: result.estimatedPrice?.toString() || prev.price,
+                condition: result.condition || prev.condition,
+                season: result.season || prev.season,
+                suggested_period: result.suggestedPeriod || prev.suggested_period,
+                seo_keywords: result.seoKeywords || prev.seo_keywords,
+                hashtags: result.hashtags || prev.hashtags,
+                search_terms: result.searchTerms || prev.search_terms,
+                ai_confidence_score: result.confidenceScore || prev.ai_confidence_score,
+              };
+            });
 
             const fieldsAnalyzed = [
               result.title && 'titre',
@@ -621,16 +639,15 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
             const newDescription = result.description || prev.description;
             const newBrand = result.brand && result.brand !== 'Non spécifié' && result.brand !== 'Sans marque' ? result.brand : prev.brand;
 
-            // Logique de taille : toujours privilégier la taille du vendeur si disponible
-            // Rationale: l'article appartient au vendeur, donc on utilise SA taille réelle
             let newSize = result.size || prev.size;
-            const selectedMember = familyMembers.find(m => m.id === prev.seller_id);
-
-            if (selectedMember) {
-              const sizeType = determineSizeType('', newBrand, `${newTitle} ${newDescription}`);
-              const defaultSize = getSizeFromMember(selectedMember, sizeType);
-              if (defaultSize) {
-                newSize = defaultSize;
+            if (!result.size) {
+              const selectedMember = familyMembers.find(m => m.id === prev.seller_id);
+              if (selectedMember) {
+                const sizeType = determineSizeType('', newBrand, `${newTitle} ${newDescription}`);
+                const defaultSize = getSizeFromMember(selectedMember, sizeType);
+                if (defaultSize) {
+                  newSize = defaultSize;
+                }
               }
             }
 

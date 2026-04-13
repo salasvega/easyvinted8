@@ -232,7 +232,11 @@ Ces informations du vendeur sont prioritaires et doivent guider l'integralite de
 - brand: Marque visible sur l'article ou "Sans marque"
 - color: Couleur principale
 - material: Matiere principale si identifiable
-- size: Taille de l'article. Priorite 1 — etiquette clairement lisible sur les photos. Priorite 2 — taille precisee dans les infos utiles du vendeur. Priorite 3 — taille enregistree du vendeur pour le type de vetement identifie (voir section tailles vendeur ci-dessus). Retourner une chaine vide si aucune de ces sources ne permet de determiner la taille.
+- size: Taille de l'article. REGLE DE PRIORITE STRICTE — appliquer dans cet ordre exact :
+  1. Etiquette de taille clairement lisible sur l'une des photos (priorite absolue).
+  2. Taille explicitement mentionnee dans les informations du vendeur (ex: "taille 38", "pointure 42", "M", "XL") — si presente dans les infos utiles, utiliser cette valeur MEME si elle differe de la taille enregistree du vendeur.
+  3. Taille enregistree du vendeur pour le type de vetement identifie (voir section tailles vendeur ci-dessus) — uniquement si aucune des deux sources precedentes ne fournit de taille.
+  Retourner une chaine vide uniquement si aucune de ces trois sources ne permet de determiner la taille. Ne jamais inventer une taille.
 - condition: Etat de l'article — retourner exactement l'une de ces valeurs: "new_with_tags", "new_without_tags", "very_good", "good", "satisfactory"
 - season: Saison adaptee — retourner exactement l'une de ces valeurs: "spring", "summer", "autumn", "winter", "all-seasons"
 - suggestedPeriod: Meilleure periode de vente en francais (ex: "Mars - Mai", "Toute l'annee")
