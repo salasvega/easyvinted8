@@ -286,7 +286,7 @@ Ces informations du vendeur sont prioritaires et doivent guider l'integralite de
               },
               confidenceScore: { type: Type.NUMBER }
             },
-            required: ["title", "description", "brand", "category", "color", "condition", "season"]
+            required: ["title", "description", "brand", "color", "condition", "season"]
           }
         }
       });
