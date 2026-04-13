@@ -114,11 +114,14 @@ Deno.serve(async (req: Request) => {
     }
 
     let writingStyle = "Description detaillee et attractive";
+    let sellerTopSize: string | null = null;
+    let sellerBottomSize: string | null = null;
+    let sellerShoeSize: string | null = null;
 
     if (sellerId) {
       const { data: familyMember } = await supabase
         .from("family_members")
-        .select("persona_id, writing_style")
+        .select("persona_id, writing_style, top_size, bottom_size, shoe_size")
         .eq("id", sellerId)
         .eq("user_id", user.id)
         .maybeSingle();
@@ -140,8 +143,20 @@ Deno.serve(async (req: Request) => {
           };
           writingStyle = personaStyles[familyMember.persona_id] || writingStyle;
         }
+
+        sellerTopSize = familyMember.top_size || null;
+        sellerBottomSize = familyMember.bottom_size || null;
+        sellerShoeSize = familyMember.shoe_size || null;
       }
     }
+
+    const sellerSizeContext = (sellerTopSize || sellerBottomSize || sellerShoeSize)
+      ? `\nTailles enregistrees pour ce vendeur (a utiliser comme valeur par defaut si la taille n'est pas visible sur les photos ni precisee dans les infos utiles) :
+${sellerTopSize ? `- Haut / Robe / Veste / Manteau : ${sellerTopSize}` : ''}
+${sellerBottomSize ? `- Bas (pantalon, jean, jupe, short) : ${sellerBottomSize}` : ''}
+${sellerShoeSize ? `- Pointure (chaussures, bottes, baskets) : ${sellerShoeSize}` : ''}
+Regle : si la taille est clairement visible sur une etiquette dans les photos OU precisee dans les infos utiles du vendeur, utiliser cette valeur. Sinon, utiliser la taille enregistree du vendeur correspondant au type de vetement identifie.\n`
+      : '';
 
     const imageParts: Array<{ inlineData: { mimeType: string; data: string } }> = [];
 
@@ -210,14 +225,14 @@ ${usefulInfo ? `🚨 INFORMATIONS IMPORTANTES DU VENDEUR 🚨
 
 Ces informations du vendeur sont prioritaires et doivent guider l'integralite de l'analyse.
 
-` : ''}Analyse ces ${imageUrls.length} photo(s) et retourne un JSON avec les champs suivants:
+` : ''}${sellerSizeContext}Analyse ces ${imageUrls.length} photo(s) et retourne un JSON avec les champs suivants:
 
 - title: Titre accrocheur max 60 caracteres
 - description: Description de l'article en respectant strictement ce style de redaction : "${writingStyle}". Ne pas imposer de longueur fixe — la description doit etre naturelle et coherente avec le style. Mettre en valeur les points forts de l'article (matiere, etat, coupe, usage) sans inventer d'informations non visibles sur les photos.
 - brand: Marque visible sur l'article ou "Sans marque"
 - color: Couleur principale
 - material: Matiere principale si identifiable
-- size: Taille si visible sur une etiquette ou lisible sur les photos
+- size: Taille de l'article. Priorite 1 — etiquette clairement lisible sur les photos. Priorite 2 — taille precisee dans les infos utiles du vendeur. Priorite 3 — taille enregistree du vendeur pour le type de vetement identifie (voir section tailles vendeur ci-dessus). Retourner une chaine vide si aucune de ces sources ne permet de determiner la taille.
 - condition: Etat de l'article — retourner exactement l'une de ces valeurs: "new_with_tags", "new_without_tags", "very_good", "good", "satisfactory"
 - season: Saison adaptee — retourner exactement l'une de ces valeurs: "spring", "summer", "autumn", "winter", "all-seasons"
 - suggestedPeriod: Meilleure periode de vente en francais (ex: "Mars - Mai", "Toute l'annee")

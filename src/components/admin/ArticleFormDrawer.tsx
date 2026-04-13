@@ -310,7 +310,7 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
     try {
       const { data, error } = await supabase
         .from('family_members')
-        .select('id, name, is_default')
+        .select('id, name, is_default, top_size, bottom_size, shoe_size')
         .eq('user_id', user.id)
         .order('name');
       if (error) throw error;
