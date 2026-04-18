@@ -1903,18 +1903,18 @@ export function ArticleFormDrawer({ isOpen, onClose, articleId, onSaved, suggest
 
                     {/* Section Sélection du Vendeur */}
                     {familyMembers.length > 0 && (
-                      <div className={`p-4 bg-gradient-to-br from-rose-50 to-pink-50 rounded-2xl border border-rose-200 ${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 7 } as React.CSSProperties}>
-                        <h4 className="text-[10px] uppercase tracking-wide text-rose-800 font-semibold mb-1 flex items-center gap-2">
+                      <div className={`p-4 bg-gradient-to-br from-grey-50 to-grey-50 rounded-2xl border border-grey-200 ${!isClosing ? 'form-drawer-content-item' : 'form-drawer-content-item-exit'}`} style={{ '--item-index': 7 } as React.CSSProperties}>
+                        <h4 className="text-[10px] uppercase tracking-wide text-grey-800 font-semibold mb-1 flex items-center gap-2">
                           <FileText className="w-3.5 h-3.5" />
                           Vendeur
                         </h4>
-                        <p className="text-xs text-rose-600 mb-2">
+                        <p className="text-xs text-grey-600 mb-2">
                           Au moment de la vente, le montant sera attribué aux statistiques du vendeur sélectionné.
                         </p>
                         <select
                           value={formData.seller_id || ''}
                           onChange={(e) => handleSellerChange(e.target.value || null)}
-                          className="w-full text-sm font-medium text-slate-900 bg-white border border-rose-200 rounded-lg focus:ring-2 focus:ring-rose-400 focus:border-rose-400 px-3 py-2"
+                          className="w-full text-sm font-medium text-slate-900 bg-white border border-grey-200 rounded-lg focus:ring-2 focus:ring-grey-400 focus:border-grey-400 px-3 py-2"
                         >
                           <option value="">Sélectionner un vendeur</option>
                           {familyMembers.map((member) => (
