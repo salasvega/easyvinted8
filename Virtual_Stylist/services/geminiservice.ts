@@ -1,17 +1,82 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { AvatarProfile, LocationProfile, RenderStyle } from '../types';
 
-let ai: GoogleGenAI | null = null;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-const getAI = () => {
-  if (!ai) {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error("VITE_GEMINI_API_KEY is not configured");
+interface ProxyResponse {
+  candidates?: Array<{
+    content?: { parts?: Array<{ inlineData?: { data: string; mimeType?: string }; text?: string }> };
+    finishReason?: string;
+    safetyRatings?: any[];
+  }>;
+  text?: string;
+  imageData?: string;
+  finishReason?: string;
+  error?: string;
+}
+
+const callGeminiProxy = async (model: string, contents: any, config?: any): Promise<ProxyResponse> => {
+  let authHeader = '';
+
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { session } } = await client.auth.getSession();
+    if (session?.access_token) {
+      authHeader = `Bearer ${session.access_token}`;
     }
-    ai = new GoogleGenAI({ apiKey });
+  } catch {
   }
-  return ai;
+
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/gemini-proxy`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authHeader ? { Authorization: authHeader } : {}),
+      Apikey: SUPABASE_ANON_KEY,
+    },
+    body: JSON.stringify({
+      action: 'generateContent',
+      payload: { model, contents, config },
+    }),
+  });
+
+  const json = await response.json();
+
+  if (!response.ok || json.error) {
+    const msg = typeof json.error === 'string' ? json.error : JSON.stringify(json.error ?? `Erreur HTTP ${response.status}`);
+    if (response.status === 429 || msg.includes('quota') || msg.includes('RESOURCE_EXHAUSTED')) {
+      throw new Error('QUOTA_EXCEEDED:' + msg);
+    }
+    if (response.status === 401 || response.status === 402 || response.status === 403 || msg.includes('API') || msg.includes('cle') || msg.includes('Aucune')) {
+      throw new Error('API_KEY_INVALID:' + msg);
+    }
+    throw new Error(msg);
+  }
+
+  if (json.imageData) {
+    return {
+      candidates: [{
+        content: { parts: [{ inlineData: { data: json.imageData } }] },
+        finishReason: json.finishReason ?? 'STOP',
+      }],
+    };
+  }
+
+  if (json.finishReason && json.finishReason !== 'STOP') {
+    return {
+      candidates: [{ finishReason: json.finishReason }],
+    };
+  }
+
+  return {
+    candidates: [{
+      content: { parts: [{ text: json.text ?? '' }] },
+      finishReason: 'STOP',
+    }],
+    text: json.text,
+  };
 };
 
 export const fileToDataUrl = (file: File): Promise<string> => {
@@ -275,12 +340,9 @@ Technical requirements:
 Important: Create a realistic, natural-looking person suitable for virtual fashion try-on demonstrations.`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const response = await callGeminiProxy(model, {
         parts: [{ text: prompt }],
-      },
-      config: {
+      }, {
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
@@ -299,8 +361,7 @@ Important: Create a realistic, natural-looking person suitable for virtual fashi
             threshold: 'BLOCK_NONE',
           },
         ],
-      },
-    });
+      });
 
     // Log de debug pour comprendre la structure de la réponse
     console.log('Gemini response structure:', {
@@ -418,9 +479,7 @@ ${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n\n` : '
     : referencePhotoBase64;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const response = await callGeminiProxy(model, {
         parts: [
           { text: prompt },
           {
@@ -430,8 +489,7 @@ ${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n\n` : '
             },
           },
         ],
-      },
-      config: {
+      }, {
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
@@ -450,8 +508,7 @@ ${customInstructions ? `ADDITIONAL REQUIREMENTS:\n${customInstructions}\n\n` : '
             threshold: 'BLOCK_NONE',
           },
         ],
-      },
-    });
+      });
 
     console.log('Gemini response (reference photo):', {
       hasCandidates: !!response.candidates,
@@ -525,12 +582,9 @@ TECHNICAL SPECS:
 IMPORTANT: Do NOT default to a generic studio/loft if something else is described. Create the EXACT environment requested.`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const response = await callGeminiProxy(model, {
         parts: [{ text: prompt }],
-      },
-      config: {
+      }, {
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
@@ -549,8 +603,7 @@ IMPORTANT: Do NOT default to a generic studio/loft if something else is describe
             threshold: 'BLOCK_NONE',
           },
         ],
-      },
-    });
+      });
 
     console.log('Gemini response (background):', {
       hasCandidates: !!response.candidates,
@@ -821,10 +874,7 @@ Before completing, verify:
         { text: `\n\n${prompt}` }
       ];
 
-      const response = await getAI().models.generateContent({
-        model: model,
-        contents: { parts },
-        config: {
+      const response = await callGeminiProxy(model, { parts }, {
           safetySettings: [
             {
               category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
@@ -843,8 +893,7 @@ Before completing, verify:
               threshold: 'BLOCK_NONE',
             },
           ],
-        },
-      });
+        });
 
       console.log('Gemini response (product composition):', {
         hasCandidates: !!response.candidates,
@@ -1262,12 +1311,9 @@ FINAL INSTRUCTION: This must be indistinguishable from a real photograph of a re
 
     parts.push({ text: `\n\n${prompt}` });
 
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const response = await callGeminiProxy(model, {
         parts,
-      },
-      config: {
+      }, {
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
@@ -1286,8 +1332,7 @@ FINAL INSTRUCTION: This must be indistinguishable from a real photograph of a re
             threshold: 'BLOCK_NONE',
           },
         ],
-      },
-    });
+      });
 
     console.log('Gemini response (virtual try-on):', {
       hasCandidates: !!response.candidates,
@@ -1352,9 +1397,7 @@ Provide accurate descriptions based on what you see in the photo.`;
   const mimeType = imageData.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const response = await callGeminiProxy(model, {
         parts: [
           {
             inlineData: {
@@ -1364,8 +1407,7 @@ Provide accurate descriptions based on what you see in the photo.`;
           },
           { text: prompt },
         ],
-      },
-      config: {
+      }, {
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -1381,8 +1423,7 @@ Provide accurate descriptions based on what you see in the photo.`;
             build: { type: Type.STRING },
           },
         },
-      },
-    });
+      });
 
     if (response.text) {
       return JSON.parse(response.text);
@@ -1449,9 +1490,7 @@ Return ONLY the optimized descriptive prompt text, nothing else. Write in French
   const mimeType = imageData.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const response = await callGeminiProxy(model, {
         parts: [
           {
             inlineData: {
@@ -1461,8 +1500,7 @@ Return ONLY the optimized descriptive prompt text, nothing else. Write in French
           },
           { text: prompt },
         ],
-      },
-    });
+      });
 
     if (response.text) {
       return response.text.trim();
@@ -1532,9 +1570,7 @@ Return ONLY the optimized descriptive prompt text, nothing else. Write in French
   const mimeType = imageData.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const response = await callGeminiProxy(model, {
         parts: [
           {
             inlineData: {
@@ -1544,8 +1580,7 @@ Return ONLY the optimized descriptive prompt text, nothing else. Write in French
           },
           { text: prompt },
         ],
-      },
-    });
+      });
 
     if (response.text) {
       return response.text.trim();
@@ -1577,10 +1612,7 @@ Create a clear, detailed prompt that will generate a high-quality portrait suita
 Return ONLY the optimized prompt text, nothing else.`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: [{ parts: [{ text: prompt }] }],
-    });
+    const response = await callGeminiProxy(model, [{ parts: [{ text: prompt }] }]);
 
     return response.text || userInput;
   } catch (error: any) {
@@ -1612,10 +1644,7 @@ The background should enhance garment presentation while maintaining a natural, 
 Return ONLY the optimized prompt text, nothing else.`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: [{ parts: [{ text: prompt }] }],
-    });
+    const response = await callGeminiProxy(model, [{ parts: [{ text: prompt }] }]);
 
     return response.text || userInput;
   } catch (error: any) {
@@ -1662,12 +1691,9 @@ Technical requirements:
 - Fashion-appropriate pose`;
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const response = await callGeminiProxy(model, {
         parts: [{ text: fullPrompt }],
-      },
-      config: {
+      }, {
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
@@ -1686,8 +1712,7 @@ Technical requirements:
             threshold: 'BLOCK_NONE',
           },
         ],
-      },
-    });
+      });
 
     console.log('Gemini response (text prompt):', {
       hasCandidates: !!response.candidates,
@@ -1844,9 +1869,7 @@ IMPORTANT: The final portrait must be clean, high-quality, and suitable for virt
   const mimeType = imageData.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
 
   try {
-    const response = await getAI().models.generateContent({
-      model: model,
-      contents: {
+    const response = await callGeminiProxy(model, {
         parts: [
           {
             inlineData: {
@@ -1856,8 +1879,7 @@ IMPORTANT: The final portrait must be clean, high-quality, and suitable for virt
           },
           { text: prompt },
         ],
-      },
-      config: {
+      }, {
         safetySettings: [
           {
             category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
@@ -1876,8 +1898,7 @@ IMPORTANT: The final portrait must be clean, high-quality, and suitable for virt
             threshold: 'BLOCK_NONE',
           },
         ],
-      },
-    });
+      });
 
     console.log('Gemini response (photo enhancement):', {
       hasCandidates: !!response.candidates,
