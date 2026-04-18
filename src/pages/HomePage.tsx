@@ -91,7 +91,7 @@ export function HomePage() {
       label: "Mon Compte",
       Icon: UserCircle2,
       items: [
-        { to: "/profile", label: "Mon Profil", Icon: UserCircle2 },
+        { to: "/profile", label: "Mes Infos", Icon: UserCircle2 },
         { to: "/virtual-stylist", label: "Mon Style", Icon: Shirt },
         { to: "/family", label: "Vendeurs", Icon: Users },
       ],
