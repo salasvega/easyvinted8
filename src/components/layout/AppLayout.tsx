@@ -62,14 +62,6 @@ const NAV_SECTIONS: NavSection[] = [
       { to: "/analytics", label: "Statistiques", icon: BarChart3 },
     ],
   },
-  {
-    key: "compte",
-    label: "Mon Compte",
-    icon: UserCircle2,
-    items: [
-      { to: "/my-account", label: "Mon Compte", icon: UserCircle2 },
-    ],
-  },
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
@@ -376,24 +368,28 @@ export function AppLayout({ children }: AppLayoutProps) {
                                 </Link>
                               );
                             })}
-
-                            {section.key === "compte" && (
-                              <>
-                                <div className="mx-4 my-1 border-t border-gray-100" />
-                                <button
-                                  onClick={handleSignOut}
-                                  className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group text-red-600 hover:bg-red-50 w-full"
-                                  style={{ animationDelay: mobileMenuOpen && isExpanded ? "130ms" : "0ms" }}
-                                >
-                                  <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
-                                  Se déconnecter
-                                </button>
-                              </>
-                            )}
                           </div>
                         </div>
                       );
                     })}
+
+                    <div className="border-b border-gray-100">
+                      <Link
+                        to="/my-account"
+                        onClick={() => closeMenuWithAnimation("main")}
+                        className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group ${isActive("/my-account") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"}`}
+                      >
+                        <UserCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        Mon Compte
+                      </Link>
+                      <button
+                        onClick={handleSignOut}
+                        className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group text-red-600 hover:bg-red-50 w-full"
+                      >
+                        <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
+                        Se déconnecter
+                      </button>
+                    </div>
 
                     <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
                       <p className="text-xs text-gray-400 text-center">
