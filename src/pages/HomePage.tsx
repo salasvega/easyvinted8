@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { Sparkles, Calendar, Upload, Camera, TrendingUp, ShoppingBag, Shield, Zap, Check, ArrowRight, BarChart3, Clock, Star, LogOut, Activity, Users, CircleUser as UserCircle2, ChevronDown, Play, Send, Shirt } from "lucide-react";
+import { Sparkles, Calendar, Upload, Camera, TrendingUp, ShoppingBag, Shield, Zap, Check, ArrowRight, BarChart3, Clock, Star, LogOut, Activity, CircleUser as UserCircle2, ChevronDown, Play, Send } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import "../styles/navigation.css";
 import { HomePageSkeleton } from "../components/ui/HomePageSkeleton";
@@ -84,16 +84,6 @@ export function HomePage() {
       Icon: BarChart3,
       items: [
         { to: "/analytics", label: "Statistiques", Icon: BarChart3 },
-      ],
-    },
-    {
-      key: "compte",
-      label: "Mon Compte",
-      Icon: UserCircle2,
-      items: [
-        { to: "/profile", label: "Mes Infos", Icon: UserCircle2 },
-        { to: "/virtual-stylist", label: "Mon Style", Icon: Shirt },
-        { to: "/family", label: "Vendeurs", Icon: Users },
       ],
     },
   ];
@@ -213,24 +203,28 @@ export function HomePage() {
                                   {item.label}
                                 </Link>
                               ))}
-
-                              {section.key === "compte" && (
-                                <>
-                                  <div className="mx-4 my-1 border-t border-gray-100" />
-                                  <button
-                                    onClick={handleSignOut}
-                                    className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group text-red-600 hover:bg-red-50 w-full"
-                                    style={{ animationDelay: showUserMenu && isExpanded ? "130ms" : "0ms" }}
-                                  >
-                                    <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
-                                    Se déconnecter
-                                  </button>
-                                </>
-                              )}
                             </div>
                           </div>
                         );
                       })}
+
+                      <div className="border-b border-gray-100">
+                        <Link
+                          to="/my-account"
+                          onClick={() => closeMenuWithAnimation()}
+                          className={`mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group ${isActive("/my-account") ? "bg-emerald-50 text-emerald-700" : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"}`}
+                        >
+                          <UserCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                          Mon Compte
+                        </Link>
+                        <button
+                          onClick={handleSignOut}
+                          className="mobile-menu-item flex items-center gap-3 px-4 py-3 rounded-lg text-xs font-bold uppercase tracking-wider group text-red-600 hover:bg-red-50 w-full"
+                        >
+                          <LogOut className="w-5 h-5 group-hover:translate-x-[-2px] transition-transform" />
+                          Se déconnecter
+                        </button>
+                      </div>
 
                       <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
                         <p className="text-xs text-gray-400 text-center">{user?.email ?? ""}</p>
