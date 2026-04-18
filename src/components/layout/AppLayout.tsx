@@ -67,9 +67,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: "Mon Compte",
     icon: UserCircle2,
     items: [
-      { to: "/profile", label: "Mes Infos", icon: UserCircle2 },
-      { to: "/virtual-stylist", label: "Mon Style", icon: Shirt },
-      { to: "/family", label: "Vendeurs", icon: Users },
+      { to: "/my-account", label: "Mon Compte", icon: UserCircle2 },
     ],
   },
 ];
@@ -211,7 +209,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Link
-                  to="/profile"
+                  to="/my-account"
                   className="flex items-center gap-1 text-xs font-medium text-amber-700 bg-amber-100 hover:bg-amber-200 border border-amber-300 px-2.5 py-1 rounded-md transition-colors"
                 >
                   <Key className="w-3 h-3" />

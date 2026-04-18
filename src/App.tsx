@@ -30,6 +30,7 @@ const StructureFormPage = lazy(() => import('./pages/StructureFormPage').then(m 
 const LotStructureFormPage = lazy(() => import('./pages/LotStructureFormPage').then(m => ({ default: m.LotStructureFormPage })));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const VirtualStylistPage = lazy(() => import('./pages/VirtualStylistPage').then(m => ({ default: m.VirtualStylistPage })));
+const MyAccountPage = lazy(() => import('./pages/MyAccountPage').then(m => ({ default: m.MyAccountPage })));
 const TimelinePlanningPage = lazy(() => import('./pages/TimelinePlanningPage'));
 const ToPublishPageV2 = lazy(() => import('./pages/ToPublishPageV2').then(m => ({ default: m.ToPublishPageV2 })));
 
@@ -122,6 +123,7 @@ function App() {
                         <Route path="/virtual-stylist" element={<VirtualStylistPage />} />
                         <Route path="/profile" element={<ProfilePage />} />
                         <Route path="/family" element={<FamilyMembersPage />} />
+                        <Route path="/my-account" element={<MyAccountPage />} />
                         <Route path="/settings" element={<SettingsPage />} />
                         <Route path="*" element={<Navigate to="/mon_dressing" replace />} />
                       </Routes>
