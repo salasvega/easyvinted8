@@ -183,7 +183,7 @@ export function ProfilePage() {
         />
       )}
       <div className="max-w-2xl">
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">Mon profil</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-6">Mes Infos</h1>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-base font-semibold text-gray-900 mb-4">Informations personnelles</h2>
