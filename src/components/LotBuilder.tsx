@@ -1487,12 +1487,12 @@ export default function LotBuilder({ isOpen, onClose, onSuccess, existingLotId, 
 
           {/* 8b) Section Sélection du Vendeur */}
           {familyMembers.length > 0 && lotData.selectedArticles.length > 0 && (
-            <Card className="border-rose-200 bg-gradient-to-br from-rose-50 to-pink-50">
+            <Card className="border-grey-200 bg-gradient-to-br from-grey-50 to-grey-50">
               <div className="flex items-center gap-2 mb-2">
-                <FileText className="w-4 h-4 text-rose-700" />
-                <h3 className="text-sm font-semibold text-rose-900">Vendeur</h3>
+                <FileText className="w-4 h-4 text-grey-700" />
+                <h3 className="text-sm font-semibold text-grey-900">Vendeur</h3>
               </div>
-              <p className="text-xs text-rose-600 mb-3">
+              <p className="text-xs text-grey-600 mb-3">
                 Au moment de la vente, le montant sera attribué aux statistiques du vendeur sélectionné.
               </p>
               <select
