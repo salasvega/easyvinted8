@@ -67,7 +67,7 @@ const NAV_SECTIONS: NavSection[] = [
     label: "Mon Compte",
     icon: UserCircle2,
     items: [
-      { to: "/profile", label: "Mon Profil", icon: UserCircle2 },
+      { to: "/profile", label: "Mes Infos", icon: UserCircle2 },
       { to: "/virtual-stylist", label: "Mon Style", icon: Shirt },
       { to: "/family", label: "Vendeurs", icon: Users },
     ],
