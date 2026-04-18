@@ -13,6 +13,7 @@ import { useUserProfileMutation } from '../hooks/useUserProfileMutation';
 import { usePersonas } from '../hooks/usePersonas';
 import { useFamilyMembers } from '../hooks/useFamilyMembers';
 import { useFamilyMembersMutation } from '../hooks/useFamilyMembersMutation';
+import { useSeller } from '../contexts/SellerContext';
 import type { UserProfile } from '../services/settings';
 import type { FamilyMember } from '../services/settings';
 
@@ -111,6 +112,7 @@ const SECTIONS = [
 export function MyAccountPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { activeSeller } = useSeller();
   const [activeSection, setActiveSection] = useState<Section>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -176,10 +178,23 @@ export function MyAccountPage() {
         vinted_password: (profileData as any).vinted_password || '',
         gemini_api_key: (profileData as any).gemini_api_key || '',
       });
-      setDefaultAvatarId((profileData as any).default_avatar_id || null);
-      setDefaultLocationId((profileData as any).default_location_id || null);
     }
   }, [profileData]);
+
+  useEffect(() => {
+    if (!activeSeller) return;
+    supabase
+      .from('family_members')
+      .select('default_avatar_id, default_location_id')
+      .eq('id', activeSeller.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          setDefaultAvatarId((data as any).default_avatar_id || null);
+          setDefaultLocationId((data as any).default_location_id || null);
+        }
+      });
+  }, [activeSeller]);
 
   useEffect(() => {
     const handleClickOutside = () => setActiveMenuId(null);
@@ -240,10 +255,14 @@ export function MyAccountPage() {
   }
 
   async function handleSaveDefaults() {
-    if (!user) return;
+    if (!user || !activeSeller) return;
     setSavingDefaults(true);
     try {
-      await supabase.from('user_profiles').update({ default_avatar_id: defaultAvatarId, default_location_id: defaultLocationId }).eq('id', user.id);
+      const { error } = await supabase
+        .from('family_members')
+        .update({ default_avatar_id: defaultAvatarId, default_location_id: defaultLocationId })
+        .eq('id', activeSeller.id);
+      if (error) throw error;
       setToast({ type: 'success', text: 'Sélection sauvegardée' });
     } catch {
       setToast({ type: 'error', text: 'Erreur lors de la sauvegarde' });
@@ -519,6 +538,7 @@ export function MyAccountPage() {
                         onSave={handleSaveDefaults}
                         savingDefaults={savingDefaults}
                         onNavigate={() => navigate('/virtual-stylist')}
+                        activeSellerName={activeSeller?.name ?? null}
                       />
                     )}
                   </div>
@@ -994,9 +1014,10 @@ interface MonStyleSectionProps {
   onSave: () => void;
   savingDefaults: boolean;
   onNavigate: () => void;
+  activeSellerName: string | null;
 }
 
-function MonStyleSection({ loading, avatars, locations, defaultAvatarId, setDefaultAvatarId, defaultLocationId, setDefaultLocationId, onSave, savingDefaults, onNavigate }: MonStyleSectionProps) {
+function MonStyleSection({ loading, avatars, locations, defaultAvatarId, setDefaultAvatarId, defaultLocationId, setDefaultLocationId, onSave, savingDefaults, onNavigate, activeSellerName }: MonStyleSectionProps) {
   if (loading) return (
     <div className="flex justify-center items-center py-8">
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
@@ -1007,6 +1028,12 @@ function MonStyleSection({ loading, avatars, locations, defaultAvatarId, setDefa
 
   return (
     <div className="space-y-6">
+      {activeSellerName && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 border border-emerald-200 rounded-lg">
+          <Users className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <span className="text-sm text-emerald-700">Style de <span className="font-semibold">{activeSellerName}</span></span>
+        </div>
+      )}
       {!hasContent ? (
         <div className="bg-gray-50 rounded-xl border border-gray-200 p-8 text-center">
           <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
