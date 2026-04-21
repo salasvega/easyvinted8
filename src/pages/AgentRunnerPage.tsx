@@ -6,6 +6,7 @@ import {
   Sparkles, Clock, GripVertical
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useSeller } from '../contexts/SellerContext';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -64,14 +65,18 @@ function buildCustomInstructions(
   itemModes: ItemModeMap,
   _runnerEndpoint: string,
   pendingCount: number,
-  vintedEmail: string | null
+  vintedEmail: string | null,
+  sellerName: string | null
 ): string {
   const lines: string[] = [];
 
   const getItemMode = (id: string): PublishMode => itemModes[id] ?? 'draft';
 
-  if (vintedEmail) {
-    lines.push(`Compte Vinted à utiliser : ${vintedEmail}`);
+  if (vintedEmail || sellerName) {
+    const parts: string[] = [];
+    if (vintedEmail) parts.push(`Compte Vinted à utiliser : ${vintedEmail}`);
+    if (sellerName) parts.push(`Vendeur: ${sellerName}`);
+    lines.push(parts.join(', '));
     lines.push('');
   }
 
@@ -103,6 +108,7 @@ function buildCustomInstructions(
 
 export default function AgentRunnerPage() {
   const { session } = useAuth();
+  const { activeSeller } = useSeller();
   const [pollResult, setPollResult] = useState<PollResult | null>(null);
   const [polling, setPolling] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
@@ -289,11 +295,12 @@ export default function AgentRunnerPage() {
       itemModes,
       pollResult.runner_endpoint,
       pollResult.pending_count,
-      vintedEmail
+      vintedEmail,
+      activeSeller?.name ?? null
     );
     setCustomInstructions(instructions);
     setShowInstructions(true);
-  }, [pollResult, selectedItems, itemModes, vintedEmail]);
+  }, [pollResult, selectedItems, itemModes, vintedEmail, activeSeller]);
 
   const copyText = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text).catch(() => {});
