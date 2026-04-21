@@ -72,13 +72,14 @@ function buildCustomInstructions(
 
   const getItemMode = (id: string): PublishMode => itemModes[id] ?? 'draft';
 
+  lines.push('Skill /publish-vinted :');
   if (vintedEmail || sellerName) {
     const parts: string[] = [];
     if (vintedEmail) parts.push(`Compte Vinted à utiliser : ${vintedEmail}`);
     if (sellerName) parts.push(`Vendeur: ${sellerName}`);
     lines.push(parts.join(', '));
-    lines.push('');
   }
+  lines.push('');
 
   if (pendingCount > 0) {
     lines.push(`Il y a ${pendingCount} tâche(s) en file d'attente — traite-les en priorité avant de commencer.`);
