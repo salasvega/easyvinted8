@@ -792,6 +792,27 @@ function MesInfosSection({ profile, setProfile, user, profileMutation, handlePro
             <Button type="submit" disabled={profileMutation.isPending}>{profileMutation.isPending ? 'Enregistrement...' : 'Enregistrer'}</Button>
           </div>
         </form>
+
+        <div className="border-t border-gray-200 mt-5 pt-5">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Modifier mon mot de passe</p>
+          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe actuel</label>
+              <input type="password" value={passwordData.currentPassword} onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="Votre mot de passe actuel" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
+              <input type="password" value={passwordData.newPassword} onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="Minimum 6 caractères" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le nouveau mot de passe</label>
+              <input type="password" value={passwordData.confirmPassword} onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="Confirmer le mot de passe" required />
+            </div>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={savingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}>{savingPassword ? 'Modification...' : 'Modifier le mot de passe'}</Button>
+            </div>
+          </form>
+        </div>
       </div>
 
       <div className="bg-gray-50 rounded-lg border border-gray-200 p-5">
@@ -840,53 +861,29 @@ function MesInfosSection({ profile, setProfile, user, profileMutation, handlePro
       <div className="bg-gray-50 rounded-lg border border-gray-200 p-5">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Mes identifiants</h3>
-            <p className="text-xs text-gray-500 mt-0.5">Identifiants Vinted (publication auto) et mot de passe Easyvinted</p>
+            <h3 className="text-sm font-semibold text-gray-900">Mes identifiants Vinted</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Optionnel — utilisés pour la publication automatique</p>
           </div>
+          <span className="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-full">Optionnel</span>
         </div>
-
-        <div className="space-y-5">
-          <form onSubmit={handleVintedCredentialsSubmit} className="space-y-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Compte Vinted</p>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email Vinted</label>
-              <input type="email" value={profile.vinted_email || ''} onChange={e => setProfile({ ...profile, vinted_email: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="votre@email.com" autoComplete="off" />
+        <form onSubmit={handleVintedCredentialsSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email Vinted</label>
+            <input type="email" value={profile.vinted_email || ''} onChange={e => setProfile({ ...profile, vinted_email: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="votre@email.com" autoComplete="off" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe Vinted</label>
+            <div className="relative">
+              <input type={showVintedPassword ? 'text' : 'password'} value={profile.vinted_password || ''} onChange={e => setProfile({ ...profile, vinted_password: e.target.value })} className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="Votre mot de passe Vinted" autoComplete="new-password" />
+              <button type="button" onClick={() => setShowVintedPassword(!showVintedPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                {showVintedPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe Vinted</label>
-              <div className="relative">
-                <input type={showVintedPassword ? 'text' : 'password'} value={profile.vinted_password || ''} onChange={e => setProfile({ ...profile, vinted_password: e.target.value })} className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="Votre mot de passe Vinted" autoComplete="new-password" />
-                <button type="button" onClick={() => setShowVintedPassword(!showVintedPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                  {showVintedPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={savingVintedCredentials}>{savingVintedCredentials ? 'Enregistrement...' : 'Enregistrer'}</Button>
-            </div>
-          </form>
-
-          <div className="border-t border-gray-200" />
-
-          <form onSubmit={handlePasswordSubmit} className="space-y-4">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Mot de passe Easyvinted</p>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe actuel</label>
-              <input type="password" value={passwordData.currentPassword} onChange={e => setPasswordData({ ...passwordData, currentPassword: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="Votre mot de passe actuel" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
-              <input type="password" value={passwordData.newPassword} onChange={e => setPasswordData({ ...passwordData, newPassword: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="Minimum 6 caractères" required />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Confirmer le nouveau mot de passe</label>
-              <input type="password" value={passwordData.confirmPassword} onChange={e => setPasswordData({ ...passwordData, confirmPassword: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm" placeholder="Confirmer le mot de passe" required />
-            </div>
-            <div className="flex justify-end">
-              <Button type="submit" disabled={savingPassword || !passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword}>{savingPassword ? 'Modification...' : 'Modifier le mot de passe'}</Button>
-            </div>
-          </form>
-        </div>
+          </div>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={savingVintedCredentials}>{savingVintedCredentials ? 'Enregistrement...' : 'Enregistrer'}</Button>
+          </div>
+        </form>
       </div>
     </div>
   );
