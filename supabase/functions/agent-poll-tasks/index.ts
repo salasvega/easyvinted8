@@ -54,8 +54,11 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    const url = new URL(req.url);
+    const sellerId = url.searchParams.get("seller_id");
+
     // Fetch pending tasks for this user
-    const { data: tasks, error: tasksError } = await supabase
+    let tasksQuery = supabase
       .from("task_queue")
       .select("id, command_type, seller_name, seller_id, article_id, article_title, params, natural_input, status, created_at")
       .eq("user_id", userId)
@@ -63,47 +66,77 @@ Deno.serve(async (req: Request) => {
       .order("created_at", { ascending: true })
       .limit(10);
 
+    if (sellerId) {
+      tasksQuery = tasksQuery.eq("seller_id", sellerId);
+    }
+
+    const { data: tasks, error: tasksError } = await tasksQuery;
+
     if (tasksError) throw tasksError;
 
     const now = new Date().toISOString();
 
     // Fetch ready articles
-    const { data: readyArticles } = await supabase
+    let readyArticlesQuery = supabase
       .from("articles")
-      .select("id, title, price, status, description, brand, size, condition, color, material, photos, publish_mode")
+      .select("id, title, price, status, description, brand, size, condition, color, material, photos, publish_mode, seller_id")
       .eq("user_id", userId)
       .eq("status", "ready")
       .order("created_at", { ascending: true })
       .limit(10);
+
+    if (sellerId) {
+      readyArticlesQuery = readyArticlesQuery.eq("seller_id", sellerId);
+    }
+
+    const { data: readyArticles } = await readyArticlesQuery;
 
     // Fetch scheduled articles whose scheduled_for date has passed
-    const { data: overdueArticles } = await supabase
+    let overdueArticlesQuery = supabase
       .from("articles")
-      .select("id, title, price, status, scheduled_for, description, brand, size, condition, color, material, photos, publish_mode")
+      .select("id, title, price, status, scheduled_for, description, brand, size, condition, color, material, photos, publish_mode, seller_id")
       .eq("user_id", userId)
       .eq("status", "scheduled")
       .lte("scheduled_for", now)
       .order("scheduled_for", { ascending: true })
       .limit(10);
 
+    if (sellerId) {
+      overdueArticlesQuery = overdueArticlesQuery.eq("seller_id", sellerId);
+    }
+
+    const { data: overdueArticles } = await overdueArticlesQuery;
+
     // Fetch ready lots
-    const { data: readyLots } = await supabase
+    let readyLotsQuery = supabase
       .from("lots")
-      .select("id, name, price, status, description, reference_number, publish_mode")
+      .select("id, name, price, status, description, reference_number, publish_mode, seller_id")
       .eq("user_id", userId)
       .eq("status", "ready")
       .order("created_at", { ascending: true })
       .limit(10);
 
+    if (sellerId) {
+      readyLotsQuery = readyLotsQuery.eq("seller_id", sellerId);
+    }
+
+    const { data: readyLots } = await readyLotsQuery;
+
     // Fetch scheduled lots whose scheduled_for date has passed
-    const { data: overdueLotsRaw } = await supabase
+    let overdueLotsQuery = supabase
       .from("lots")
-      .select("id, name, price, status, scheduled_for, description, reference_number, publish_mode")
+      .select("id, name, price, status, scheduled_for, description, reference_number, publish_mode, seller_id")
       .eq("user_id", userId)
       .eq("status", "scheduled")
       .lte("scheduled_for", now)
       .order("scheduled_for", { ascending: true })
       .limit(10);
+
+    if (sellerId) {
+      overdueLotsQuery = overdueLotsQuery.eq("seller_id", sellerId);
+    }
+
+    const { data: overdueLotsRaw } = await overdueLotsQuery;
 
     const overdueLots = overdueLotsRaw ?? [];
     const pendingCount = tasks?.length ?? 0;

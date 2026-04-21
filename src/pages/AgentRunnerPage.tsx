@@ -125,7 +125,11 @@ export default function AgentRunnerPage() {
     if (!session?.access_token) return;
     setPolling(true);
     try {
-      const res = await fetch(`${SUPABASE_URL}/functions/v1/agent-poll-tasks`, {
+      const params = new URLSearchParams();
+      if (activeSeller?.id) params.set('seller_id', activeSeller.id);
+      const qs = params.toString();
+      const url = `${SUPABASE_URL}/functions/v1/agent-poll-tasks${qs ? `?${qs}` : ''}`;
+      const res = await fetch(url, {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
           apikey: SUPABASE_ANON_KEY,
@@ -136,7 +140,7 @@ export default function AgentRunnerPage() {
     } finally {
       setPolling(false);
     }
-  }, [session?.access_token]);
+  }, [session?.access_token, activeSeller?.id]);
 
   useEffect(() => {
     pollTasks();
