@@ -6,6 +6,7 @@ import { PublishFormModal } from '../components/PublishFormModal';
 import { ToPublishPageSkeleton } from '../components/ui/ToPublishPageSkeleton';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
+import { useSeller } from '../contexts/SellerContext';
 import type { Article } from '../types/article';
 import type { Lot } from '../types/lot';
 
@@ -28,6 +29,7 @@ type SortOrder = 'asc' | 'desc';
 export function ToPublishPageV2() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { activeSeller } = useSeller();
   const [items, setItems] = useState<PublishableItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [daysFilter, setDaysFilter] = useState(7);
@@ -42,7 +44,7 @@ export function ToPublishPageV2() {
     if (user) {
       loadItems();
     }
-  }, [user, daysFilter]);
+  }, [user, daysFilter, activeSeller?.id]);
 
   async function loadItems() {
     if (!user) return;
@@ -53,7 +55,7 @@ export function ToPublishPageV2() {
       const targetDate = new Date();
       targetDate.setDate(targetDate.getDate() + daysFilter);
 
-      const { data: articles, error: articlesError } = await supabase
+      let articlesQuery = supabase
         .from('articles')
         .select('*')
         .eq('user_id', user.id)
@@ -61,9 +63,15 @@ export function ToPublishPageV2() {
         .or(`scheduled_for.is.null,scheduled_for.lte.${targetDate.toISOString()}`)
         .order('scheduled_for', { ascending: true, nullsFirst: false });
 
+      if (activeSeller?.id) {
+        articlesQuery = articlesQuery.eq('seller_id', activeSeller.id);
+      }
+
+      const { data: articles, error: articlesError } = await articlesQuery;
+
       if (articlesError) throw articlesError;
 
-      const { data: lots, error: lotsError } = await supabase
+      let lotsQuery = supabase
         .from('lots')
         .select(`
           *,
@@ -83,6 +91,12 @@ export function ToPublishPageV2() {
         .in('status', ['ready', 'scheduled'])
         .or(`scheduled_for.is.null,scheduled_for.lte.${targetDate.toISOString()}`)
         .order('scheduled_for', { ascending: true, nullsFirst: false });
+
+      if (activeSeller?.id) {
+        lotsQuery = lotsQuery.eq('seller_id', activeSeller.id);
+      }
+
+      const { data: lots, error: lotsError } = await lotsQuery;
 
       if (lotsError) throw lotsError;
 
