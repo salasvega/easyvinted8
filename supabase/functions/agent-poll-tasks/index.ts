@@ -64,7 +64,7 @@ Deno.serve(async (req: Request) => {
       .eq("user_id", userId)
       .eq("status", "pending")
       .order("created_at", { ascending: true })
-      .limit(10);
+      .limit(50);
 
     if (sellerId) {
       tasksQuery = tasksQuery.eq("seller_id", sellerId);
@@ -83,7 +83,7 @@ Deno.serve(async (req: Request) => {
       .eq("user_id", userId)
       .eq("status", "ready")
       .order("created_at", { ascending: true })
-      .limit(10);
+      .limit(50);
 
     if (sellerId) {
       readyArticlesQuery = readyArticlesQuery.eq("seller_id", sellerId);
@@ -99,7 +99,7 @@ Deno.serve(async (req: Request) => {
       .eq("status", "scheduled")
       .lte("scheduled_for", now)
       .order("scheduled_for", { ascending: true })
-      .limit(10);
+      .limit(50);
 
     if (sellerId) {
       overdueArticlesQuery = overdueArticlesQuery.eq("seller_id", sellerId);
@@ -114,7 +114,7 @@ Deno.serve(async (req: Request) => {
       .eq("user_id", userId)
       .eq("status", "ready")
       .order("created_at", { ascending: true })
-      .limit(10);
+      .limit(50);
 
     if (sellerId) {
       readyLotsQuery = readyLotsQuery.eq("seller_id", sellerId);
@@ -130,7 +130,7 @@ Deno.serve(async (req: Request) => {
       .eq("status", "scheduled")
       .lte("scheduled_for", now)
       .order("scheduled_for", { ascending: true })
-      .limit(10);
+      .limit(50);
 
     if (sellerId) {
       overdueLotsQuery = overdueLotsQuery.eq("seller_id", sellerId);
