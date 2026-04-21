@@ -63,11 +63,17 @@ function buildCustomInstructions(
   items: ReadyItem[],
   itemModes: ItemModeMap,
   _runnerEndpoint: string,
-  pendingCount: number
+  pendingCount: number,
+  vintedEmail: string | null
 ): string {
   const lines: string[] = [];
 
   const getItemMode = (id: string): PublishMode => itemModes[id] ?? 'draft';
+
+  if (vintedEmail) {
+    lines.push(`Compte Vinted à utiliser : ${vintedEmail}`);
+    lines.push('');
+  }
 
   if (pendingCount > 0) {
     lines.push(`Il y a ${pendingCount} tâche(s) en file d'attente — traite-les en priorité avant de commencer.`);
@@ -103,6 +109,7 @@ export default function AgentRunnerPage() {
   const [itemModes, setItemModes] = useState<ItemModeMap>({});
   const [customInstructions, setCustomInstructions] = useState<string>('');
   const [copied, setCopied] = useState(false);
+  const [vintedEmail, setVintedEmail] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
   const dragItem = useRef<number | null>(null);
@@ -128,6 +135,23 @@ export default function AgentRunnerPage() {
   useEffect(() => {
     pollTasks();
   }, [pollTasks]);
+
+  useEffect(() => {
+    if (!session?.access_token || !session?.user?.id) return;
+    fetch(`${SUPABASE_URL}/rest/v1/user_profiles?id=eq.${session.user.id}&select=vinted_email`, {
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: SUPABASE_ANON_KEY,
+      },
+    })
+      .then(r => r.json())
+      .then(rows => {
+        if (Array.isArray(rows) && rows.length > 0) {
+          setVintedEmail(rows[0].vinted_email ?? null);
+        }
+      })
+      .catch(() => {});
+  }, [session?.access_token, session?.user?.id]);
 
   const allItems = useMemo<ReadyItem[]>(() => {
     if (!pollResult) return [];
@@ -264,11 +288,12 @@ export default function AgentRunnerPage() {
       selectedItems,
       itemModes,
       pollResult.runner_endpoint,
-      pollResult.pending_count
+      pollResult.pending_count,
+      vintedEmail
     );
     setCustomInstructions(instructions);
     setShowInstructions(true);
-  }, [pollResult, selectedItems, itemModes]);
+  }, [pollResult, selectedItems, itemModes, vintedEmail]);
 
   const copyText = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text).catch(() => {});
