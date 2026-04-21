@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Clipboard as ClipboardEdit, MoreVertical, Copy, Trash2, DollarSign, Calendar, Clock, CheckCircle2, FileText, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, Upload, Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen, TrendingUp, CheckSquare, Euro } from 'lucide-react';
+import { Eye, Clipboard as ClipboardEdit, MoreVertical, Copy, Trash2, DollarSign, Calendar, Clock, CheckCircle2, FileText, Send, Flower2, Sun, Leaf, Snowflake, CloudSun, Upload, Package, Plus, Layers, Search, X, LayoutGrid, List, Sparkles, ShoppingBag, SquarePen, CheckSquare, Euro } from 'lucide-react';
 import { Article, ArticleStatus, Season } from '../types/article';
 import { supabase } from '../lib/supabase';
 import { Modal } from '../components/ui/Modal';
@@ -455,8 +455,9 @@ export function MonDressingPage() {
       .reduce((sum, item) => sum + (item.net_profit || 0), 0);
 
     const totalSold = soldArticles + soldLots;
-    const totalPublished = publishedArticles + publishedLots;
-    const conversionRate = totalPublished > 0 ? (totalSold / totalPublished) * 100 : 0;
+
+    const vintedDraftArticles = articles.filter(a => a.status === 'vinted_draft').length;
+    const vintedDraftLots = lots.filter(l => l.status === 'vinted_draft').length;
 
     return {
       total: totalArticles + totalLots,
@@ -465,12 +466,12 @@ export function MonDressingPage() {
       drafts: draftArticles + draftLots,
       ready: readyArticles + readyLots,
       scheduled: scheduledArticles + scheduledLots,
+      vintedDrafts: vintedDraftArticles + vintedDraftLots,
       published: publishedArticles + publishedLots,
       sold: totalSold,
       soldArticles: soldArticles,
       soldLots: soldLots,
       netProfit: totalNetProfit,
-      conversionRate: conversionRate
     };
   }, [filteredItems]);
 
@@ -780,6 +781,19 @@ export function MonDressingPage() {
             </div>
 
             <div
+              onClick={() => handleStatClick('vinted_draft')}
+              className={`bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-sm px-3 py-3 border ${statusFilter === 'vinted_draft' ? 'border-purple-400 ring-2 ring-purple-300' : 'border-purple-200'} hover:shadow-md transition-all cursor-pointer group`}
+            >
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <div className="w-7 h-7 rounded-lg bg-purple-200 flex items-center justify-center group-hover:bg-purple-300 transition-colors flex-shrink-0">
+                  <Send className="w-3.5 h-3.5 text-purple-600" />
+                </div>
+                <div className="text-xs font-medium text-purple-600 truncate">Brouillon Vinted</div>
+              </div>
+              <div className="text-base font-semibold text-purple-700 truncate">{stats.vintedDrafts}</div>
+            </div>
+
+            <div
               onClick={() => handleStatClick('published')}
               className={`bg-gradient-to-br from-violet-50 to-violet-100 rounded-xl shadow-sm px-3 py-3 border ${statusFilter === 'published' ? 'border-violet-400 ring-2 ring-violet-300' : 'border-violet-200'} hover:shadow-md transition-all cursor-pointer group`}
             >
@@ -803,18 +817,6 @@ export function MonDressingPage() {
                 <div className="text-xs font-medium text-teal-600 truncate">Vendus</div>
               </div>
               <div className="text-base font-semibold text-teal-700 truncate">{stats.sold}</div>
-            </div>
-
-            <div
-              className="bg-gradient-to-br from-cyan-50 to-cyan-100 rounded-xl shadow-sm px-3 py-3 border border-cyan-200 hover:shadow-md transition-all cursor-default group"
-            >
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <div className="w-7 h-7 rounded-lg bg-cyan-200 flex items-center justify-center group-hover:bg-cyan-300 transition-colors flex-shrink-0">
-                  <TrendingUp className="w-3.5 h-3.5 text-cyan-600" />
-                </div>
-                <div className="text-xs font-medium text-cyan-600 truncate">Conversion</div>
-              </div>
-              <div className="text-base font-semibold text-cyan-700 truncate">{stats.conversionRate.toFixed(1)}%</div>
             </div>
 
             <div
