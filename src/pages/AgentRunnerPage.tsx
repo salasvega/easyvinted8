@@ -3,7 +3,7 @@ import {
   Copy, RefreshCw, Zap, ChevronDown, ChevronUp,
   Calendar, CheckCircle2,
   ToggleLeft, ToggleRight, AlertCircle,
-  Sparkles, Clock, X, GripVertical
+  Sparkles, Clock, GripVertical
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -26,24 +26,6 @@ async function savePublishMode(
       Prefer: 'return=minimal',
     },
     body: JSON.stringify({ publish_mode: mode }),
-  });
-}
-
-async function revertItemToDraft(
-  itemId: string,
-  itemType: 'article' | 'lot',
-  token: string
-): Promise<void> {
-  const table = itemType === 'lot' ? 'lots' : 'articles';
-  await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${itemId}`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      apikey: SUPABASE_ANON_KEY,
-      'Content-Type': 'application/json',
-      Prefer: 'return=minimal',
-    },
-    body: JSON.stringify({ status: 'draft' }),
   });
 }
 
@@ -121,8 +103,7 @@ export default function AgentRunnerPage() {
   const [itemModes, setItemModes] = useState<ItemModeMap>({});
   const [customInstructions, setCustomInstructions] = useState<string>('');
   const [copied, setCopied] = useState(false);
-  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
-  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [orderedIds, setOrderedIds] = useState<string[]>([]);
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
@@ -236,16 +217,14 @@ export default function AgentRunnerPage() {
 
   const getMode = useCallback((itemId: string): PublishMode => itemModes[itemId] ?? 'draft', [itemModes]);
 
-  const removeItem = useCallback(async (item: ReadyItem) => {
-    if (!session?.access_token) return;
-    setRemovingId(item.id);
-    try {
-      await revertItemToDraft(item.id, item.type, session.access_token);
-      setRemovedIds(prev => new Set([...prev, item.id]));
-    } finally {
-      setRemovingId(null);
-    }
-  }, [session?.access_token]);
+  const toggleSelected = useCallback((itemId: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     if (allItems.length === 0) return;
@@ -255,33 +234,41 @@ export default function AgentRunnerPage() {
       const pruned = prev.filter(id => allItems.some(i => i.id === id));
       return [...pruned, ...newIds];
     });
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      allItems.forEach(i => next.add(i.id));
+      return next;
+    });
   }, [allItems]);
 
   const visibleItems = useMemo(() => {
-    const base = allItems.filter(i => !removedIds.has(i.id));
-    if (orderedIds.length === 0) return base;
-    const idToItem = new Map(base.map(i => [i.id, i]));
+    if (orderedIds.length === 0) return allItems;
+    const idToItem = new Map(allItems.map(i => [i.id, i]));
     const ordered = orderedIds.filter(id => idToItem.has(id)).map(id => idToItem.get(id)!);
-    const rest = base.filter(i => !orderedIds.includes(i.id));
+    const rest = allItems.filter(i => !orderedIds.includes(i.id));
     return [...ordered, ...rest];
-  }, [allItems, removedIds, orderedIds]);
+  }, [allItems, orderedIds]);
+
+  const selectedItems = useMemo(() =>
+    visibleItems.filter(i => selectedIds.has(i.id)),
+  [visibleItems, selectedIds]);
 
   const { draftCount, liveCount } = useMemo(() => ({
-    draftCount: visibleItems.filter(i => (itemModes[i.id] ?? 'draft') === 'draft').length,
-    liveCount: visibleItems.filter(i => (itemModes[i.id] ?? 'draft') === 'live').length,
-  }), [visibleItems, itemModes]);
+    draftCount: selectedItems.filter(i => (itemModes[i.id] ?? 'draft') === 'draft').length,
+    liveCount: selectedItems.filter(i => (itemModes[i.id] ?? 'draft') === 'live').length,
+  }), [selectedItems, itemModes]);
 
   const generateInstructions = useCallback(() => {
     if (!pollResult) return;
     const instructions = buildCustomInstructions(
-      visibleItems,
+      selectedItems,
       itemModes,
       pollResult.runner_endpoint,
       pollResult.pending_count
     );
     setCustomInstructions(instructions);
     setShowInstructions(true);
-  }, [pollResult, visibleItems, itemModes]);
+  }, [pollResult, selectedItems, itemModes]);
 
   const copyText = useCallback(async (text: string) => {
     await navigator.clipboard.writeText(text).catch(() => {});
@@ -331,7 +318,10 @@ export default function AgentRunnerPage() {
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50">
             <h2 className="font-semibold text-slate-800 flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-amber-500" />
-              Items prêts à publier ({visibleItems.length})
+              Items prêts à publier
+              <span className="text-sm font-normal text-slate-400">
+                {selectedItems.length}/{visibleItems.length} sélectionnés
+              </span>
             </h2>
             <div className="flex items-center gap-2">
               <button
@@ -351,7 +341,21 @@ export default function AgentRunnerPage() {
 
           {/* Column headers */}
           <div className="grid grid-cols-12 gap-3 px-5 py-2.5 bg-slate-50 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <div className="col-span-1"></div>
+            <div className="col-span-1 flex items-center justify-center">
+              <input
+                type="checkbox"
+                checked={visibleItems.length > 0 && visibleItems.every(i => selectedIds.has(i.id))}
+                onChange={() => {
+                  const allSelected = visibleItems.every(i => selectedIds.has(i.id));
+                  if (allSelected) {
+                    setSelectedIds(new Set());
+                  } else {
+                    setSelectedIds(new Set(visibleItems.map(i => i.id)));
+                  }
+                }}
+                className="w-4 h-4 rounded border-slate-300 text-slate-700 focus:ring-slate-500 cursor-pointer"
+              />
+            </div>
             <div className="col-span-5">Item</div>
             <div className="col-span-2">Prix</div>
             <div className="col-span-1">Planif.</div>
@@ -363,7 +367,7 @@ export default function AgentRunnerPage() {
             {visibleItems.map((item, index) => {
               const mode = getMode(item.id);
               const isLive = mode === 'live';
-              const isRemoving = removingId === item.id;
+              const isSelected = selectedIds.has(item.id);
 
               const handleDragStart = (e: React.DragEvent) => {
                 dragItem.current = index;
@@ -407,14 +411,21 @@ export default function AgentRunnerPage() {
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
                   onDragEnd={handleDragEnd}
-                  className={`grid grid-cols-12 gap-3 px-5 py-4 items-center transition-colors cursor-grab active:cursor-grabbing select-none ${
-                    isLive ? 'hover:bg-emerald-50/40' : 'hover:bg-blue-50/40'
+                  className={`grid grid-cols-12 gap-3 px-5 py-4 items-center transition-all cursor-grab active:cursor-grabbing select-none ${
+                    !isSelected
+                      ? 'opacity-40 hover:opacity-60'
+                      : isLive ? 'hover:bg-emerald-50/40' : 'hover:bg-blue-50/40'
                   }`}
                 >
-                  {/* Drag handle + order number */}
+                  {/* Checkbox + order number */}
                   <div className="col-span-1 flex items-center gap-1.5">
-                    <GripVertical className="w-4 h-4 text-slate-300 flex-shrink-0" />
-                    <span className="text-xs font-bold text-slate-300 tabular-nums">{index + 1}</span>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleSelected(item.id)}
+                      className="w-4 h-4 rounded border-slate-300 text-slate-700 focus:ring-slate-500 cursor-pointer flex-shrink-0"
+                    />
+                    <span className={`text-xs font-bold tabular-nums ${isSelected ? 'text-slate-400' : 'text-slate-200'}`}>{index + 1}</span>
                   </div>
 
                   {/* Item info */}
@@ -491,19 +502,9 @@ export default function AgentRunnerPage() {
                     </button>
                   </div>
 
-                  {/* Remove button */}
+                  {/* Drag handle */}
                   <div className="col-span-1 flex items-center justify-center">
-                    <button
-                      onClick={() => removeItem(item)}
-                      disabled={isRemoving}
-                      title="Retirer de la liste (repasse en brouillon EasyVinted)"
-                      className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {isRemoving
-                        ? <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        : <X className="w-3.5 h-3.5" />
-                      }
-                    </button>
+                    <GripVertical className="w-4 h-4 text-slate-300" />
                   </div>
                 </div>
               );
@@ -519,11 +520,11 @@ export default function AgentRunnerPage() {
               </div>
               <button
                 onClick={generateInstructions}
-                disabled={visibleItems.length === 0}
+                disabled={selectedItems.length === 0}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 text-white text-sm font-semibold hover:bg-slate-700 disabled:opacity-50 transition-colors shadow-sm"
               >
                 <Zap className="w-4 h-4" />
-                Générer les instructions Claude
+                Générer les instructions ({selectedItems.length})
               </button>
             </div>
           </div>
