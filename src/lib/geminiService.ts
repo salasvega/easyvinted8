@@ -1,4 +1,40 @@
 import { callGeminiProxy } from './geminiProxy';
+import { COLORS, MATERIALS } from '../constants/articleAttributes';
+
+const VALID_CONDITIONS = ['new_with_tags', 'new_without_tags', 'very_good', 'good', 'satisfactory'] as const;
+const VALID_SEASONS = ['spring', 'summer', 'autumn', 'winter', 'all-seasons'] as const;
+const VALID_GENDERS = ['Femmes', 'Hommes', 'Enfants', 'Mixte'] as const;
+
+function findClosestMatch(value: string, referential: readonly string[] | string[]): string | null {
+  if (!value) return null;
+  const lower = value.toLowerCase().trim();
+  const exact = referential.find(r => r.toLowerCase() === lower);
+  if (exact) return exact;
+  const startsWith = referential.find(r => lower.startsWith(r.toLowerCase()) || r.toLowerCase().startsWith(lower));
+  if (startsWith) return startsWith;
+  const includes = referential.find(r => lower.includes(r.toLowerCase()) || r.toLowerCase().includes(lower));
+  if (includes) return includes;
+  return null;
+}
+
+function normalizeProductData(product: ProductData): ProductData {
+  if (product.color) {
+    product.color = findClosestMatch(product.color, COLORS) || product.color;
+  }
+  if (product.material) {
+    product.material = findClosestMatch(product.material, MATERIALS) || product.material;
+  }
+  if (product.condition && !VALID_CONDITIONS.includes(product.condition as any)) {
+    product.condition = 'good';
+  }
+  if (product.season && !VALID_SEASONS.includes(product.season as any)) {
+    product.season = 'all-seasons';
+  }
+  if (product.gender && !VALID_GENDERS.includes(product.gender as any)) {
+    product.gender = 'Mixte';
+  }
+  return product;
+}
 
 const HUMAN_IPHONE_CONSTRAINTS =
   "Output must look like an ordinary iPhone photo taken by a real person: natural ambient light, slightly imperfect framing, faithful colors, mild sensor grain, no studio look, no editorial styling, no seamless/gradient background, no HDR/glow, no over-sharpening, no AI-smoothed/plastic textures, no obvious AI artifacts. Keep it believable.";
@@ -118,8 +154,12 @@ ${writingStyleInstruction}
        - size: The size if visible on tags/labels (e.g., "M", "38", "42", "S", "XL", etc. - if not visible, return null)
 
     3. PHYSICAL ATTRIBUTES:
-       - color: The main color in French (e.g., "Bleu", "Rouge", "Noir", "Beige", "Multicolore", etc.)
-       - material: The fabric/material if identifiable (e.g., "Coton", "Polyester", "Laine", "Jean", "Cuir", "Soie", etc. - if uncertain, return null)
+       - color: The main color in French. You MUST return exactly one value from this list:
+         [${COLORS.map(c => `"${c}"`).join(', ')}]
+         If the exact color is not in the list, pick the closest match. For multi-colored items, return "Multicolore".
+       - material: The fabric/material if identifiable. You MUST return exactly one value from this list:
+         [${MATERIALS.map(m => `"${m}"`).join(', ')}]
+         If the exact material is not in the list, pick the closest match. If uncertain, return null.
 
     4. CONDITION:
        - condition: Assess the visible condition. Return ONE of these exact values:
@@ -213,7 +253,8 @@ ${writingStyleInstruction}
 
     if ('text' in result && result.text) {
       const parsed = JSON.parse(result.text);
-      return parsed.products || [];
+      const products: ProductData[] = parsed.products || [];
+      return products.map(normalizeProductData);
     }
     throw new Error("No text response from model");
   } catch (error: any) {

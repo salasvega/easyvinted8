@@ -8,7 +8,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const FUNCTION_VERSION = "3.3.0-GEMINI-2.5-FLASH-USER-KEY-ONLY";
+const FUNCTION_VERSION = "3.4.0-REFERENTIAL-VALIDATION";
+
+const VALID_COLORS = [
+  'Abricot','Anthracite','Argenté','Beige','Blanc','Bleu','Bleu clair','Bleu pétrole',
+  'Bordeaux','Bronze','Camel','Chocolat','Corail','Crème','Cuivre','Doré','Écru',
+  'Fuchsia','Graphite','Gris','Indigo','Ivoire','Jaune','Kaki','Lila','Marine',
+  'Marron','Menthe','Moutarde','Multicolore','Noir','Nude','Orange','Prune','Rose',
+  'Rouge','Saumon','Taupe','Terracotta','Transparence','Turquoise','Vert',
+  "Vert d'eau",'Vert foncé','Vert olive','Violet'
+];
+
+const VALID_MATERIALS = [
+  'Acier','Acrylique','Alpaga','Argent','Bambou','Bois','Cachemire','Caoutchouc',
+  'Carton','Coton','Cuir','Cuir synthétique','Cuir verni','Céramique','Daim','Denim',
+  'Dentelle','Duvet','Fausse fourrure','Feutre','Flanelle','Jute','Laine','Latex',
+  'Lin','Maille','Mohair','Mousse','Mousseline','Mérinos','Métal','Nylon','Néoprène',
+  'Or','Paille','Papier','Peluche','Pierre','Plastique','Polaire','Polyester',
+  'Porcelaine','Rotin','Satin','Sequin','Silicone','Soie','Toile','Tulle','Tweed',
+  'Velours','Velous côtelé','Verre','Viscose','Élasthanne'
+];
+
+const VALID_CONDITIONS = ['new_with_tags','new_without_tags','very_good','good','satisfactory'];
+const VALID_SEASONS = ['spring','summer','autumn','winter','all-seasons'];
+
+function findClosestMatch(value: string, referential: string[]): string | null {
+  if (!value) return null;
+  const lower = value.toLowerCase().trim();
+  const exact = referential.find(r => r.toLowerCase() === lower);
+  if (exact) return exact;
+  const startsWith = referential.find(r => lower.startsWith(r.toLowerCase()) || r.toLowerCase().startsWith(lower));
+  if (startsWith) return startsWith;
+  const includes = referential.find(r => lower.includes(r.toLowerCase()) || r.toLowerCase().includes(lower));
+  if (includes) return includes;
+  return null;
+}
 
 interface AnalysisResult {
   title: string;
@@ -230,8 +264,8 @@ Ces informations du vendeur sont prioritaires et doivent guider l'integralite de
 - title: Titre accrocheur max 60 caracteres
 - description: Description de l'article en respectant strictement ce style de redaction : "${writingStyle}". Ne pas imposer de longueur fixe — la description doit etre naturelle et coherente avec le style. Mettre en valeur les points forts de l'article (matiere, etat, coupe, usage) sans inventer d'informations non visibles sur les photos.
 - brand: Marque visible sur l'article ou "Sans marque"
-- color: Couleur principale
-- material: Matiere principale si identifiable
+- color: Couleur principale. Tu DOIS retourner exactement une valeur parmi cette liste : [${VALID_COLORS.map(c => `"${c}"`).join(', ')}]. Si la couleur exacte n'est pas dans la liste, choisis la plus proche. Pour les articles multicolores, retourne "Multicolore".
+- material: Matiere principale si identifiable. Tu DOIS retourner exactement une valeur parmi cette liste : [${VALID_MATERIALS.map(m => `"${m}"`).join(', ')}]. Si la matiere exacte n'est pas dans la liste, choisis la plus proche. Si incertain, retourne null.
 - size: Taille de l'article. REGLE DE PRIORITE STRICTE — appliquer dans cet ordre exact :
   1. Etiquette de taille clairement lisible sur l'une des photos (priorite absolue).
   2. Taille explicitement mentionnee dans les informations du vendeur (ex: "taille 38", "pointure 42", "M", "XL") — si presente dans les infos utiles, utiliser cette valeur MEME si elle differe de la taille enregistree du vendeur.
@@ -311,15 +345,20 @@ Ces informations du vendeur sont prioritaires et doivent guider l'integralite de
 
       console.log("📊 RAW Gemini Response:", JSON.stringify(parsedResponse, null, 2));
 
+      const normalizedColor = findClosestMatch(parsedResponse.color, VALID_COLORS) || parsedResponse.color || "Multicolore";
+      const normalizedMaterial = parsedResponse.material ? (findClosestMatch(parsedResponse.material, VALID_MATERIALS) || parsedResponse.material) : undefined;
+      const normalizedCondition = VALID_CONDITIONS.includes(parsedResponse.condition) ? parsedResponse.condition : "good";
+      const normalizedSeason = VALID_SEASONS.includes(parsedResponse.season) ? parsedResponse.season : "all-seasons";
+
       const result: AnalysisResult = {
         title: parsedResponse.title || "Article à vendre",
         description: parsedResponse.description || "Article en bon état",
         brand: parsedResponse.brand || "Sans marque",
-        color: parsedResponse.color || "Multicolore",
-        material: parsedResponse.material,
+        color: normalizedColor,
+        material: normalizedMaterial,
         size: parsedResponse.size,
-        condition: parsedResponse.condition || "good",
-        season: parsedResponse.season || "all-seasons",
+        condition: normalizedCondition,
+        season: normalizedSeason,
         suggestedPeriod: parsedResponse.suggestedPeriod,
         estimatedPrice: parsedResponse.estimatedPrice,
         seoKeywords: parsedResponse.seoKeywords || [],
